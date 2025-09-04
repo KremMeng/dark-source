@@ -35,8 +35,6 @@ public class ActorController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //_rigid.velocity = movingVec;
-        //_rigid.position += movingVec * Time.fixedDeltaTime;
         _rigid.velocity = new Vector3(movingVec.x, _rigid.velocity.y, movingVec.z);
     }
 }

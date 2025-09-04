@@ -124,6 +124,8 @@ m_ResolvedPackages:
     - 2.8.1
     - 2.8.2
     - 2.9.1
+    - 2.9.2
+    - 2.9.3
     compatible:
     - 2.5.2
     - 2.6.0
@@ -131,6 +133,8 @@ m_ResolvedPackages:
     - 2.8.1
     - 2.8.2
     - 2.9.1
+    - 2.9.2
+    - 2.9.3
     verified: 2.5.2
   dependencies: []
   resolvedDependencies: []
@@ -781,6 +785,7 @@ m_ResolvedPackages:
     - 3.2.0-pre.10
     - 3.2.0-pre.11
     - 3.2.0-pre.12
+    - 3.2.0-pre.13
     - 4.0.0-pre.1
     - 4.0.0-pre.2
     compatible:
@@ -800,6 +805,7 @@ m_ResolvedPackages:
     - 3.2.0-pre.10
     - 3.2.0-pre.11
     - 3.2.0-pre.12
+    - 3.2.0-pre.13
     verified: 3.0.9
   dependencies:
   - name: com.unity.ugui
