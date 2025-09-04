@@ -13,11 +13,15 @@ public class PlayerInput : MonoBehaviour
     public float dirRight;
     public float targetDirUp;
     public float targetDirRight;
-    private float velocityUp;
-    private float velocityRight;
+    private float _velocityUp;
+    private float _velocityRight;
     [Space]
     //软开关flag
     public bool inputEnabled = true;
+    
+    [SerializeField] public float dirMagnity;
+    [SerializeField] public Vector3 dirVector;
+
     
     void Update()
     {
@@ -28,7 +32,10 @@ public class PlayerInput : MonoBehaviour
             targetDirUp = 0;
             targetDirRight = 0;
         }
-        dirUp = Mathf.SmoothDamp(dirUp, targetDirUp, ref velocityUp, 1.0f);
-        dirRight = Mathf.SmoothDamp(dirRight, targetDirRight, ref velocityRight, 1.0f);
+        dirUp = Mathf.SmoothDamp(dirUp, targetDirUp, ref _velocityUp, 1.0f);
+        dirRight = Mathf.SmoothDamp(dirRight, targetDirRight, ref _velocityRight, 1.0f);
+        
+        dirMagnity = Mathf.Sqrt(dirUp * dirUp + dirRight * dirRight);
+        dirVector = dirUp * transform.forward + dirRight * transform.right;
     }
 }
