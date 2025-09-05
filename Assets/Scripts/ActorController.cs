@@ -5,7 +5,9 @@ public class ActorController : MonoBehaviour
     private static readonly int Forward = Animator.StringToHash("forward");
     public GameObject model;
     public PlayerInput pi;
-    public float walkingSpeed;
+    public float walkingSpeed = 1.5f;
+    public float runningSpeed = 2.0f;
+   
 
     [SerializeField] 
     private Animator anim;
@@ -23,14 +25,14 @@ public class ActorController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        anim.SetFloat(Forward, pi.dirMagnity);
+        anim.SetFloat(Forward, pi.dirMagnity*(pi.run?2.0f:1.0f));
         //角色朝向
         if (pi.dirMagnity > 0.1f)
         {
             model.transform.forward = pi.dirVector;
         }
         //刚体移动
-        movingVec = model.transform.forward * (pi.dirMagnity*walkingSpeed);
+        movingVec = model.transform.forward * (pi.dirMagnity*walkingSpeed * (pi.run?runningSpeed:1.0f));
     }
 
     private void FixedUpdate()

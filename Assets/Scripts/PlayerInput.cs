@@ -2,12 +2,20 @@ using UnityEngine;
 
 public class PlayerInput : MonoBehaviour
 {
+    [Header("===== Key settings =====")]
     //定义键位
     public string keyUp = "w";
     public string keyDown = "s";
     public string keyLeft = "a";
     public string keyRight = "d";
-    [Space]
+
+    public string keyA;
+    public string keyB;
+    public string keyC;
+    public string keyD;
+    
+    public bool run;
+    [Header("===== Outputs =====")]
     //定义方向轴
     public float dirUp;
     public float dirRight;
@@ -15,7 +23,8 @@ public class PlayerInput : MonoBehaviour
     public float targetDirRight;
     private float _velocityUp;
     private float _velocityRight;
-    [Space]
+    
+    [Header("===== Others =====")]
     //软开关flag
     public bool inputEnabled = true;
     
@@ -37,5 +46,7 @@ public class PlayerInput : MonoBehaviour
         
         dirMagnity = Mathf.Sqrt(dirUp * dirUp + dirRight * dirRight);
         dirVector = dirUp * transform.forward + dirRight * transform.right;
+
+        run = Input.GetKey(keyA);
     }
 }
