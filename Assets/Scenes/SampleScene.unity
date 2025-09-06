@@ -214,7 +214,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   model: {fileID: 723395573}
   pi: {fileID: 133751264}
-  walkingSpeed: 1.4
+  walkingSpeed: 1.9
   runningSpeed: 2.7
   anim: {fileID: 2035563238}
   movingVec: {x: 0, y: 0, z: 0}

@@ -25,11 +25,14 @@ public class ActorController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        anim.SetFloat(Forward, pi.dirMagnity*(pi.run?2.0f:1.0f));
+        
+        anim.SetFloat(Forward, pi.dirMagnity * Mathf.Lerp(anim.GetFloat(Forward) , (pi.run?2.0f:1.0f) ,0.3f) );
+        
         //角色朝向
         if (pi.dirMagnity > 0.1f)
         {
-            model.transform.forward = pi.dirVector;
+            //model.transform.forward = pi.dirVector;
+            model.transform.forward = Vector3.Slerp(model.transform.forward, pi.dirVector,0.3f);
         }
         //刚体移动
         movingVec = model.transform.forward * (pi.dirMagnity*walkingSpeed * (pi.run?runningSpeed:1.0f));

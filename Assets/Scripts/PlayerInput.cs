@@ -15,10 +15,10 @@ public class PlayerInput : MonoBehaviour
     public string keyD;
     
     public bool run;
-    [Header("===== Outputs =====")]
+    [Header("===== Output signals =====")]
     //定义方向轴
-    public float dirUp;
-    public float dirRight;
+    public float dirUpOrigin;
+    public float dirRightOrigin;
     public float targetDirUp;
     public float targetDirRight;
     private float _velocityUp;
@@ -41,12 +41,27 @@ public class PlayerInput : MonoBehaviour
             targetDirUp = 0;
             targetDirRight = 0;
         }
-        dirUp = Mathf.SmoothDamp(dirUp, targetDirUp, ref _velocityUp, 1.0f);
-        dirRight = Mathf.SmoothDamp(dirRight, targetDirRight, ref _velocityRight, 1.0f);
+        dirUpOrigin = Mathf.SmoothDamp(dirUpOrigin, targetDirUp, ref _velocityUp, 1.0f);
+        dirRightOrigin = Mathf.SmoothDamp(dirRightOrigin, targetDirRight, ref _velocityRight, 1.0f);
+        
+        //椭球映射
+        Vector2 circleInput = Square2Circle(new Vector2(dirRightOrigin, dirUpOrigin));
+        float dirRight = circleInput.x;
+        float dirUp = circleInput.y;
         
         dirMagnity = Mathf.Sqrt(dirUp * dirUp + dirRight * dirRight);
         dirVector = dirUp * transform.forward + dirRight * transform.right;
 
         run = Input.GetKey(keyA);
+    }
+
+    private Vector2 Square2Circle(Vector2 input)
+    {
+        Vector2 output = Vector2.zero;
+
+        output.x = input.x * Mathf.Sqrt(1 - (input.y * input.y) / 2);
+        output.y = input.y * Mathf.Sqrt(1 - (input.x * input.x) / 2);
+        
+        return output;
     }
 }
