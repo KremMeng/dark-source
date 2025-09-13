@@ -15,6 +15,9 @@ public class PlayerInput : MonoBehaviour
     public string keyD;
     
     public bool run;
+    public bool jump;
+    public bool lastJump;
+    
     [Header("===== Output signals =====")]
     //定义方向轴
     public float dirUpOrigin;
@@ -53,6 +56,17 @@ public class PlayerInput : MonoBehaviour
         dirVector = dirUp * transform.forward + dirRight * transform.right;
 
         run = Input.GetKey(keyA);
+        bool newJump = Input.GetKey(keyB);
+        
+        if (newJump != lastJump && newJump)
+        {
+            jump = true;
+        }
+        else {
+            jump = false;
+        }
+
+        lastJump = newJump;
     }
 
     private Vector2 Square2Circle(Vector2 input)

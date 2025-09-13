@@ -116,8 +116,8 @@
 -define:ROSLYN_ANALYZER_FIX
 -define:CSHARP_7_OR_LATER
 -define:CSHARP_7_3_OR_NEWER
--r:"K:/0.客户端/DarkSouls/Library/PackageCache/com.unity.ext.nunit@1.0.6/net35/unity-custom/nunit.framework.dll"
--r:"K:/0.客户端/DarkSouls/Library/PackageCache/com.unity.ide.rider@3.0.31/Rider/Editor/JetBrains.Rider.PathLocator.dll"
+-r:"K:/0.GameDev/DarkSouls/Library/PackageCache/com.unity.ext.nunit@1.0.6/net35/unity-custom/nunit.framework.dll"
+-r:"K:/0.GameDev/DarkSouls/Library/PackageCache/com.unity.ide.rider@3.0.31/Rider/Editor/JetBrains.Rider.PathLocator.dll"
 -r:"K:/unity/2021.3.45f1c1/Editor/Data/Managed/UnityEditor.Graphs.dll"
 -r:"K:/unity/2021.3.45f1c1/Editor/Data/Managed/UnityEngine/UnityEditor.CoreModule.dll"
 -r:"K:/unity/2021.3.45f1c1/Editor/Data/Managed/UnityEngine/UnityEditor.DeviceSimulatorModule.dll"
