@@ -48,6 +48,7 @@
     <Compile Include="Assets\Scripts\ActorController.cs" />
     <Compile Include="Assets\Scripts\PlayerInput.cs" />
     <Compile Include="Assets\Scripts\FSMOnExit.cs" />
+    <Compile Include="Assets\Scripts\CameraController.cs" />
     <Reference Include="UnityEngine">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

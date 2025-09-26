@@ -3,12 +3,12 @@ using UnityEngine;
 public class PlayerInput : MonoBehaviour
 {
     [Header("===== Key settings =====")]
-    //定义键位
+    //移动键位
     public string keyUp = "w";
     public string keyDown = "s";
     public string keyLeft = "a";
     public string keyRight = "d";
-
+    
     public string keyA;
     public string keyB;
     public string keyC;
@@ -18,14 +18,26 @@ public class PlayerInput : MonoBehaviour
     public bool jump;
     public bool lastJump;
     
+    //相机键位
+    public string cameraUp;
+    public string cameraDown;
+    public string cameraRight;
+    public string cameraLeft;
+    
     [Header("===== Output signals =====")]
     //定义方向轴
     public float dirUpOrigin;
     public float dirRightOrigin;
     public float targetDirUp;
     public float targetDirRight;
+    
+    public float lookUp;
+    public float lookRight;
+    
     private float _velocityUp;
     private float _velocityRight;
+    
+    
     
     [Header("===== Others =====")]
     //软开关flag
@@ -37,8 +49,11 @@ public class PlayerInput : MonoBehaviour
     
     void Update()
     {
+        lookUp = (Input.GetKey(cameraUp) ? 1.0f : 0) - (Input.GetKey(cameraDown) ? 1.0f : 0);
+        lookRight = (Input.GetKey(cameraRight) ? 1.0f : 0) - (Input.GetKey(cameraLeft) ? 1.0f : 0);
         targetDirUp = (Input.GetKey(keyUp) ? 1.0f : 0)- (Input.GetKey(keyDown) ? 1.0f : 0);
         targetDirRight = (Input.GetKey(keyRight) ? 1.0f : 0)- (Input.GetKey(keyLeft) ? 1.0f : 0);
+        
         if (inputEnabled == false)
         {
             targetDirUp = 0;
