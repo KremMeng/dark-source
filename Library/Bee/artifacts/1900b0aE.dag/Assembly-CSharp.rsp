@@ -351,6 +351,8 @@
 "Assets/Scripts/FSMClaerSignal.cs"
 "Assets/Scripts/FSMOnEnter.cs"
 "Assets/Scripts/FSMOnExit.cs"
+"Assets/Scripts/FSMOnUpdate.cs"
+"Assets/Scripts/OnGroundSensor.cs"
 "Assets/Scripts/PlayerInput.cs"
 -langversion:9.0
 /deterministic
