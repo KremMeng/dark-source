@@ -34,7 +34,7 @@ public class CameraController : MonoBehaviour
         //水平视角
         playerHandle.transform.Rotate(Vector3.up, playerInput.lookRight * horizontalSpeed * Time.fixedDeltaTime);
         //竖直视角
-        eulerPitch = eulerPitch - playerInput.lookUp * verticalSpeed * Time.deltaTime;
+        eulerPitch = eulerPitch - playerInput.lookUp * verticalSpeed * Time.fixedDeltaTime;
         eulerPitch = Mathf.Clamp(eulerPitch, -40, 30);
         cameraHandle.transform.localEulerAngles = new Vector3(eulerPitch, 0, 0);
         _model.transform.eulerAngles = eulerTemp;

@@ -17,6 +17,8 @@ public class PlayerInput : MonoBehaviour
     public bool run;
     public bool jump;
     public bool lastJump;
+    public bool attack;
+    public bool lastAttack;
     
     //相机键位
     public string cameraUp;
@@ -38,14 +40,12 @@ public class PlayerInput : MonoBehaviour
     private float _velocityRight;
     
     
-    
     [Header("===== Others =====")]
     //软开关flag
     public bool inputEnabled = true;
     
     [SerializeField] public float dirMagnity;
     [SerializeField] public Vector3 dirVector;
-
     
     void Update()
     {
@@ -72,6 +72,7 @@ public class PlayerInput : MonoBehaviour
 
         run = Input.GetKey(keyA);
         bool newJump = Input.GetKey(keyB);
+        bool newAttack = Input.GetKey(keyC);
         
         if (newJump != lastJump && newJump)
         {
@@ -80,8 +81,17 @@ public class PlayerInput : MonoBehaviour
         else {
             jump = false;
         }
-
         lastJump = newJump;
+
+        if (newAttack != lastAttack && newAttack)
+        {
+            attack = true;
+        }
+        else
+        {
+            attack = false;
+        }
+        lastAttack = newAttack;
     }
 
     private Vector2 Square2Circle(Vector2 input)

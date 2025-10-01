@@ -5,27 +5,36 @@ public class ActorController : MonoBehaviour
 {
     private static readonly int Forward = Animator.StringToHash("forward");
     private static readonly int Jump = Animator.StringToHash("jump");
-    private static readonly int IsGrounded = Animator.StringToHash("isGrounded");
     private static readonly int Roll = Animator.StringToHash("roll");
+    private static readonly int Attack = Animator.StringToHash("attack");
+    
     public GameObject model;
-    [FormerlySerializedAs("pi")] public PlayerInput playerInput;
+    public PlayerInput playerInput;
     public float walkingSpeed = 2.0f;
     public float runningSpeed = 2.0f;
     [FormerlySerializedAs("jumpingHeight")] public float jumpingVelocity = 2f;
     public float landingVelocity = 5.0f;
     public float rollVelocity;
 
-    [SerializeField] private Animator anim;
-    [SerializeField] private Rigidbody rigid;
-    [SerializeField] private bool lockPlaner;
-    [SerializeField] private Vector3 planerVec; 
-    [FormerlySerializedAs("jumpThrust")] [SerializeField] private Vector3 thrust;
+    [Space(10)] [Header("===== Friction Settings =====")]
+    public PhysicMaterial frictionOne;
+    public PhysicMaterial frictionZero;
+    
+    
+    private Animator anim;
+    private Rigidbody rigid;
+    private CapsuleCollider col;
+    private Vector3 planerVec; 
+    private Vector3 thrust;
+    private bool _canAttack;
+    private bool lockPlaner;
     // Start is called before the first frame update
     void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
         anim = model.GetComponent<Animator>();
         rigid = GetComponent<Rigidbody>();
+        col = GetComponent<CapsuleCollider>();
     }
     // Update is called once per frame
     void Update()
@@ -35,8 +44,14 @@ public class ActorController : MonoBehaviour
         if (playerInput.jump)
         {
             anim.SetTrigger(Jump);
+            _canAttack = false;
         }
-       
+
+        if (playerInput.attack && CheckState("ground") && _canAttack) //状态名，不要填成混合树参数
+        {
+            anim.SetTrigger(Attack);
+        }
+        
         if(rigid.velocity.magnitude >landingVelocity){
             anim.SetTrigger(Roll);
         }
@@ -59,7 +74,7 @@ public class ActorController : MonoBehaviour
     }
 
     /// <summary>
-    /// Message processing block
+    /// 信号处理块
     /// </summary>
     public void OnJumpEnter()
     {
@@ -82,6 +97,13 @@ public class ActorController : MonoBehaviour
     {
         playerInput.inputEnabled = true;
         lockPlaner = false;
+        _canAttack = true;
+        col.material = frictionOne;
+    }
+
+    public void OnGroundExit()
+    {
+        col.material = frictionZero;
     }
 
     public void OnFallEnter()
@@ -94,7 +116,7 @@ public class ActorController : MonoBehaviour
         
         playerInput.inputEnabled = false;
         lockPlaner = true;
-        thrust = new Vector3(0, rollVelocity,0);
+        thrust = new Vector3(0, rollVelocity,0); //向上的冲量
     }
     
     public void OnJabEnter(){
@@ -105,6 +127,37 @@ public class ActorController : MonoBehaviour
 
     public void OnJabUpdate()
     {
-        thrust = -model.transform.forward;
+        //thrust = -model.transform.forward;
+        thrust = model.transform.forward * anim.GetFloat("onJabVelocity"); //乘以曲线，曲线值为负，不需要加负号反向
+    }
+
+    //攻击部分状态机
+    //1.加Lerp平滑动画
+    public void OnAttack1hAEnter()
+    {
+        playerInput.inputEnabled = false;
+   //   lockPlaner = true;
+        //动态调整layer权重
+        anim.SetLayerWeight(anim.GetLayerIndex("attack"),1.0f);
+    }
+
+    public void OnAttackIdle()
+    {
+        playerInput.inputEnabled = true;
+    //  lockPlaner = false;
+        anim.SetLayerWeight(anim.GetLayerIndex("attack"),0);
+    }
+
+    public void OnAttack1hAUpdate()
+    {
+        thrust = anim.transform.forward * anim.GetFloat("attack1hAVelocity");
+    }
+    //2.限制攻击条件
+        //1.CheckState判断isGrounded状态才能 2.canAttack描述
+    private bool CheckState(string stateName,string layerName = "Base Layer")
+    {
+        int layerIndex = anim.GetLayerIndex(layerName);
+        bool result = anim.GetCurrentAnimatorStateInfo(layerIndex).IsName(stateName);
+        return result;
     }
 }
