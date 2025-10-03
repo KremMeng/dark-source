@@ -355,6 +355,7 @@
 "Assets/Scripts/FSMOnUpdate.cs"
 "Assets/Scripts/OnGroundSensor.cs"
 "Assets/Scripts/PlayerInput.cs"
+"Assets/TriggerResetter.cs"
 -langversion:9.0
 /deterministic
 /optimize+

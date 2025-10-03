@@ -7,7 +7,8 @@ public class ActorController : MonoBehaviour
     private static readonly int Jump = Animator.StringToHash("jump");
     private static readonly int Roll = Animator.StringToHash("roll");
     private static readonly int Attack = Animator.StringToHash("attack");
-    
+    private static readonly int Attack1HAVelocity = Animator.StringToHash("attack1hAVelocity");
+
     public GameObject model;
     public PlayerInput playerInput;
     public float walkingSpeed = 2.0f;
@@ -28,6 +29,8 @@ public class ActorController : MonoBehaviour
     private Vector3 thrust;
     private bool _canAttack;
     private bool lockPlaner;
+
+    private float layerWeighetTarget;
     // Start is called before the first frame update
     void Awake()
     {
@@ -138,19 +141,27 @@ public class ActorController : MonoBehaviour
         playerInput.inputEnabled = false;
    //   lockPlaner = true;
         //动态调整layer权重
-        anim.SetLayerWeight(anim.GetLayerIndex("attack"),1.0f);
+        layerWeighetTarget = 1.0f;
     }
 
     public void OnAttackIdle()
     {
         playerInput.inputEnabled = true;
     //  lockPlaner = false;
-        anim.SetLayerWeight(anim.GetLayerIndex("attack"),0);
+        layerWeighetTarget = 0f;
     }
 
     public void OnAttack1hAUpdate()
     {
-        thrust = anim.transform.forward * anim.GetFloat("attack1hAVelocity");
+        thrust = model.transform.forward * anim.GetFloat(Attack1HAVelocity); //model朝向的位移
+        //Idle到攻击动画做插值
+        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeighetTarget,0.4f));
+    }
+
+    public void OnAttackIdleUpdate()
+    {
+        //攻击到Idle动画做插值
+        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeighetTarget,0.01f* Time.deltaTime));
     }
     //2.限制攻击条件
         //1.CheckState判断isGrounded状态才能 2.canAttack描述
