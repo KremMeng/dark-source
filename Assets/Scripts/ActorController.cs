@@ -29,8 +29,9 @@ public class ActorController : MonoBehaviour
     private Vector3 thrust;
     private bool _canAttack;
     private bool lockPlaner;
+    private Vector3 deltaPos;
 
-    private float layerWeighetTarget;
+    private float layerWeightTarget;
     // Start is called before the first frame update
     void Awake()
     {
@@ -72,8 +73,10 @@ public class ActorController : MonoBehaviour
             //model.transform.forward = pi.dirVector;
             model.transform.forward = Vector3.Slerp(model.transform.forward, playerInput.dirVector,0.5f);
         }
+        rigid.position += deltaPos;
         rigid.velocity = new Vector3(planerVec.x, rigid.velocity.y, planerVec.z) + thrust;
         thrust = Vector3.zero;
+        deltaPos = Vector3.zero;
     }
 
     /// <summary>
@@ -141,27 +144,27 @@ public class ActorController : MonoBehaviour
         playerInput.inputEnabled = false;
    //   lockPlaner = true;
         //动态调整layer权重
-        layerWeighetTarget = 1.0f;
+        layerWeightTarget = 1.0f;
     }
 
     public void OnAttackIdle()
     {
         playerInput.inputEnabled = true;
     //  lockPlaner = false;
-        layerWeighetTarget = 0f;
+        layerWeightTarget = 0f;
     }
 
     public void OnAttack1hAUpdate()
     {
         thrust = model.transform.forward * anim.GetFloat(Attack1HAVelocity); //model朝向的位移
         //Idle到攻击动画做插值
-        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeighetTarget,0.4f));
+        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeightTarget,0.4f));
     }
 
     public void OnAttackIdleUpdate()
     {
         //攻击到Idle动画做插值
-        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeighetTarget,0.01f* Time.deltaTime));
+        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeightTarget,0.01f* Time.deltaTime));
     }
     //2.限制攻击条件
         //1.CheckState判断isGrounded状态才能 2.canAttack描述
@@ -170,5 +173,13 @@ public class ActorController : MonoBehaviour
         int layerIndex = anim.GetLayerIndex(layerName);
         bool result = anim.GetCurrentAnimatorStateInfo(layerIndex).IsName(stateName);
         return result;
+    }
+
+    void OnUpdateRM(object _deltaPos)
+    {
+        if (CheckState("attack1hC", "attack"))
+        {
+              deltaPos += (Vector3)_deltaPos;
+        }
     }
 }

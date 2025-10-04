@@ -733,9 +733,9 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
-  m_TransitionOffset: 0.0109779
-  m_ExitTime: 0.46320567
+  m_TransitionDuration: 0.25000006
+  m_TransitionOffset: 0.068178594
+  m_ExitTime: 0.5166758
   m_HasExitTime: 1
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
@@ -837,7 +837,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: attacl1hC
+  m_Name: attack1hC
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
