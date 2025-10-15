@@ -10,7 +10,7 @@ public class ActorController : MonoBehaviour
     private static readonly int Attack1HAVelocity = Animator.StringToHash("attack1hAVelocity");
 
     public GameObject model;
-    public PlayerInput playerInput;
+    public IUserInput playerInput;
     public float walkingSpeed = 2.0f;
     public float runningSpeed = 2.0f;
     [FormerlySerializedAs("jumpingHeight")] public float jumpingVelocity = 2f;
@@ -35,7 +35,17 @@ public class ActorController : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        playerInput = GetComponent<PlayerInput>();
+        IUserInput[] inputs = GetComponents<IUserInput>();
+        foreach (var input in inputs)
+        {
+            if (input.enabled == true)
+            {
+                playerInput = input;
+                break;
+            }
+        }
+        //playerInput = GetComponent<IUserInput>();
+        
         anim = model.GetComponent<Animator>();
         rigid = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
@@ -142,7 +152,7 @@ public class ActorController : MonoBehaviour
     public void OnAttack1hAEnter()
     {
         playerInput.inputEnabled = false;
-   //   lockPlaner = true;
+   lockPlaner = true;
         //动态调整layer权重
         layerWeightTarget = 1.0f;
     }
@@ -150,7 +160,7 @@ public class ActorController : MonoBehaviour
     public void OnAttackIdle()
     {
         playerInput.inputEnabled = true;
-    //  lockPlaner = false;
+     lockPlaner = false;
         layerWeightTarget = 0f;
     }
 
@@ -164,7 +174,7 @@ public class ActorController : MonoBehaviour
     public void OnAttackIdleUpdate()
     {
         //攻击到Idle动画做插值
-        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeightTarget,0.01f* Time.deltaTime));
+        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeightTarget,0.01f));
     }
     //2.限制攻击条件
         //1.CheckState判断isGrounded状态才能 2.canAttack描述
@@ -175,7 +185,7 @@ public class ActorController : MonoBehaviour
         return result;
     }
 
-    void OnUpdateRM(object _deltaPos)
+    public void OnUpdateRM(object _deltaPos)
     {
         if (CheckState("attack1hC", "attack"))
         {

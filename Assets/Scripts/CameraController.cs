@@ -3,14 +3,15 @@ using UnityEngine.Serialization;
 
 public class CameraController : MonoBehaviour
 {
-    public PlayerInput playerInput;
+    //public JoystickInput playerInput;
+    private IUserInput playerInput;
     
     private GameObject playerHandle;
     private GameObject cameraHandle;
     private GameObject _model;
     private GameObject _camera;
 
-    public float horizontalSpeed = 100.0f;
+    public float horizontalSpeed = 100.0f;     
     public float verticalSpeed = 80.0f;
     private Vector3 cameraDampVelocity;
     public float cameraOffset = 0.05f;
@@ -22,7 +23,11 @@ public class CameraController : MonoBehaviour
     {
         cameraHandle = transform.parent.gameObject;
         playerHandle = cameraHandle.transform.parent.gameObject;
-        _model = playerHandle.GetComponent<ActorController>().model;
+        //_model = playerHandle.GetComponent<ActorController>().model;
+        //playerInput = playerHandle.GetComponent<ActorController>().playerInput; 违反封装
+        ActorController ac = playerHandle.GetComponent<ActorController>(); //引用，局部变量
+        _model = ac.model;
+        playerInput = ac.playerInput;
         if (Camera.main != null) _camera = Camera.main.gameObject;
     }
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInput : IUserInput
 {
     [Header("===== Key settings =====")]
     //移动键位
@@ -14,39 +14,13 @@ public class PlayerInput : MonoBehaviour
     public string keyC;
     public string keyD;
     
-    public bool run;
-    public bool jump;
-    public bool lastJump;
-    public bool attack;
-    public bool lastAttack;
-    
     //相机键位
     public string cameraUp;
     public string cameraDown;
     public string cameraRight;
     public string cameraLeft;
     
-    [Header("===== Output signals =====")]
-    //定义方向轴
-    public float dirUpOrigin;
-    public float dirRightOrigin;
-    public float targetDirUp;
-    public float targetDirRight;
-    
-    public float lookUp;
-    public float lookRight;
-    
-    private float _velocityUp;
-    private float _velocityRight;
-    
-    
-    [Header("===== Others =====")]
-    //软开关flag
-    public bool inputEnabled = true;
-    
-    [SerializeField] public float dirMagnity;
-    [SerializeField] public Vector3 dirVector;
-    
+   
     void Update()
     {
         lookUp = (Input.GetKey(cameraUp) ? 1.0f : 0) - (Input.GetKey(cameraDown) ? 1.0f : 0);
@@ -71,6 +45,7 @@ public class PlayerInput : MonoBehaviour
         dirVector = dirUp * transform.forward + dirRight * transform.right;
 
         run = Input.GetKey(keyA);
+        
         bool newJump = Input.GetKey(keyB);
         bool newAttack = Input.GetKey(keyC);
         
@@ -94,13 +69,5 @@ public class PlayerInput : MonoBehaviour
         lastAttack = newAttack;
     }
 
-    private Vector2 Square2Circle(Vector2 input)
-    {
-        Vector2 output = Vector2.zero;
-
-        output.x = input.x * Mathf.Sqrt(1 - (input.y * input.y) / 2);
-        output.y = input.y * Mathf.Sqrt(1 - (input.x * input.x) / 2);
-        
-        return output;
-    }
+  
 }
