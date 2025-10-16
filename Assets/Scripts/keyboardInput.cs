@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerInput : IUserInput
+public class keyboardInput : IUserInput
 {
     [Header("===== Key settings =====")]
     //移动键位

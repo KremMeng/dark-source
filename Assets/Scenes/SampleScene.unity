@@ -167,6 +167,7 @@ GameObject:
   - component: {fileID: 133751266}
   - component: {fileID: 133751264}
   - component: {fileID: 133751265}
+  - component: {fileID: 133751267}
   m_Layer: 0
   m_Name: PlayerHanle
   m_TagString: Untagged
@@ -213,11 +214,25 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 133751259}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b02f7832db91c4d40b30c8894e168012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dirUpOrigin: 0
+  dirRightOrigin: 0
+  dirMagnity: 0
+  dirVector: {x: 0, y: 0, z: 0}
+  lookUp: 0
+  lookRight: 0
+  run: 0
+  jump: 0
+  lastJump: 0
+  attack: 0
+  lastAttack: 0
+  inputEnabled: 1
+  targetDirUp: 0
+  targetDirRight: 0
   keyUp: w
   keyDown: s
   keyLeft: a
@@ -226,24 +241,10 @@ MonoBehaviour:
   keyB: space
   keyC: k
   keyD: 
-  run: 0
-  jump: 0
-  lastJump: 0
-  attack: 0
-  lastAttack: 0
   cameraUp: up
   cameraDown: down
   cameraRight: right
   cameraLeft: left
-  dirUpOrigin: 0
-  dirRightOrigin: 0
-  targetDirUp: 0
-  targetDirRight: 0
-  lookUp: 0
-  lookRight: 0
-  inputEnabled: 1
-  dirMagnity: 0
-  dirVector: {x: 0, y: 0, z: 0}
 --- !u!114 &133751265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,7 +258,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   model: {fileID: 723395573}
-  playerInput: {fileID: 133751264}
+  playerInput: {fileID: 0}
   walkingSpeed: 2
   runningSpeed: 2
   jumpingVelocity: 3
@@ -281,6 +282,40 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!114 &133751267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 133751259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5101a0b8d8735241818ecce525c3687, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dirUpOrigin: 0
+  dirRightOrigin: 0
+  dirMagnity: 0
+  dirVector: {x: 0, y: 0, z: 0}
+  lookUp: 0
+  lookRight: 0
+  run: 0
+  jump: 0
+  lastJump: 0
+  attack: 0
+  lastAttack: 0
+  inputEnabled: 1
+  targetDirUp: 0
+  targetDirRight: 0
+  axisX: axisX
+  axisY: axisY
+  axisLookUp: axis4
+  axisLookRight: axis5
+  btnA: btn0
+  btnB: btn1
+  btnC: btn2
+  btnD: btn3
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -901,7 +936,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38a88426fe825994b842daabd07fd365, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerInput: {fileID: 133751264}
   horizontalSpeed: 100
   verticalSpeed: 80
   cameraOffset: 0.05
