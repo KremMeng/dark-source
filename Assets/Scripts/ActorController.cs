@@ -30,6 +30,7 @@ public class ActorController : MonoBehaviour
     private bool _canAttack;
     private bool lockPlaner;
     private Vector3 deltaPos;
+    public float alpha = 0.7f;
 
     private float layerWeightTarget;
     // Start is called before the first frame update
@@ -189,7 +190,8 @@ public class ActorController : MonoBehaviour
     {
         if (CheckState("attack1hC", "attack"))
         {
-              deltaPos += (Vector3)_deltaPos;
+              //deltaPos += (Vector3)_deltaPos;
+              deltaPos = alpha * deltaPos + (1 - alpha) * (Vector3)_deltaPos;
         }
     }
 }

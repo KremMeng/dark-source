@@ -233,6 +233,8 @@ MonoBehaviour:
   inputEnabled: 1
   targetDirUp: 0
   targetDirRight: 0
+  _velocityUp: 0
+  _velocityRight: 0
   keyUp: w
   keyDown: s
   keyLeft: a
@@ -938,7 +940,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   horizontalSpeed: 100
   verticalSpeed: 80
-  cameraOffset: 0.05
+  cameraOffset: 0.08
   eulerPitch: 20
 --- !u!1001 &2035563236
 PrefabInstance:
