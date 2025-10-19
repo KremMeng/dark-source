@@ -15,13 +15,24 @@ public class JoystickInput : IUserInput
     [FormerlySerializedAs("btn1")] public string btnB = "btn1";
     [FormerlySerializedAs("btn2")] public string btnC = "btn2";
     [FormerlySerializedAs("btn3")] public string btnD = "btn3";
-    
     public string btnLB = "btn4";
     
-   
+    public IButton buttonA = new IButton();
+    public IButton buttonB = new IButton();
+    public IButton buttonC = new IButton();
+    public IButton buttonD = new IButton();
+    public IButton buttonLB = new IButton();
+
     // Update is called once per frame
     void Update()
     {
+        buttonA.Tick(Input.GetButton(btnA));
+        buttonB.Tick(Input.GetButton(btnB));
+        buttonC.Tick(Input.GetButton(btnC));
+        buttonD.Tick(Input.GetButton(btnD));
+        buttonLB.Tick(Input.GetButton(btnLB));
+
+        
         lookUp = Input.GetAxis(axisLookUp);
         lookRight = Input.GetAxis(axisLookRight);
         
@@ -44,28 +55,9 @@ public class JoystickInput : IUserInput
         dirMagnity = Mathf.Sqrt(dirUp * dirUp + dirRight * dirRight);
         dirVector = dirUp * transform.forward + dirRight * transform.right;
 
-        run = Input.GetButton("btn0");
-        defense = Input.GetButton(btnLB);
-        bool newJump = Input.GetButtonDown("btn1");
-        if (newJump != lastJump && newJump)
-        {
-            jump = true;
-        }
-        else {
-            jump = false;
-        }
-        lastJump = newJump;
-        
-        bool newAttack = Input.GetButtonDown("btn2");
-        if (newAttack != lastAttack && newAttack)
-        {
-            attack = true;
-        }
-        else
-        {
-            attack = false;
-        }
-        lastAttack = newAttack;
-
+        run = buttonA.IsPressing;
+        defense = buttonLB.IsPressing;
+        jump = buttonB.OnPressed;
+        attack = buttonC.OnPressed;
     }
 }
