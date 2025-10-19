@@ -19,6 +19,7 @@ public abstract class IUserInput : MonoBehaviour
     public bool lastJump;
     public bool attack;
     public bool lastAttack;
+    public bool defense;
     
     [Header("===== Others =====")]
     //软开关flag

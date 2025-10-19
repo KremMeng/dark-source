@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -17,6 +15,8 @@ public class JoystickInput : IUserInput
     [FormerlySerializedAs("btn1")] public string btnB = "btn1";
     [FormerlySerializedAs("btn2")] public string btnC = "btn2";
     [FormerlySerializedAs("btn3")] public string btnD = "btn3";
+    
+    public string btnLB = "btn4";
     
    
     // Update is called once per frame
@@ -45,6 +45,7 @@ public class JoystickInput : IUserInput
         dirVector = dirUp * transform.forward + dirRight * transform.right;
 
         run = Input.GetButton("btn0");
+        defense = Input.GetButton(btnLB);
         bool newJump = Input.GetButtonDown("btn1");
         if (newJump != lastJump && newJump)
         {

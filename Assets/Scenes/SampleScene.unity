@@ -257,7 +257,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 133751259}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5101a0b8d8735241818ecce525c3687, type: 3}
   m_Name: 
@@ -273,6 +273,7 @@ MonoBehaviour:
   lastJump: 0
   attack: 0
   lastAttack: 0
+  defense: 0
   inputEnabled: 1
   targetDirUp: 0
   targetDirRight: 0
@@ -284,6 +285,7 @@ MonoBehaviour:
   btnB: btn1
   btnC: btn2
   btnD: btn3
+  btnLB: btn4
 --- !u!114 &133751268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -291,7 +293,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 133751259}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac4e627f0620bf349862cde60a0875f5, type: 3}
   m_Name: 
@@ -307,6 +309,7 @@ MonoBehaviour:
   lastJump: 0
   attack: 0
   lastAttack: 0
+  defense: 0
   inputEnabled: 1
   targetDirUp: 0
   targetDirRight: 0
@@ -314,14 +317,17 @@ MonoBehaviour:
   keyDown: s
   keyLeft: a
   keyRight: d
-  keyA: 
-  keyB: 
-  keyC: 
-  keyD: 
-  cameraUp: 
-  cameraDown: 
-  cameraRight: 
-  cameraLeft: 
+  keyA: left shift
+  keyB: space
+  keyC: mouse 1
+  keyD: mouse 0
+  cameraUp: up
+  cameraDown: down
+  cameraRight: left
+  cameraLeft: right
+  mouseEnabled: 0
+  mouseSensityX: 1
+  mouseSensityY: 1
 --- !u!1 &524231679
 GameObject:
   m_ObjectHideFlags: 0
@@ -349,8 +355,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 524231679}
   m_LocalRotation: {x: -0.06390175, y: 0.07969347, z: 0.055382356, w: 0.9932262}
-  m_LocalPosition: {x: 0.19, y: 0.094, z: -0}
-  m_LocalScale: {x: 0.8281069, y: 0.029262153, z: 0.44774604}
+  m_LocalPosition: {x: 0.075, y: 0.094, z: 0}
+  m_LocalScale: {x: 0.66294926, y: 0.029262153, z: 0.44774604}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 55518595}
@@ -1157,5 +1163,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15a59af018e07734f8a750967833b02a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAngle: {x: 0, y: -72.81, z: 9}
+  currentAngle: {x: 0, y: -90, z: 15}
   rotationMultipier: 0.75

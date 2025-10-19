@@ -29,6 +29,8 @@ public class CameraController : MonoBehaviour
         _model = ac.model;
         playerInput = ac.playerInput;
         if (Camera.main != null) _camera = Camera.main.gameObject;
+
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame

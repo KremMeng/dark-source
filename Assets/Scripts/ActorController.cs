@@ -8,6 +8,7 @@ public class ActorController : MonoBehaviour
     private static readonly int Roll = Animator.StringToHash("roll");
     private static readonly int Attack = Animator.StringToHash("attack");
     private static readonly int Attack1HAVelocity = Animator.StringToHash("attack1hAVelocity");
+    private static readonly int Defense = Animator.StringToHash("defense");
 
     public GameObject model;
     public IUserInput playerInput;
@@ -39,7 +40,7 @@ public class ActorController : MonoBehaviour
         IUserInput[] inputs = GetComponents<IUserInput>();
         foreach (var input in inputs)
         {
-            if (input.enabled == true)
+            if (input.enabled)
             {
                 playerInput = input;
                 break;
@@ -55,6 +56,8 @@ public class ActorController : MonoBehaviour
     void Update()
     {
         anim.SetFloat(Forward, playerInput.dirMagnity * Mathf.Lerp(anim.GetFloat(Forward) , (playerInput.run?2.0f:1.0f) ,0.5f) );//walk2run
+        
+        anim.SetBool(Defense,playerInput.defense);
         
         if (playerInput.jump)
         {
@@ -153,7 +156,7 @@ public class ActorController : MonoBehaviour
     public void OnAttack1hAEnter()
     {
         playerInput.inputEnabled = false;
-   lockPlaner = true;
+        lockPlaner = true;
         //动态调整layer权重
         layerWeightTarget = 1.0f;
     }
