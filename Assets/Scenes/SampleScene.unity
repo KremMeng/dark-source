@@ -319,13 +319,13 @@ MonoBehaviour:
   keyRight: d
   keyA: left shift
   keyB: space
-  keyC: mouse 1
-  keyD: mouse 0
+  keyC: mouse 0
+  keyD: mouse 1
   cameraUp: up
   cameraDown: down
   cameraRight: left
   cameraLeft: right
-  mouseEnabled: 0
+  mouseEnabled: 1
   mouseSensityX: 1
   mouseSensityY: 1
 --- !u!1 &524231679

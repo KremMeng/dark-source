@@ -31,6 +31,7 @@ public class JoystickInput : IUserInput
         buttonC.Tick(Input.GetButton(btnC));
         buttonD.Tick(Input.GetButton(btnD));
         buttonLB.Tick(Input.GetButton(btnLB));
+        print(buttonA.IsExtending && buttonA.IsPressing);
 
         
         lookUp = Input.GetAxis(axisLookUp);
