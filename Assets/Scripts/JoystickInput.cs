@@ -58,11 +58,7 @@ public class JoystickInput : IUserInput
 
         run = (buttonA.IsPressing && !buttonA.IsDelaying) || buttonA.IsExtending ;
         jump = buttonA.OnPressed && buttonA.IsExtending; //松手后的延时内短按
-        roll = buttonA.IsDelaying && buttonA.OnReleased; //蓄力延时窗口内，就松开了按钮
-        print($"buttonA IsPressing: {buttonA.IsPressing}, " +
-                  $"buttonA OnReleased: {buttonA.OnReleased}, " +
-                  $"IsExtending: {buttonA.IsExtending}, " +
-                  $"IsDelaying: {buttonA.IsDelaying}");
+        roll = buttonA.IsDelaying && buttonA.OnReleased; //蓄力延时窗口内，就松开了按钮;
         
         attack = buttonC.OnPressed;
         defense = buttonLB.IsPressing;

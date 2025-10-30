@@ -171,8 +171,8 @@ GameObject:
   - component: {fileID: 133751260}
   - component: {fileID: 133751266}
   - component: {fileID: 133751265}
-  - component: {fileID: 133751267}
   - component: {fileID: 133751268}
+  - component: {fileID: 133751267}
   m_Layer: 0
   m_Name: PlayerHanle
   m_TagString: Untagged
@@ -269,6 +269,8 @@ MonoBehaviour:
   lookUp: 0
   lookRight: 0
   run: 0
+  roll: 0
+  jab: 0
   jump: 0
   lastJump: 0
   attack: 0
@@ -305,6 +307,8 @@ MonoBehaviour:
   lookUp: 0
   lookRight: 0
   run: 0
+  roll: 0
+  jab: 0
   jump: 0
   lastJump: 0
   attack: 0
