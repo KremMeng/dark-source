@@ -14,28 +14,28 @@ public class ITimer
 
    public STATE state;
 
+   //推进时间，在一定时间间隔后结束状态
    public void Tick()
    {
-      if (state == STATE.IDLE)
-      {
-         
-      }else if (state == STATE.RUN) {
-         eclipseTime += Time.deltaTime;
-         if (eclipseTime >= duration) {
-            state = STATE.FINISHED;
-         }
-      }else if (state == STATE.FINISHED) {
-         
-      }
-      else {
-         
-         Debug.Log("timer error!");
+      switch (state) {
+         case STATE.IDLE:
+            break;
+         case STATE.RUN:
+            eclipseTime += Time.deltaTime;
+            if (eclipseTime >= duration) {
+               state = STATE.FINISHED;
+               break;
+            }
+            else {
+               break;}
+         case STATE.FINISHED:
+            state = STATE.IDLE;
+            break;
+         default:
+            Debug.Log("timer error!");
+            break;
       }
    }
-
-   public void TimerGo(){
-      eclipseTime = 0;
-      state = STATE.RUN; //开启计时状态
-   }
-
+   
 }
+

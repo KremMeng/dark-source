@@ -22,7 +22,7 @@ public class JoystickInput : IUserInput
     public IButton buttonC = new IButton();
     public IButton buttonD = new IButton();
     public IButton buttonLB = new IButton();
-
+    
     // Update is called once per frame
     void Update()
     {
@@ -31,8 +31,8 @@ public class JoystickInput : IUserInput
         buttonC.Tick(Input.GetButton(btnC));
         buttonD.Tick(Input.GetButton(btnD));
         buttonLB.Tick(Input.GetButton(btnLB));
-        print(buttonA.IsExtending && buttonA.IsPressing);
-
+        
+        //print(roll);
         
         lookUp = Input.GetAxis(axisLookUp);
         lookRight = Input.GetAxis(axisLookRight);
@@ -56,9 +56,15 @@ public class JoystickInput : IUserInput
         dirMagnity = Mathf.Sqrt(dirUp * dirUp + dirRight * dirRight);
         dirVector = dirUp * transform.forward + dirRight * transform.right;
 
-        run = buttonA.IsPressing;
-        defense = buttonLB.IsPressing;
-        jump = buttonB.OnPressed;
+        run = (buttonA.IsPressing && !buttonA.IsDelaying) || buttonA.IsExtending ;
+        jump = buttonA.OnPressed && buttonA.IsExtending; //松手后的延时内短按
+        roll = buttonA.IsDelaying && buttonA.OnReleased; //蓄力延时窗口内，就松开了按钮
+        print($"buttonA IsPressing: {buttonA.IsPressing}, " +
+                  $"buttonA OnReleased: {buttonA.OnReleased}, " +
+                  $"IsExtending: {buttonA.IsExtending}, " +
+                  $"IsDelaying: {buttonA.IsDelaying}");
+        
         attack = buttonC.OnPressed;
+        defense = buttonLB.IsPressing;
     }
 }

@@ -15,6 +15,8 @@ public abstract class IUserInput : MonoBehaviour
     
     //动作信号
     public bool run;
+    public bool roll;
+    public bool jab;
     public bool jump;
     public bool lastJump;
     public bool attack;

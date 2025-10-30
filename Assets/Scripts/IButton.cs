@@ -5,17 +5,25 @@ public class IButton
     public bool IsPressing = false;
     public bool OnPressed = false;
     public bool OnReleased = false;
+    
     public bool IsExtending = false;
+    public bool IsDelaying = false;
 
     private bool currentState = false;
     private bool lastState = false;
-
+    
+    public float extendingDuartion = 1.0f;
+    public float delayingDuartion = 1.0f;
+    
     private ITimer extTimer = new ITimer();
-    public float duartionTime = 0.15f;
+    private ITimer delayTimer = new ITimer();
+    
+    //判断各个信号
     public void Tick(bool btnInput)
     {
-        //超过时间间隔，转为finished状态
+        //每一帧tick
         extTimer.Tick();
+        delayTimer.Tick();
         
         //IsPressing Signal
         currentState = btnInput;
@@ -25,29 +33,38 @@ public class IButton
         OnPressed = false;
         OnReleased = false;
         
+        IsExtending = false;
+        IsDelaying = false;
+        
+        //判断按下/松手瞬间，开启需要的计时器
         if (currentState != lastState)
         {
             if (currentState)
             {
                 OnPressed = true;
+                StartTimer(delayTimer,delayingDuartion);
             }
             else
             {
                 OnReleased = true;
-                StartTimer(extTimer,duartionTime);
+                StartTimer(extTimer,extendingDuartion);
             }
         }
-        lastState = currentState;
-
+        
+        //上面有开启计时器，则判断为true
         if (extTimer.state == ITimer.STATE.RUN) {
             IsExtending = true;
         }
-        else {
-            IsExtending = false;
-        }
-    }
 
+        if (delayTimer.state == ITimer.STATE.RUN) {
+            IsDelaying = true;
+        }
+        
+        lastState = currentState;
+    }
+    //开启计时器，仅调用一次
     public void StartTimer(ITimer timer,float duration){
+        timer.eclipseTime = 0;
         timer.duration = duration;
         timer.state = ITimer.STATE.RUN;
     }

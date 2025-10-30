@@ -60,7 +60,8 @@ public class keyboardInput : IUserInput
         dirMagnity = Mathf.Sqrt(dirUp * dirUp + dirRight * dirRight);
         dirVector = dirUp * transform.forward + dirRight * transform.right;
 
-        run = Input.GetKey(keyA);
+        //run = Input.GetKey(keyA);
+        
         bool newJump = Input.GetKey(keyB);
         bool newAttack = Input.GetKey(keyC);
         defense = Input.GetKey(keyD);

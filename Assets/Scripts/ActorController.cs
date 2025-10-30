@@ -26,10 +26,10 @@ public class ActorController : MonoBehaviour
     private Animator anim;
     private Rigidbody rigid;
     private CapsuleCollider col;
-    private Vector3 planerVec; 
+    private Vector3 wishDirVec; //planerVec
     private Vector3 thrust;
     private bool _canAttack;
-    private bool lockPlaner;
+    private bool freezeVelocity;//lockPlaner
     private Vector3 deltaPos;
     public float alpha = 0.7f;
 
@@ -70,25 +70,26 @@ public class ActorController : MonoBehaviour
             anim.SetTrigger(Attack);
         }
         
-        if(rigid.velocity.magnitude >landingVelocity){
-            anim.SetTrigger(Roll);
+        if(playerInput.roll || rigid.velocity.magnitude >7.0f){
+            anim.SetTrigger("roll");
+            _canAttack = false;
         }
     }
     private void FixedUpdate()
     {
         //刚体移动
-        if (lockPlaner == false)
+        if (freezeVelocity == false)
         {
-            planerVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
+            wishDirVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
         }
         //角色朝向
-        if (playerInput.dirMagnity > 0.1f)
+        if (playerInput.dirMagnity > 0.2f)
         {
             //model.transform.forward = pi.dirVector;
             model.transform.forward = Vector3.Slerp(model.transform.forward, playerInput.dirVector,0.5f);
         }
         rigid.position += deltaPos;
-        rigid.velocity = new Vector3(planerVec.x, rigid.velocity.y, planerVec.z) + thrust;
+        rigid.velocity = new Vector3(wishDirVec.x, rigid.velocity.y, wishDirVec.z) + thrust;
         thrust = Vector3.zero;
         deltaPos = Vector3.zero;
     }
@@ -99,7 +100,7 @@ public class ActorController : MonoBehaviour
     public void OnJumpEnter()
     {
         playerInput.inputEnabled = false;
-        lockPlaner = true;
+        freezeVelocity = true;
         thrust = new Vector3(0, 4.0f, 0);
     }
     
@@ -116,7 +117,7 @@ public class ActorController : MonoBehaviour
     public void OnGroundEnter()
     {
         playerInput.inputEnabled = true;
-        lockPlaner = false;
+        freezeVelocity = false;
         _canAttack = true;
         col.material = frictionOne;
     }
@@ -129,20 +130,20 @@ public class ActorController : MonoBehaviour
     public void OnFallEnter()
     {
         playerInput.inputEnabled = false;
-        lockPlaner = true;
+        freezeVelocity = true;
     }
     
     public void OnRollEnter(){
         
         playerInput.inputEnabled = false;
-        lockPlaner = true;
+        freezeVelocity = true;
         thrust = new Vector3(0, rollVelocity,0); //向上的冲量
     }
     
     public void OnJabEnter(){
         
         playerInput.inputEnabled = false;
-        lockPlaner = true;
+        freezeVelocity = true;
     }
 
     public void OnJabUpdate()
@@ -156,7 +157,7 @@ public class ActorController : MonoBehaviour
     public void OnAttack1hAEnter()
     {
         playerInput.inputEnabled = false;
-        lockPlaner = true;
+        freezeVelocity = true;
         //动态调整layer权重
         layerWeightTarget = 1.0f;
     }
@@ -164,7 +165,7 @@ public class ActorController : MonoBehaviour
     public void OnAttackIdle()
     {
         playerInput.inputEnabled = true;
-     lockPlaner = false;
+     freezeVelocity = false;
         layerWeightTarget = 0f;
     }
 
