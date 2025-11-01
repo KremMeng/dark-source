@@ -16,12 +16,14 @@ public class JoystickInput : IUserInput
     [FormerlySerializedAs("btn2")] public string btnC = "btn2";
     [FormerlySerializedAs("btn3")] public string btnD = "btn3";
     public string btnLB = "btn4";
+    public string btnRStick = "btn9";
     
     public IButton buttonA = new IButton();
     public IButton buttonB = new IButton();
     public IButton buttonC = new IButton();
     public IButton buttonD = new IButton();
     public IButton buttonLB = new IButton();
+    public IButton buttonRStick = new IButton();
     
     // Update is called once per frame
     void Update()
@@ -31,8 +33,7 @@ public class JoystickInput : IUserInput
         buttonC.Tick(Input.GetButton(btnC));
         buttonD.Tick(Input.GetButton(btnD));
         buttonLB.Tick(Input.GetButton(btnLB));
-        
-        //print(roll);
+        buttonRStick.Tick(Input.GetButton(btnRStick));
         
         lookUp = Input.GetAxis(axisLookUp);
         lookRight = Input.GetAxis(axisLookRight);
@@ -62,5 +63,7 @@ public class JoystickInput : IUserInput
         
         attack = buttonC.OnPressed;
         defense = buttonLB.IsPressing;
+
+        lockon = buttonRStick.OnPressed;
     }
 }

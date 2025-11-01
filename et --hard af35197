@@ -1,0 +1,23 @@
+* [33m0bea413[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m long press
+* [33maf35197[m long press
+* [33m221a3ff[m double trigger
+* [33m0b5a452[m add Button Class
+* [33m923f925[m mouse input
+* [33m9cd6d0d[m fix wrist rotation
+* [33m6fa16e1[m fix camera shaking
+* [33mf724019[m minor fix
+* [33m1d3c49f[m Remove Library cache from repo
+* [33mb1aac65[m joystick input
+* [33mf665738[m root motion handled by script
+* [33m980bf19[m attack C
+* [33m257db43[m attack B
+* [33m4ea62a7[m attackA and add physic matrial
+* [33mfb8c7a7[m camera delay effect
+* [33m79fc63f[m camera controller
+* [33ma52cd72[m roll and jab
+* [33m2b5595e[m jump
+* [33m1c41c5d[m 3 details
+* [33mb733a57[m run
+* [33m392b3d6[m walk
+* [33m1330d9c[m walk
+* [33m04a59fe[m first commit

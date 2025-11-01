@@ -34,6 +34,8 @@ public class ActorController : MonoBehaviour
     public float alpha = 0.7f;
 
     private float layerWeightTarget;
+    [SerializeField]
+    private CameraController camCon;
     // Start is called before the first frame update
     void Awake()
     {
@@ -73,6 +75,10 @@ public class ActorController : MonoBehaviour
         if(playerInput.roll || rigid.velocity.magnitude >7.0f){
             anim.SetTrigger("roll");
             _canAttack = false;
+        }
+
+        if (playerInput.lockon) {
+            camCon.LockOrLockOn();
         }
     }
     private void FixedUpdate()

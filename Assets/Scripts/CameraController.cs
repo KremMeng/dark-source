@@ -15,6 +15,8 @@ public class CameraController : MonoBehaviour
     public float verticalSpeed = 80.0f;
     private Vector3 cameraDampVelocity;
     public float cameraOffset = 0.05f;
+
+    private GameObject lockTarget;
     
     [FormerlySerializedAs("eulerTemp")] public float eulerPitch = 20.0f;
     
@@ -36,6 +38,7 @@ public class CameraController : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        
         Vector3 eulerTemp = _model.transform.eulerAngles; //保存当前朝向的角度
         
         //水平视角，由playerHandle方向定
@@ -52,5 +55,21 @@ public class CameraController : MonoBehaviour
         _camera.transform.position = Vector3.SmoothDamp(_camera.transform.position, transform.position, ref cameraDampVelocity, cameraOffset);
         //_camera.transform.eulerAngles = transform.eulerAngles;
         _camera.transform.LookAt(cameraHandle.transform); //固定看向后脖颈
+    }
+    //索敌，解开索敌
+    public void LockOrLockOn(){
+        //用OverlapBox先计算碰撞体数组
+        Collider[] cols;
+        
+        Vector3 origin1 = _model.transform.position;
+        Vector3 origin2 = origin1 + new Vector3(0, 1, 0);
+        Vector3 boxCenter = origin2 + _model.transform.forward * 5.0f;
+        cols = Physics.OverlapBox(boxCenter, new Vector3(0.5f, 0.5f, 5), _model.transform.rotation,
+            LayerMask.GetMask("Enemy"));
+        foreach (var col in cols) {
+            print(col.name);
+        }
+
+        //索敌开关
     }
 }

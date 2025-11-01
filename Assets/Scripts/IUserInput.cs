@@ -22,6 +22,7 @@ public abstract class IUserInput : MonoBehaviour
     public bool attack;
     public bool lastAttack;
     public bool defense;
+    public bool lockon;
     
     [Header("===== Others =====")]
     //软开关flag
@@ -41,5 +42,4 @@ public abstract class IUserInput : MonoBehaviour
         
         return output;
     }
-
 }
