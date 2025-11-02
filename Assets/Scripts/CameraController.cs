@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 public class CameraController : MonoBehaviour
 {
@@ -17,6 +18,7 @@ public class CameraController : MonoBehaviour
     public float cameraOffset = 0.05f;
 
     private GameObject lockTarget;
+    public Image lockDot;
     
     [FormerlySerializedAs("eulerTemp")] public float eulerPitch = 20.0f;
     
@@ -32,6 +34,7 @@ public class CameraController : MonoBehaviour
         playerInput = ac.playerInput;
         if (Camera.main != null) _camera = Camera.main.gameObject;
 
+        lockDot.enabled = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
@@ -80,6 +83,7 @@ public class CameraController : MonoBehaviour
        //先检查空
        if (cols.Length == 0) {
            lockTarget = null;
+           lockDot.enabled = false;
        }
        else {
            foreach (var col in cols) {
@@ -87,10 +91,12 @@ public class CameraController : MonoBehaviour
                //检测到的碰撞体和目前的锁定目标相同，那么就取消锁定
                if (col.gameObject == lockTarget) {
                    lockTarget = null;
+                   lockDot.enabled = false;
                    break;
                }
                 //否则，让新的数组元素作为lockTarget
                lockTarget = col.gameObject;
+               lockDot.enabled = true;
                break;
            }
        }
