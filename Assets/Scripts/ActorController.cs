@@ -36,6 +36,7 @@ public class ActorController : MonoBehaviour
     private float layerWeightTarget;
     [SerializeField]
     private CameraController camCon;
+    
     // Start is called before the first frame update
     void Awake()
     {
@@ -83,17 +84,27 @@ public class ActorController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        //刚体移动
-        if (freezeVelocity == false)
-        {
-            wishDirVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
+        if (camCon.lockState == false) {
+            //刚体移动
+            if (freezeVelocity == false)
+            {
+                wishDirVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
+            }
+            //角色朝向
+            if (playerInput.dirMagnity > 0.2f)
+            {
+                //model.transform.forward = pi.dirVector;
+                model.transform.forward = Vector3.Slerp(model.transform.forward, playerInput.dirVector,0.5f);
+            }
         }
-        //角色朝向
-        if (playerInput.dirMagnity > 0.2f)
-        {
-            //model.transform.forward = pi.dirVector;
-            model.transform.forward = Vector3.Slerp(model.transform.forward, playerInput.dirVector,0.5f);
+        else {
+            //索敌时，角色移动时朝向面对目标敌人
+            model.transform.forward = transform.forward;
+            if (freezeVelocity == false) {
+                wishDirVec = playerInput.dirVector * (walkingSpeed * (playerInput.run ? runningSpeed : 1.0f));
+            }
         }
+        
         rigid.position += deltaPos;
         rigid.velocity = new Vector3(wishDirVec.x, rigid.velocity.y, wishDirVec.z) + thrust;
         thrust = Vector3.zero;
@@ -171,7 +182,7 @@ public class ActorController : MonoBehaviour
     public void OnAttackIdle()
     {
         playerInput.inputEnabled = true;
-     freezeVelocity = false;
+        freezeVelocity = false;
         layerWeightTarget = 0f;
     }
 

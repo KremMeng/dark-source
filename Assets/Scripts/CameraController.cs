@@ -19,6 +19,7 @@ public class CameraController : MonoBehaviour
 
     private GameObject lockTarget;
     public Image lockDot;
+    public bool lockState; //索敌状态flag
     
     [FormerlySerializedAs("eulerTemp")] public float eulerPitch = 20.0f;
     
@@ -34,6 +35,7 @@ public class CameraController : MonoBehaviour
         playerInput = ac.playerInput;
         if (Camera.main != null) _camera = Camera.main.gameObject;
 
+        lockState = false;
         lockDot.enabled = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -83,6 +85,7 @@ public class CameraController : MonoBehaviour
        //先检查空
        if (cols.Length == 0) {
            lockTarget = null;
+           lockState = false;
            lockDot.enabled = false;
        }
        else {
@@ -91,11 +94,13 @@ public class CameraController : MonoBehaviour
                //检测到的碰撞体和目前的锁定目标相同，那么就取消锁定
                if (col.gameObject == lockTarget) {
                    lockTarget = null;
+                   lockState = false;
                    lockDot.enabled = false;
                    break;
                }
                 //否则，让新的数组元素作为lockTarget
                lockTarget = col.gameObject;
+               lockState = true;
                lockDot.enabled = true;
                break;
            }
