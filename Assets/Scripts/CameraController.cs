@@ -76,11 +76,24 @@ public class CameraController : MonoBehaviour
         Vector3 boxCenter = origin2 + _model.transform.forward * 5.0f;
         cols = Physics.OverlapBox(boxCenter, new Vector3(0.5f, 0.5f, 5), _model.transform.rotation,
             LayerMask.GetMask("Enemy"));
-        foreach (var col in cols) {
-            print(col.name);
-            lockTarget = col.gameObject;
-            break;
-        }
-        //索敌开关
+       //遍历碰撞体数组，设置索敌开关
+       //先检查空
+       if (cols.Length == 0) {
+           lockTarget = null;
+       }
+       else {
+           foreach (var col in cols) {
+               print(col.name);
+               //检测到的碰撞体和目前的锁定目标相同，那么就取消锁定
+               if (col.gameObject == lockTarget) {
+                   lockTarget = null;
+                   break;
+               }
+                //否则，让新的数组元素作为lockTarget
+               lockTarget = col.gameObject;
+               break;
+           }
+       }
+       
     }
 }
