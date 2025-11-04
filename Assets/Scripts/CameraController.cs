@@ -17,12 +17,21 @@ public class CameraController : MonoBehaviour
     private Vector3 cameraDampVelocity;
     public float cameraOffset = 0.05f;
 
-    private GameObject lockTarget;
+    private LockTarget lockTarget;
     public Image lockDot;
     public bool lockState; //索敌状态flag
     
     [FormerlySerializedAs("eulerTemp")] public float eulerPitch = 20.0f;
-    
+
+    private class LockTarget {
+        public GameObject go;
+        public float halfHeight;
+
+        public LockTarget(GameObject go, float halfHeight){
+            this.go = go;
+            this.halfHeight = halfHeight;
+        }
+    }
     // Start is called before the first frame update
     void Awake()
     {
@@ -59,9 +68,10 @@ public class CameraController : MonoBehaviour
         }
         //索敌的时候，角色始终lookat目标敌人
         else {
-            Vector3 dirPlayer2Enemy = lockTarget.transform.position - _model.transform.position;
+            Vector3 dirPlayer2Enemy = lockTarget.go.transform.position - _model.transform.position;
             dirPlayer2Enemy.y = 0;
             playerHandle.transform.forward = dirPlayer2Enemy;
+            cameraHandle.transform.LookAt(lockTarget.go.transform); //索敌时，视角更偏向怪物的脚底
             //_model.transform.forward = new Vector3(dirPlayer2Enemy.x,0,dirPlayer2Enemy.z);
         }
         
@@ -70,7 +80,18 @@ public class CameraController : MonoBehaviour
         //_camera.transform.eulerAngles = transform.eulerAngles;
         _camera.transform.LookAt(cameraHandle.transform); //固定看向后脖颈
     }
-    
+    void Update(){
+        if (lockTarget != null) {
+            //把小圆点放到目标敌人的半高位置上
+            //lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position + new Vector3(0,lockTarget.halfHeight,0));
+            lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position);
+            if (Vector3.Distance(playerHandle.transform.position, lockTarget.go.transform.position) > 7.0f) {
+                lockTarget = null;
+                lockState = false;
+                lockDot.enabled = false;     
+            }
+        }
+    }
     //索敌，解开索敌
     public void LockOrLockOn(){
         //用OverlapBox先计算碰撞体数组
@@ -92,17 +113,19 @@ public class CameraController : MonoBehaviour
            foreach (var col in cols) {
                print(col.name);
                //检测到的碰撞体和目前的锁定目标相同，那么就取消锁定
-               if (col.gameObject == lockTarget) {
+               if (lockTarget != null && col.gameObject == lockTarget.go) {
                    lockTarget = null;
                    lockState = false;
                    lockDot.enabled = false;
                    break;
                }
                 //否则，让新的数组元素作为lockTarget
-               lockTarget = col.gameObject;
-               lockState = true;
-               lockDot.enabled = true;
-               break;
+                lockTarget = new LockTarget(col.gameObject,col.bounds.extents.y);
+                lockState = true;
+                lockDot.enabled = true;
+                break;
+                
+               
            }
        }
        

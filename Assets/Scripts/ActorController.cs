@@ -60,8 +60,9 @@ public class ActorController : MonoBehaviour
         col = GetComponent<CapsuleCollider>();
     }
     // Update is called once per frame
-    void Update()
+    private void FixedUpdate()
     {
+        //注入混合树参数
         //区分是否是索敌状态
         if (camCon.lockState == false) {
             anim.SetFloat(Forward, playerInput.dirMagnity * Mathf.Lerp(anim.GetFloat(Forward) , (playerInput.run?2.0f:1.0f) ,0.5f) );//walk2run
@@ -72,7 +73,6 @@ public class ActorController : MonoBehaviour
             anim.SetFloat("forward",localVec.z * (playerInput.run?2.0f:1.0f));
             anim.SetFloat("right",localVec.x * (playerInput.run?2.0f:1.0f));
         }
-        
         
         anim.SetBool(Defense,playerInput.defense);
         
@@ -95,9 +95,8 @@ public class ActorController : MonoBehaviour
         if (playerInput.lockon) {
             camCon.LockOrLockOn();
         }
-    }
-    private void FixedUpdate()
-    {
+        
+        //角色朝向、向量、速度等物理信息
         if (camCon.lockState == false) {
             //角色朝向
             if (playerInput.dirMagnity > 0.2f)
