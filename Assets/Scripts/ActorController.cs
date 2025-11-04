@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -58,7 +59,17 @@ public class ActorController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        anim.SetFloat(Forward, playerInput.dirMagnity * Mathf.Lerp(anim.GetFloat(Forward) , (playerInput.run?2.0f:1.0f) ,0.5f) );//walk2run
+        //区分是否是索敌状态
+        if (camCon.lockState == false) {
+            anim.SetFloat(Forward, playerInput.dirMagnity * Mathf.Lerp(anim.GetFloat(Forward) , (playerInput.run?2.0f:1.0f) ,0.5f) );//walk2run
+            anim.SetFloat("right",0);
+        }
+        else {
+            Vector3 localVec = transform.InverseTransformVector(playerInput.dirVector);
+            anim.SetFloat("forward",localVec.z * (playerInput.run?2.0f:1.0f));
+            anim.SetFloat("right",localVec.x * (playerInput.run?2.0f:1.0f));
+        }
+        
         
         anim.SetBool(Defense,playerInput.defense);
         
