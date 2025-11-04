@@ -37,6 +37,9 @@ public class ActorController : MonoBehaviour
     private float layerWeightTarget;
     [SerializeField]
     private CameraController camCon;
+
+    private bool trackDirection;
+    
     
     // Start is called before the first frame update
     void Awake()
@@ -96,21 +99,28 @@ public class ActorController : MonoBehaviour
     private void FixedUpdate()
     {
         if (camCon.lockState == false) {
-            //刚体移动
-            if (freezeVelocity == false)
-            {
-                wishDirVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
-            }
             //角色朝向
             if (playerInput.dirMagnity > 0.2f)
             {
                 //model.transform.forward = pi.dirVector;
                 model.transform.forward = Vector3.Slerp(model.transform.forward, playerInput.dirVector,0.5f);
             }
+            //刚体移动
+            if (freezeVelocity == false)
+            {
+                wishDirVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
+            }
         }
         else {
             //索敌时，角色移动时朝向面对目标敌人
-            model.transform.forward = transform.forward;
+            if (trackDirection == false) {
+                model.transform.forward = transform.forward;
+            }
+            //但是roll和jump时，朝向需要能够往两侧转
+            else {
+                model.transform.forward = wishDirVec.normalized;
+            }
+            
             if (freezeVelocity == false) {
                 wishDirVec = playerInput.dirVector * (walkingSpeed * (playerInput.run ? runningSpeed : 1.0f));
             }
@@ -129,6 +139,7 @@ public class ActorController : MonoBehaviour
     {
         playerInput.inputEnabled = false;
         freezeVelocity = true;
+        trackDirection = true;
         thrust = new Vector3(0, 4.0f, 0);
     }
     
@@ -146,6 +157,7 @@ public class ActorController : MonoBehaviour
     {
         playerInput.inputEnabled = true;
         freezeVelocity = false;
+        trackDirection = false;
         _canAttack = true;
         col.material = frictionOne;
     }
@@ -165,6 +177,7 @@ public class ActorController : MonoBehaviour
         
         playerInput.inputEnabled = false;
         freezeVelocity = true;
+        trackDirection = true;
         thrust = new Vector3(0, rollVelocity,0); //向上的冲量
     }
     
