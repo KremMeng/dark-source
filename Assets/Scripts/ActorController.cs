@@ -27,7 +27,7 @@ public class ActorController : MonoBehaviour
     private Animator anim;
     private Rigidbody rigid;
     private CapsuleCollider col;
-    private Vector3 wishDirVec; //planerVec
+    private Vector3 movingVec; //planerVec
     private Vector3 thrust;
     private bool _canAttack;
     private bool freezeVelocity;//lockPlaner
@@ -87,7 +87,7 @@ public class ActorController : MonoBehaviour
             anim.SetTrigger(Attack);
         }
         
-        if(playerInput.roll || rigid.velocity.magnitude >7.0f){
+        if(playerInput.roll || rigid.velocity.magnitude >10.0f){
             anim.SetTrigger("roll");
             _canAttack = false;
         }
@@ -107,7 +107,7 @@ public class ActorController : MonoBehaviour
             //刚体移动
             if (freezeVelocity == false)
             {
-                wishDirVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
+                movingVec = model.transform.forward * (playerInput.dirMagnity * walkingSpeed * (playerInput.run?runningSpeed:1.0f));
             }
         }
         else {
@@ -117,16 +117,17 @@ public class ActorController : MonoBehaviour
             }
             //但是roll和jump时，朝向需要能够往两侧转
             else {
-                model.transform.forward = wishDirVec.normalized;
+                
+                model.transform.forward = movingVec.normalized;
             }
             
             if (freezeVelocity == false) {
-                wishDirVec = playerInput.dirVector * (walkingSpeed * (playerInput.run ? runningSpeed : 1.0f));
+                movingVec = playerInput.dirVector * (walkingSpeed * (playerInput.run ? runningSpeed : 1.0f));
             }
         }
         
         rigid.position += deltaPos;
-        rigid.velocity = new Vector3(wishDirVec.x, rigid.velocity.y, wishDirVec.z) + thrust;
+        rigid.velocity = new Vector3(movingVec.x, rigid.velocity.y, movingVec.z) + thrust;
         thrust = Vector3.zero;
         deltaPos = Vector3.zero;
     }

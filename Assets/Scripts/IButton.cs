@@ -12,8 +12,8 @@ public class IButton
     private bool currentState = false;
     private bool lastState = false;
     
-    public float extendingDuartion = 0.2f;
-    public float delayingDuartion = 0.2f;
+    public float extendingDuartion = 0.4f;
+    public float delayingDuartion = 0.4f;
     
     private ITimer extTimer = new ITimer();
     private ITimer delayTimer = new ITimer();

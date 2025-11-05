@@ -83,8 +83,7 @@ public class CameraController : MonoBehaviour
     void Update(){
         if (lockTarget != null) {
             //把小圆点放到目标敌人的半高位置上
-            //lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position + new Vector3(0,lockTarget.halfHeight,0));
-            lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position);
+            lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position + new Vector3(0,lockTarget.halfHeight,0));
             if (Vector3.Distance(playerHandle.transform.position, lockTarget.go.transform.position) > 7.0f) {
                 lockTarget = null;
                 lockState = false;
@@ -100,7 +99,7 @@ public class CameraController : MonoBehaviour
         Vector3 origin1 = _model.transform.position;
         Vector3 origin2 = origin1 + new Vector3(0, 1, 0);
         Vector3 boxCenter = origin2 + _model.transform.forward * 5.0f;
-        cols = Physics.OverlapBox(boxCenter, new Vector3(0.5f, 0.5f, 5), _model.transform.rotation,
+        cols = Physics.OverlapBox(boxCenter, new Vector3(0.5f, 0.5f, 7), _model.transform.rotation,
             LayerMask.GetMask("Enemy"));
        //遍历碰撞体数组，设置索敌开关
        //先检查空
