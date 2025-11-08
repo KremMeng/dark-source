@@ -33,8 +33,7 @@ public class ActorController : MonoBehaviour
     private bool freezeVelocity;//lockPlaner
     private Vector3 deltaPos;
     public float alpha = 0.7f;
-
-    private float layerWeightTarget;
+    
     [SerializeField]
     private CameraController camCon;
 
@@ -65,6 +64,7 @@ public class ActorController : MonoBehaviour
         //注入混合树参数
         //区分是否是索敌状态
         if (camCon.lockState == false) {
+            //anim.SetFloat(Forward, playerInput.dirMagnity*(playerInput.run?2.0f:1.0f));
             anim.SetFloat(Forward, playerInput.dirMagnity * Mathf.Lerp(anim.GetFloat(Forward) , (playerInput.run?2.0f:1.0f) ,0.5f) );//walk2run
             anim.SetFloat("right",0);
         }
@@ -82,7 +82,7 @@ public class ActorController : MonoBehaviour
             _canAttack = false;
         }
 
-        if (playerInput.attack && CheckState("ground") && _canAttack) //状态名，不要填成混合树参数
+        if (playerInput.attack && (CheckState("ground") || CheckStateTag("attack"))  && _canAttack) //状态名，不要填成混合树参数
         {
             anim.SetTrigger(Attack);
         }
@@ -99,7 +99,7 @@ public class ActorController : MonoBehaviour
         //角色朝向、向量、速度等物理信息
         if (camCon.lockState == false) {
             //角色朝向
-            if (playerInput.dirMagnity > 0.2f)
+            if (playerInput.dirMagnity > 0.05f)
             {
                 //model.transform.forward = pi.dirVector;
                 model.transform.forward = Vector3.Slerp(model.transform.forward, playerInput.dirVector,0.5f);
@@ -198,30 +198,18 @@ public class ActorController : MonoBehaviour
     public void OnAttack1hAEnter()
     {
         playerInput.inputEnabled = false;
-        freezeVelocity = true;
+        //freezeVelocity = true;
         //动态调整layer权重
-        layerWeightTarget = 1.0f;
-    }
-
-    public void OnAttackIdle()
-    {
-        playerInput.inputEnabled = true;
-        freezeVelocity = false;
-        layerWeightTarget = 0f;
+        //layerWeightTarget = 1.0f;
     }
 
     public void OnAttack1hAUpdate()
     {
         thrust = model.transform.forward * anim.GetFloat(Attack1HAVelocity); //model朝向的位移
         //Idle到攻击动画做插值
-        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeightTarget,0.4f));
+       // anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeightTarget,0.4f));
     }
-
-    public void OnAttackIdleUpdate()
-    {
-        //攻击到Idle动画做插值
-        anim.SetLayerWeight(anim.GetLayerIndex("attack"),Mathf.Lerp(anim.GetLayerWeight(anim.GetLayerIndex("attack")),layerWeightTarget,0.01f));
-    }
+    
     //2.限制攻击条件
         //1.CheckState判断isGrounded状态才能 2.canAttack描述
     private bool CheckState(string stateName,string layerName = "Base Layer")
@@ -230,10 +218,16 @@ public class ActorController : MonoBehaviour
         bool result = anim.GetCurrentAnimatorStateInfo(layerIndex).IsName(stateName);
         return result;
     }
+    private bool CheckStateTag(string tagName,string layerName = "Base Layer")
+    {
+        int layerIndex = anim.GetLayerIndex(layerName);
+        bool result = anim.GetCurrentAnimatorStateInfo(layerIndex).IsTag(tagName);
+        return result;
+    }
 
     public void OnUpdateRM(object _deltaPos)
     {
-        if (CheckState("attack1hC", "attack"))
+        if (CheckState("attack1hC"))
         {
               //deltaPos += (Vector3)_deltaPos;
               deltaPos = alpha * deltaPos + (1 - alpha) * (Vector3)_deltaPos;
