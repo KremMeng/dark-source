@@ -10,6 +10,7 @@ public class ActorController : MonoBehaviour
     private static readonly int Attack = Animator.StringToHash("attack");
     private static readonly int Attack1HAVelocity = Animator.StringToHash("attack1hAVelocity");
     private static readonly int Defense = Animator.StringToHash("defense");
+    private static readonly int HMirror = Animator.StringToHash("hMirror");
 
     public GameObject model;
     public IUserInput playerInput;
@@ -34,10 +35,10 @@ public class ActorController : MonoBehaviour
     private Vector3 deltaPos;
     public float alpha = 0.7f;
     
-    [SerializeField]
-    private CameraController camCon;
+    [SerializeField] private CameraController camCon;
 
     private bool trackDirection;
+    public bool leftIsShield = true;   //替代武器系统的flag
     
     
     // Start is called before the first frame update
@@ -82,9 +83,31 @@ public class ActorController : MonoBehaviour
             _canAttack = false;
         }
 
-        if (playerInput.attack && (CheckState("ground") || CheckStateTag("attack"))  && _canAttack) //状态名，不要填成混合树参数
+        //左右手攻击
+        if ( (playerInput.rb || playerInput.lb) && (CheckState("ground") || CheckStateTag("attack"))  && _canAttack) //状态名，不要填成混合树参数
         {
-            anim.SetTrigger(Attack);
+            //左手不持盾时启用镜像攻击，右手照常
+            if (playerInput.rb) {
+                anim.SetBool(HMirror,false);
+                anim.SetTrigger(Attack);
+            }else if (playerInput.lb && !leftIsShield) {
+                anim.SetBool(HMirror,true);
+                anim.SetTrigger(Attack);
+            }
+        }
+        //拿盾防御
+        if (leftIsShield) {
+            if (CheckState("ground")) {
+                anim.SetBool("defense",playerInput.defense);
+                anim.SetLayerWeight(anim.GetLayerIndex("defense"),1);
+            }
+            else {
+                anim.SetBool("defense",false);
+                //anim.SetLayerWeight(anim.GetLayerIndex("defense"),0);
+            }
+        }
+        else {
+            anim.SetLayerWeight(anim.GetLayerIndex("defense"),0);
         }
         
         if(playerInput.roll || rigid.velocity.magnitude >10.0f){

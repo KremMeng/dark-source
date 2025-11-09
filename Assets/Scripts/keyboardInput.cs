@@ -75,14 +75,14 @@ public class keyboardInput : IUserInput
         }
         lastJump = newJump;
 
-        if (newAttack != lastAttack && newAttack)
-        {
-            attack = true;
-        }
-        else
-        {
-            attack = false;
-        }
+        // if (newAttack != lastAttack && newAttack)
+        // {
+        //     attack = true;
+        // }
+        // else
+        // {
+        //     attack = false;
+        // }
         lastAttack = newAttack;
     }
 

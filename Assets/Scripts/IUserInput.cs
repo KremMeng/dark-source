@@ -19,10 +19,15 @@ public abstract class IUserInput : MonoBehaviour
     public bool jab;
     public bool jump;
     public bool lastJump;
-    public bool attack;
+    //public bool attack;
     public bool lastAttack;
     public bool defense;
     public bool lockon;
+
+    public bool lb;
+    public bool rb;
+    public bool lt;
+    public bool rt;
     
     [Header("===== Others =====")]
     //软开关flag

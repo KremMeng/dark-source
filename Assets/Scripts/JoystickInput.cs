@@ -16,6 +16,7 @@ public class JoystickInput : IUserInput
     [FormerlySerializedAs("btn2")] public string btnC = "btn2";
     [FormerlySerializedAs("btn3")] public string btnD = "btn3";
     public string btnLB = "btn4";
+    public string btnRB = "btn5";
     public string btnRStick = "btn9";
     
     public IButton buttonA = new IButton();
@@ -23,6 +24,9 @@ public class JoystickInput : IUserInput
     public IButton buttonC = new IButton();
     public IButton buttonD = new IButton();
     public IButton buttonLB = new IButton();
+    public IButton buttonRB = new IButton();
+    public IButton buttonLT = new IButton();
+    public IButton buttonRT = new IButton();
     public IButton buttonRStick = new IButton();
     
     // Update is called once per frame
@@ -33,6 +37,9 @@ public class JoystickInput : IUserInput
         buttonC.Tick(Input.GetButton(btnC));
         buttonD.Tick(Input.GetButton(btnD));
         buttonLB.Tick(Input.GetButton(btnLB));
+        buttonRB.Tick(Input.GetButton(btnRB));
+        buttonLT.Tick(Input.GetAxis("axis9")>=0.9f);
+        buttonRT.Tick(Input.GetAxis("axis10")>=0.9f);
         buttonRStick.Tick(Input.GetButton(btnRStick));
         
         lookUp = Input.GetAxis(axisLookUp);
@@ -61,8 +68,12 @@ public class JoystickInput : IUserInput
         jump = buttonA.OnPressed && buttonA.IsExtending; //松手后的延时内短按
         roll = buttonA.IsDelaying && buttonA.OnReleased; //蓄力延时窗口内，就松开了按钮;
         
-        attack = buttonC.OnPressed;
         defense = buttonLB.IsPressing;
+        //attack = buttonC.OnPressed;
+        lb = buttonLB.OnPressed;
+        rb = buttonRB.OnPressed;
+        lt = buttonLT.OnPressed;
+        rt = buttonRT.OnPressed;
 
         lockon = buttonRStick.OnPressed;
     }
