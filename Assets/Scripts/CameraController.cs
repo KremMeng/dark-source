@@ -20,10 +20,12 @@ public class CameraController : MonoBehaviour
     private LockTarget lockTarget;
     public Image lockDot;
     public bool lockState; //索敌状态flag
+
+    public bool isAI = false;   //敌人(AI)或玩家(Player)
     
     [FormerlySerializedAs("eulerTemp")] public float eulerPitch = 20.0f;
 
-    private class LockTarget {
+    public class LockTarget {
         public GameObject go;
         public float halfHeight;
 
@@ -85,11 +87,15 @@ public class CameraController : MonoBehaviour
             //把小圆点放到目标敌人的半高位置上
             lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position + new Vector3(0,lockTarget.halfHeight,0));
             if (Vector3.Distance(playerHandle.transform.position, lockTarget.go.transform.position) > 10.0f) {
-                lockTarget = null;
-                lockState = false;
-                lockDot.enabled = false;     
+                lockProgress(null,false,false,isAI);
             }
         }
+    }
+    //区分敌人AI和玩家的索敌,,isAI在编辑器面板手动设置
+    public void lockProgress(LockTarget _lockTarget,bool _lockState,bool _lockEnabled,bool _isAI){
+        lockTarget = _lockTarget;
+        lockState = _lockState;
+        lockDot.enabled = _lockEnabled;     
     }
     //索敌，解开索敌
     public void LockOrLockOn(){
@@ -100,28 +106,22 @@ public class CameraController : MonoBehaviour
         Vector3 origin2 = origin1 + new Vector3(0, 1, 0);
         Vector3 boxCenter = origin2 + _model.transform.forward * 5.0f;
         cols = Physics.OverlapBox(boxCenter, new Vector3(0.8f, 0.8f, 5), _model.transform.rotation,
-            LayerMask.GetMask("Enemy"));
+            LayerMask.GetMask(isAI ?"Player":"Enemy"));
        //遍历碰撞体数组，设置索敌开关
        //先检查空
        if (cols.Length == 0) {
-           lockTarget = null;
-           lockState = false;
-           lockDot.enabled = false;
+           lockProgress(null,false,false,isAI);
        }
        else {
            foreach (var col in cols) {
                print(col.name);
                //检测到的碰撞体和目前的锁定目标相同，那么就取消锁定
                if (lockTarget != null && col.gameObject == lockTarget.go) {
-                   lockTarget = null;
-                   lockState = false;
-                   lockDot.enabled = false;
+                   lockProgress(null,false,false,isAI);
                    break;
                }
                 //否则，让新的数组元素作为lockTarget
-                lockTarget = new LockTarget(col.gameObject,col.bounds.extents.y);
-                lockState = true;
-                lockDot.enabled = true;
+                lockProgress(new LockTarget(col.gameObject,col.bounds.extents.y),true,true,isAI);
                 break;
            }
        }

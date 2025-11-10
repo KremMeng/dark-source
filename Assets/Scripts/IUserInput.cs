@@ -47,4 +47,9 @@ public abstract class IUserInput : MonoBehaviour
         
         return output;
     }
+
+    protected void CalculateDmagDvec(float dirUp,float dirRight){
+        dirMagnity = Mathf.Sqrt(dirUp * dirUp + dirRight * dirRight);
+        dirVector = dirUp * transform.forward + dirRight * transform.right;
+    }
 }
