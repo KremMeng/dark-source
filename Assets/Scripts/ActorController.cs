@@ -216,6 +216,11 @@ public class ActorController : MonoBehaviour
         thrust = model.transform.forward * anim.GetFloat("onJabVelocity"); //乘以曲线，曲线值为负，不需要加负号反向
     }
 
+    public void OnHitEnter(){
+        playerInput.inputEnabled = false;
+        freezeVelocity = true;
+    }
+
     //攻击部分状态机
     //1.加Lerp平滑动画
     public void OnAttack1hAEnter()

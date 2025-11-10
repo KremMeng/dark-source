@@ -58,6 +58,7 @@
     <Compile Include="Assets\Scripts\FSMOnExit.cs" />
     <Compile Include="Assets\Scripts\TriggerResetter.cs" />
     <Compile Include="Assets\Scripts\DummyIUserInterface.cs" />
+    <Compile Include="Assets\Scripts\TesterHit.cs" />
     <Reference Include="UnityEngine">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
