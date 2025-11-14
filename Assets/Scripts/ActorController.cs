@@ -122,9 +122,7 @@ public class ActorController : MonoBehaviour
         //角色朝向、向量、速度等物理信息
         if (camCon.lockState == false) {
             //角色朝向
-            if (playerInput.dirMagnity > 0.05f)
-            {
-                //model.transform.forward = pi.dirVector;
+            if (playerInput.dirMagnity > 0.1f) {
                 model.transform.forward = Vector3.Slerp(model.transform.forward, playerInput.dirVector,0.5f);
             }
             //刚体移动

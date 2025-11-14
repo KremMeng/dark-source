@@ -46,9 +46,11 @@ public class CameraController : MonoBehaviour
         playerInput = ac.playerInput;
         if (Camera.main != null) _camera = Camera.main.gameObject;
 
-        lockState = false;
-        lockDot.enabled = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        if (!isAI) {//敌人不需要索敌小红点，会影响玩家视角
+            lockState = false;
+            lockDot.enabled = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
     }
 
     // Update is called once per frame
@@ -76,16 +78,22 @@ public class CameraController : MonoBehaviour
             cameraHandle.transform.LookAt(lockTarget.go.transform); //索敌时，视角更偏向怪物的脚底
             //_model.transform.forward = new Vector3(dirPlayer2Enemy.x,0,dirPlayer2Enemy.z);
         }
+
+        if (!isAI) {
+            //延迟相机,主相机追cameraPos
+            _camera.transform.position = Vector3.SmoothDamp(_camera.transform.position, transform.position, ref cameraDampVelocity, cameraOffset);
+            //_camera.transform.eulerAngles = transform.eulerAngles;
+            _camera.transform.LookAt(cameraHandle.transform); //固定看向后脖颈
+        }
         
-        //延迟相机,主相机追cameraPos
-        _camera.transform.position = Vector3.SmoothDamp(_camera.transform.position, transform.position, ref cameraDampVelocity, cameraOffset);
-        //_camera.transform.eulerAngles = transform.eulerAngles;
-        _camera.transform.LookAt(cameraHandle.transform); //固定看向后脖颈
     }
     void Update(){
         if (lockTarget != null) {
             //把小圆点放到目标敌人的半高位置上
-            lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position + new Vector3(0,lockTarget.halfHeight,0));
+            if (!isAI) {
+                lockDot.transform.position = Camera.main.WorldToScreenPoint(lockTarget.go.transform.position + new Vector3(0,lockTarget.halfHeight,0));
+            }
+            
             if (Vector3.Distance(playerHandle.transform.position, lockTarget.go.transform.position) > 10.0f) {
                 lockProgress(null,false,false,isAI);
             }
