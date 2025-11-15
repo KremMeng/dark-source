@@ -70,7 +70,6 @@
     <Compile Include="Assets\Scripts\Player\PlayerStateManager.cs" />
     <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyState.cs" />
-    <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
     <Reference Include="UnityEngine">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
