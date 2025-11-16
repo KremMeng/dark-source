@@ -42,34 +42,34 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\IButton.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyState.cs" />
+    <Compile Include="Assets\Scripts\Player\States\IdlePlayerState.cs" />
+    <Compile Include="Assets\Scripts\Entity\Entity.cs" />
+    <Compile Include="Assets\Scripts\Player\Player.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerState.cs" />
     <Compile Include="Assets\Scripts\FSMOnEnter.cs" />
     <Compile Include="Assets\Scripts\CameraController.cs" />
     <Compile Include="Assets\Scripts\JoystickInput.cs" />
     <Compile Include="Assets\JoystickTest.cs" />
     <Compile Include="Assets\Scripts\FSMOnUpdate.cs" />
     <Compile Include="Assets\Scripts\ITimer.cs" />
+    <Compile Include="Assets\Scripts\Tools\ClassTypeName.cs" />
     <Compile Include="Assets\Scripts\IUserInput.cs" />
     <Compile Include="Assets\Scripts\keyboardInput.cs" />
+    <Compile Include="Assets\Scripts\Entity\EntityStateManager.cs" />
     <Compile Include="Assets\Scripts\OnGroundSensor.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
+    <Compile Include="Assets\Scripts\DummyIUserInterface.cs" />
     <Compile Include="Assets\Scripts\FSMClaerSignal.cs" />
     <Compile Include="Assets\Scripts\ActorController.cs" />
+    <Compile Include="Assets\Scripts\Entity\EntityState.cs" />
     <Compile Include="Assets\Scripts\LeftArmAnimFix.cs" />
+    <Compile Include="Assets\Scripts\Player\States\WalkPlayerState.cs" />
     <Compile Include="Assets\Scripts\RootMotionController.cs" />
     <Compile Include="Assets\Scripts\FSMOnExit.cs" />
-    <Compile Include="Assets\Scripts\TriggerResetter.cs" />
-    <Compile Include="Assets\Scripts\DummyIUserInterface.cs" />
     <Compile Include="Assets\Scripts\TesterHit.cs" />
-    <Compile Include="Assets\Scripts\Entity\Entity.cs" />
-    <Compile Include="Assets\Scripts\Entity\EntityState.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerState.cs" />
-    <Compile Include="Assets\Scripts\Player\Player.cs" />
-    <Compile Include="Assets\Scripts\Player\States\IdlePlayerState.cs" />
-    <Compile Include="Assets\Scripts\Player\States\WalkPlayerState.cs" />
-    <Compile Include="Assets\Scripts\Tools\ClassTypeName.cs" />
-    <Compile Include="Assets\Scripts\Entity\EntityStateManager.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStateManager.cs" />
-    <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
-    <Compile Include="Assets\Scripts\Enemy\EnemyState.cs" />
+    <Compile Include="Assets\Scripts\TriggerResetter.cs" />
     <Reference Include="UnityEngine">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
