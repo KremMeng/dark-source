@@ -10,7 +10,9 @@ public class IdlePlayerState : PlayerState {
 
     protected override void OnStep(Player player){
         
-        Debug.Log("IdlePlayerState::Onstep");st
+        Debug.Log("IdlePlayerState::Onstep");
+        var inputDirection = player.inputs.GetMovementDirction();
+        Debug.Log("InputDir = " + inputDirection);
     }
 
     public override void OnContact(Player player, Collider other){
