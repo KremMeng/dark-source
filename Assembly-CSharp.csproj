@@ -768,6 +768,12 @@
     <Reference Include="Unity.EditorCoroutines.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.EditorCoroutines.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="com.unity.cinemachine.editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\com.unity.cinemachine.editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Cinemachine">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Cinemachine.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

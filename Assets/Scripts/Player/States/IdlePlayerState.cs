@@ -1,4 +1,5 @@
 using UnityEngine;
+
 public class IdlePlayerState : PlayerState {
     protected override void OnEnter(Player player){
         
@@ -9,10 +10,11 @@ public class IdlePlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        
-        Debug.Log("IdlePlayerState::Onstep");
+        //Debug.Log("IdlePlayerState::Onstep");
         var inputDirection = player.inputs.GetMovementDirction();
-        Debug.Log("InputDir = " + inputDirection);
+        if (inputDirection.sqrMagnitude > 0 || player.horizontalVelocity.sqrMagnitude > 0) {
+            player.states.Change<WalkPlayerState>();
+        }
     }
 
     public override void OnContact(Player player, Collider other){

@@ -24,7 +24,10 @@ public abstract class EntityState<T> where T : Entity<T> {
         onEnter?.Invoke();  //触发回调
         OnEnter(entity);    //调用子类定义的进入逻辑
     }
-    //退出状态时调用，触发onExit事件
+    /// <summary>
+    /// 退出状态时调用，触发onExit事件
+    /// </summary>
+    /// <returns></returns>
     public void Exit(T entity){
         onExit?.Invoke();
         OnExit(entity);

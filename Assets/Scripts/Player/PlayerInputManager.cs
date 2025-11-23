@@ -16,13 +16,13 @@ public class PlayerInputManager : MonoBehaviour {
     protected virtual void OnEnable() => actions?.Enable();
     protected virtual void OnDisable() => actions?.Disable();
 
-    //把按键映射的配置按字符串放到一个缓存里
+    //把按键映射的配置按字符串放到缓存变量里，避免每帧都字典查找--Dictionary<string, InputAction>
     protected virtual void CacheActions(){
         m_movement = actions["move"];
     }
 
     /// <summary>
-    /// xz轴的移动输入
+    /// xz轴的平面移动输入
     /// </summary>
     public virtual Vector3 GetMovementDirction(){
         if(Time.time < m_movementDirctionUnlockTime) return Vector3.zero;
@@ -33,7 +33,6 @@ public class PlayerInputManager : MonoBehaviour {
     /// 考虑死区的水平面轴
     /// </summary>
     /// <param name="axises">输入轴</param>
-
     public virtual Vector3 GetAxisWithCrossDeadZone(Vector2 axises){
         
         var deadzone = InputSystem.settings.defaultDeadzoneMin;

@@ -11,7 +11,11 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
     
     protected List<EntityState<T>> m_list = new List<EntityState<T>>(); //所有状态列表
     protected Dictionary<Type,EntityState<T>> m_state = new Dictionary<Type, EntityState<T>>();//键:类型，值:实例
-    public EntityState<T> current { get; protected set; }//外界只读
+    /// <summary>
+    /// 当前状态，外界只读
+    /// </summary>
+    public EntityState<T> current { get; protected set; }
+    public EntityState<T> last { get; protected set; }
     public T entity { get; protected set; }
 
     protected abstract List<EntityState<T>> GetStateList();  //子类实现
@@ -46,5 +50,22 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
             current.Step(entity);
         }
     }
-        
+
+    public virtual void Change<TState>() where TState : EntityState<T>{
+        var type = typeof(TState);
+        if (m_state.ContainsKey(type)) {
+            Change(m_state[type]);  //转换到目标type
+        }
+    }
+
+    public virtual void Change(EntityState<T> targetState){
+        // 目标状态存在、游戏未暂停时，调用退出状态的函数
+        if (targetState != null && Time.timeScale > 0) {
+            current.Exit(entity);
+            last = current;
+        }
+        //切换到目标状态
+        current = targetState;
+        current.Enter(entity);
+    }
 }
