@@ -73,6 +73,10 @@
     <Compile Include="Assets\Scripts\TriggerResetter.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInputManager.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStateManagerEvents.cs" />
+    <Compile Include="Assets\Scripts\Entity\EntityStat.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerStat.cs" />
+    <Compile Include="Assets\Scripts\Entity\EntityStatManager.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerStatManager.cs" />
     <Reference Include="UnityEngine">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -774,6 +778,24 @@
     </Reference>
     <Reference Include="Cinemachine">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Cinemachine.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Addressables">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Addressables.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Addressables.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Addressables.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.CacheServer">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\UnityEditor.CacheServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ResourceManager">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ResourceManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ScriptableBuildPipeline">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ScriptableBuildPipeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ScriptableBuildPipeline.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ScriptableBuildPipeline.Editor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

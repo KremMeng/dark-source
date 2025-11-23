@@ -10,7 +10,7 @@ public class WalkPlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        
+    
     }
 
     public override void OnContact(Player player, Collider other){

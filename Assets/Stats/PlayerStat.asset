@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0248a4d5b9b45919ea273e7ec2015c3, type: 3}
+  m_Name: PlayerStat
+  m_EditorClassIdentifier: 
+  applySlopeFactor: 1
+  acceleration: 13
+  airAcceleration: 13
+  deceleration: 28
+  groundFriction: 28
+  slopeFriction: 28
+  maxSpeed: 6
+  turningDrag: 28
+  brakeThreshold: -0.8
+  slopeUpwardForce: 25
+  slopeDownwardForce: 28
