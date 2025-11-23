@@ -4,11 +4,12 @@ using UnityEngine;
 
 //管理所有状态机的抽象基类
 public abstract class EntityStateManager : MonoBehaviour {
-    
+   
+    public EntityStateManagerEvents events;
 }
 //泛型子类，管理特定类型T的状态机
 public abstract class EntityStateManager<T> : EntityStateManager where T : Entity<T> {
-    
+  
     protected List<EntityState<T>> m_list = new List<EntityState<T>>(); //所有状态列表
     protected Dictionary<Type,EntityState<T>> m_state = new Dictionary<Type, EntityState<T>>();//键:类型，值:实例
     /// <summary>
@@ -62,10 +63,13 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
         // 目标状态存在、游戏未暂停时，调用退出状态的函数
         if (targetState != null && Time.timeScale > 0) {
             current.Exit(entity);
+            events.onExit.Invoke(current.GetType());
             last = current;
         }
         //切换到目标状态
         current = targetState;
         current.Enter(entity);
+        events.onEnter.Invoke(current.GetType());
+        events.onChange?.Invoke();//只要成功切了状态（不管从哪到哪），只要切完就喊一声
     }
 }
