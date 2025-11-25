@@ -22,4 +22,10 @@ public class Player : Entity<Player> {
         
         Accelerate(inputDir,turningDrag,acceleration,maxSpeed);
     }
+
+    /// <summary>
+    /// 平滑地转向dir方向，角速度匀速
+    /// </summary>
+    /// <param name="dir"></param>
+    public virtual void FaceDirectionSmooth(Vector3 dir) => FaceDirection(dir, stat.current.rotationSpeed);
 }

@@ -63,10 +63,24 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
         }
     }
+    //转向函数,按秒/度转
+    public virtual void FaceDirection(Vector3 dir, float degreesPerSpeed){
+        //确保输入方向的有效性
+        if (dir != Vector3.zero) {
+            //当前的旋转角度
+            var currentRotation = transform.rotation;
+            //目标旋转角--LookAt方向
+            var targetRotation = Quaternion.LookRotation(dir, Vector3.up);  //如果传入速度向量，会归一化，丢掉长度
+            //最大旋转幅度
+            var rotationDelta = degreesPerSpeed * Time.deltaTime;
+            //计算最终旋转,RotateTowards角速度固定
+            transform.rotation = Quaternion.RotateTowards(currentRotation, targetRotation, rotationDelta);
+        }
+    }
     //角色动作控制器
     protected virtual void HandleActorController(){
         //位移==速度*时间
-        transform.position += velocity * Time.deltaTime;
+        transform.position += velocity * Time.deltaTime * 0.1f;
     }
     
     //Entity需要Manager来驱动

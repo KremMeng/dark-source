@@ -20,6 +20,7 @@ public class WalkPlayerState : PlayerState {
             if (dot >= player.stat.current.brakeThreshold) {
                 //改变速度、位置、朝向才能正确走起来
                 player.Accelerate(inputDirection);  //速度
+                player.FaceDirectionSmooth(player.horizontalVelocity);  //velocity参数是Vec3向量，自带方向信息
             }
 
         }
