@@ -66,6 +66,7 @@
     <Compile Include="Assets\Scripts\Entity\EntityStat.cs" />
     <Compile Include="Assets\Scripts\OnGroundSensor.cs" />
     <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerCamera.cs" />
     <Compile Include="Assets\Scripts\DummyIUserInterface.cs" />
     <Compile Include="Assets\Scripts\FSMClaerSignal.cs" />
     <Compile Include="Assets\Scripts\ActorController.cs" />
@@ -77,7 +78,6 @@
     <Compile Include="Assets\Scripts\TesterHit.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStateManager.cs" />
     <Compile Include="Assets\Scripts\TriggerResetter.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerCamera.cs" />
     <Reference Include="UnityEngine">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

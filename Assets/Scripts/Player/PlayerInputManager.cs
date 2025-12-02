@@ -3,7 +3,10 @@ using UnityEngine.InputSystem;
 
 public class PlayerInputManager : MonoBehaviour {
     public InputActionAsset actions; //按键映射的配置文件，inspector里拖入
+    
+    //硬件输入缓存
     protected InputAction m_movement;
+    protected InputAction m_look;
     protected Camera m_camera;
     protected float m_movementDirctionUnlockTime;//小于这个时长，锁定玩家的移动输入
 
@@ -22,17 +25,41 @@ public class PlayerInputManager : MonoBehaviour {
     //把按键映射的配置按字符串放到缓存变量里，避免每帧都字典查找--Dictionary<string, InputAction>
     protected virtual void CacheActions(){
         m_movement = actions["move"];
+        m_look = actions["look"];
     }
 
     protected virtual void InitializeCamera() => m_camera = Camera.main;
 
     /// <summary>
-    /// xz轴的平面移动输入
+    /// xz轴的平面移动输入(方向)
     /// </summary>
+    /// /// <returns>把 2D 摇杆映射到 3D 世界里的“地面方向“,所以返回Vec3</returns>
     public virtual Vector3 GetMovementDirction(){
         if(Time.time < m_movementDirctionUnlockTime) return Vector3.zero;
         var inputAxises = m_movement.ReadValue<Vector2>();
         return GetAxisWithCrossDeadZone(inputAxises);
+    }
+
+    /// <summary>
+    /// 相机的输入方向
+    /// </summary>
+    /// <returns>鼠标正常返回，手柄需要考虑死区</returns>
+    public virtual Vector3 GetLookDirection(){
+        var cameraLook = m_look.ReadValue<Vector2>();
+        if (IsLookingInMouse()) {
+            return new Vector3(cameraLook.x, 0, cameraLook.y);//摇杆的right轴和up轴--对应视角世界x和世界z
+        }
+        else {
+            return GetAxisWithCrossDeadZone(cameraLook);
+        }
+    }
+    /// <summary>
+    /// 获取当前输入，看是不是鼠标
+    /// </summary>
+    public virtual bool IsLookingInMouse(){
+        //获取当前的控制设备activeControl
+        if (m_look.activeControl == null) return false;
+        return m_look.activeControl.device.name.Equals("Mouse"); //返回一个bool值
     }
     /// <summary>
     /// 考虑死区的水平面轴
