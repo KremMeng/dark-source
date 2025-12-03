@@ -640,7 +640,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6521946075857410435}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -9.880438, y: -3.9660785, z: 6.124731}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -852,13 +852,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  maxDistance: 3
+  maxDistance: 4
   initialPitchAngle: 20
   heightOffset: 1
+  upDeadZone: 0.01
+  downDeadZone: 0.01
+  airUpDeadZone: 4
+  airDownDeadZone: 0
+  maxFollowSpeed: 10
+  maxAirFollowSpeed: 100
   canOrbit: 1
-  orbitVelocityMulti: 100
-  maxPitchAngle: 30
-  minPitchAngle: -40
+  canOrbitByHeading: 1
+  orbitVelocityMulti: 25
+  maxPitchAngle: 80
+  minPitchAngle: -34.8
 --- !u!1 &8331863316415259065
 GameObject:
   m_ObjectHideFlags: 0

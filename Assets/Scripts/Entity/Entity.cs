@@ -3,6 +3,7 @@ using UnityEngine;
 public abstract class EntityBase : MonoBehaviour {
 
     public Vector3 unsizedPos => transform.position;
+    public bool isGrounded { get; protected set; } = true;
 
 }
 //泛型抽象类，给T增加一个泛型约束

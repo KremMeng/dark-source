@@ -1306,7 +1306,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5821888805033557835, guid: cd422b37e8f276e4bb89d7b098ccf915, type: 3}
       propertyPath: orbitVelocityMulti
-      value: 200
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6521946075228618778, guid: cd422b37e8f276e4bb89d7b098ccf915, type: 3}
       propertyPath: m_RootOrder

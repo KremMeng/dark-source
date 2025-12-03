@@ -13,10 +13,19 @@ public class PlayerCamera : MonoBehaviour {
     public float maxDistance = 3.0f;   //相机与target的最大距离
     public float initialPitchAngle = 20.0f;  //初始的俯仰角
     public float heightOffset = 1.0f;   //相机距离玩家的竖直偏移量
+    
+    [Header("Following Settings")] 
+    public float upDeadZone = 0.05f;
+    public float downDeadZone = 0.05f; //上下跟随有“懒得跟”的死区，死区范围内不lag
+    public float airUpDeadZone = 4f;
+    public float airDownDeadZone = 0;
+    public float maxFollowSpeed = 10f;
+    public float maxAirFollowSpeed = 100f;
 
     [Header("Orbit View Settings")] 
     public bool canOrbit = true;
-    public float orbitVelocityMulti = 80.0f;
+    public bool canOrbitByHeading  = true; //能否根据角色朝向更改相机look
+    public float orbitVelocityMulti = 5.0f;
 
     [Range(0, 90)] public float maxPitchAngle = 30;
     [Range(-90, 0)] public float minPitchAngle = -40;
@@ -44,7 +53,9 @@ public class PlayerCamera : MonoBehaviour {
     }
 
     protected void LateUpdate(){
-        HandleOrbit(); //玩家输入
+        HandleOrbit(); //玩家右摇杆输入
+        HandleStrafeFacing();//跟着角色朝向
+        HandleLagFollow(); //上下方向跟随/延迟
         ApplyTargetPos();
     }
 
@@ -119,18 +130,61 @@ public class PlayerCamera : MonoBehaviour {
         if (angle < -360) angle += 360;
         if (angle > 360) angle -= 360;
         return Mathf.Clamp(angle, minAngle, maxAngle);
+    }
+    
+    /// <summary>
+    /// 延迟,区分地面和空中两种情况，空中的响应会略微缓慢
+    /// </summary>
+    protected virtual void HandleLagFollow(){
+        
+        //获取跟随目标点的位置
+        var targetPos = player.unsizedPos + new Vector3(0, heightOffset, 0);
+        //初始化相机在当前帧内的目标高度，用上一帧的target位置作为基础计算
+        var lastPos = m_cameraTargetPos; //相机上一帧的目标位置
+        var camHeightPos = lastPos.y;
+        
+        //地面
+        if (player.isGrounded || IsFollowState()) {
+            //如果玩家跳跃\下落等超过死区上限,相机向对应方向缓慢位移offset距离
+            if (targetPos.y > lastPos.y + upDeadZone) {
+                var offset = targetPos.y - upDeadZone - lastPos.y;
+                //防止一帧内跳太多，突兀了，有个每帧位移的最大值
+                camHeightPos += Mathf.Min(offset, maxFollowSpeed * Time.deltaTime);
+            }else if (targetPos.y < lastPos.y - downDeadZone) {
+                var offset = targetPos.y  - lastPos.y + downDeadZone;
+                camHeightPos -= Mathf.Max(offset, maxFollowSpeed * Time.deltaTime);
+            }
+        }
+        
+        //空中
+        else if (targetPos.y > lastPos.y + airUpDeadZone) {
+            var offset = targetPos.y - airUpDeadZone - lastPos.y;
+            //防止一帧内跳太多，突兀了，有个每帧位移的最大值
+            camHeightPos += Mathf.Min(offset, maxFollowSpeed * Time.deltaTime);
+        }else if (targetPos.y < lastPos.y - airDownDeadZone) {
+            var offset = targetPos.y  - lastPos.y + airDownDeadZone;
+            camHeightPos -= Mathf.Max(offset, maxFollowSpeed * Time.deltaTime);
+        }
 
+        //计算最终位置：除了高度信息都和target相同
+        m_cameraTargetPos = new Vector3(targetPos.x,camHeightPos, targetPos.z);
     }
     /// <summary>
-    /// 速度驱动环绕
+    /// 在玩家右摇杆输入的基础上，根据玩家速度朝向改变相机朝向
     /// </summary>
-    protected virtual void HandleVelocityOrbit(){
-        
+    protected virtual void HandleStrafeFacing(){
+        if (canOrbitByHeading && player.isGrounded) {
+            //获取玩家水平速度下、相机空间的速率
+            var localVelocity = m_target.InverseTransformDirection(player.horizontalVelocity);
+            m_cameraTargetYaw += localVelocity.x * orbitVelocityMulti * Time.deltaTime;
+        }
     }
     /// <summary>
-    /// 高度跟随
+    /// 判断某状态是不是需要在高度上跟随
     /// </summary>
-    protected virtual void HandleOffset(){
-        
+    /// <returns></returns>
+    protected virtual bool IsFollowState(){
+
+        return true;
     }
 }
