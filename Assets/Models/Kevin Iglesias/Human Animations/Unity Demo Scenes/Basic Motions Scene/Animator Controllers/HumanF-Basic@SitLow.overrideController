@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HumanF-Basic@SitLow
+  m_Controller: {fileID: 9100000, guid: ed2327639a5e505458c445b83670c3ad, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: -2576967968662016515, guid: 56fd86b76fc74d24d83522069f5deb9b, type: 3}
+    m_OverrideClip: {fileID: -3440219247709331555, guid: c0538dffd04e7c14b986d1fb55b7b3fe, type: 3}
+  - m_OriginalClip: {fileID: 3094330708855449807, guid: cd590eef1904e1b40b0e98917cce01a7, type: 3}
+    m_OverrideClip: {fileID: 3094330708855449807, guid: 8e165efaf8cb6864ab428fb4b185283e, type: 3}
+  - m_OriginalClip: {fileID: 3094330708855449807, guid: 4d3a38e48bd214a48ad1fd5d2f355921, type: 3}
+    m_OverrideClip: {fileID: 3094330708855449807, guid: 705a8a611553c9c408b9c93b14fa76ab, type: 3}
+  - m_OriginalClip: {fileID: 3094330708855449807, guid: ff7dedde5fc6b7d498b0f3f55cb3fc80, type: 3}
+    m_OverrideClip: {fileID: 3094330708855449807, guid: c542c37a59250364cb4d9abf142a6256, type: 3}

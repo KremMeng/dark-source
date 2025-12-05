@@ -151,7 +151,7 @@ public class PlayerCamera : MonoBehaviour {
                 //防止一帧内跳太多，突兀了，有个每帧位移的最大值
                 camHeightPos += Mathf.Min(offset, maxFollowSpeed * Time.deltaTime);
             }else if (targetPos.y < lastPos.y - downDeadZone) {
-                var offset = targetPos.y  - lastPos.y + downDeadZone;
+                var offset = targetPos.y  - lastPos.y + downDeadZone;//此时offset是负数
                 camHeightPos -= Mathf.Max(offset, maxFollowSpeed * Time.deltaTime);
             }
         }

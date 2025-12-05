@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HumanF-Basic@Angry
+  m_Controller: {fileID: 9100000, guid: 8eb93d2b6623081449059a1529dac9df, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 3094330708855449807, guid: 752e273b7999f7e4eaa4390978480df9, type: 3}
+    m_OverrideClip: {fileID: 3094330708855449807, guid: abb4fa69f941f9a4487a3a2f8d3ff75d, type: 3}
+  - m_OriginalClip: {fileID: 3094330708855449807, guid: ffc8dd687a3364d4c900549526afc6da, type: 3}
+    m_OverrideClip: {fileID: 3094330708855449807, guid: 9f46661454a24124bbdfeb785fa0d361, type: 3}

@@ -1,0 +1,13 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HumanF-Basic@RunSlide
+  m_Controller: {fileID: 9100000, guid: 9eb4a2957abd65249b0d31bcd0033f1a, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 3094330708855449807, guid: 9e9d89593b9e5f447996c86a94d3f525, type: 3}
+    m_OverrideClip: {fileID: 3094330708855449807, guid: 0f2c87ca7a855df43a8828ca45b4ac7a, type: 3}
