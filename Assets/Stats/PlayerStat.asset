@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0248a4d5b9b45919ea273e7ec2015c3, type: 3}
   m_Name: PlayerStat
   m_EditorClassIdentifier: 
+  pushForce: 4
+  snapForce: 15
+  slideForce: 10
+  rotationSpeed: 970
+  gravity: 38
+  fallGravity: 65
+  gravityMSpeed: 50
   applySlopeFactor: 1
   acceleration: 13
   airAcceleration: 13
@@ -19,7 +26,7 @@ MonoBehaviour:
   groundFriction: 28
   slopeFriction: 28
   maxSpeed: 6
-  turningDrag: 28
+  turningDrag: 5
   brakeThreshold: -0.8
   slopeUpwardForce: 25
   slopeDownwardForce: 28

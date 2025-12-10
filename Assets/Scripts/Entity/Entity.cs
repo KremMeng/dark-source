@@ -1,3 +1,4 @@
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 public abstract class EntityBase : MonoBehaviour {
@@ -5,17 +6,25 @@ public abstract class EntityBase : MonoBehaviour {
     public Vector3 unsizedPos => transform.position;
     public bool isGrounded { get; protected set; } = true;
 
+    /// <summary>
+    /// 检测是否在斜坡上，斜坡和平地的摩擦力不同
+    /// </summary>
+    public virtual bool OnSlope(){
+        return false;
+    }
+
 }
 //泛型抽象类，给T增加一个泛型约束
 public abstract class Entity<T> : EntityBase where T : Entity<T> {
     public EntityStateManager<T> states { get; protected set; } //类型是Manager，对外意图是“玩家的所有状态”
+    
     public Vector3 velocity { get; set; }   //当前速度
     
     //系数运行时可能会变，所以不放在静态配置里
     public float turningDragMulti { get; set; } = 1.0f; //转向时阻力系数
     public float maxSpeedMulti { get; set; } = 1.0f;    //最大速度系数
     public float accelerationMulti { get; set; } = 1.0f;    //加速度系数
-
+    public float decelerMulti { get; set; } = 1.0f;    //加速度系数
     public Vector3 horizontalVelocity {
         get { return new Vector3(velocity.x, 0, velocity.z); }
         set { velocity = new Vector3(value.x, velocity.y, value.z); }   //赋值时只改 X/Z，保留原 Y 
@@ -65,6 +74,14 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
         }
     }
+    /// <summary>
+    /// 减速-
+    /// </summary>
+    public void Decelerate(float deceleration){
+        var decelerateDelta = deceleration * Time.deltaTime * decelerMulti;
+        horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, Vector3.zero, decelerateDelta);
+    }
+    
     //转向函数,按秒/度转
     public virtual void FaceDirection(Vector3 dir, float degreesPerSpeed){
         //确保输入方向的有效性
@@ -79,6 +96,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             transform.rotation = Quaternion.RotateTowards(currentRotation, targetRotation, rotationDelta);
         }
     }
+    
     //角色动作控制器
     protected virtual void HandleActorController(){
         //位移==速度*时间

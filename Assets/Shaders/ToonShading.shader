@@ -123,7 +123,7 @@ Shader "URP/ToonShading"
             ENDHLSL
         }
         
-        // ---------- Outline Pass（保持多 Pass，URP 同样支持） ----------
+        // ---------- Outline Pass ----------
         Pass
         {
             Name "Outline"

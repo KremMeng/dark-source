@@ -22,7 +22,18 @@ public class WalkPlayerState : PlayerState {
                 player.Accelerate(inputDirection);  //速度
                 player.FaceDirectionSmooth(player.horizontalVelocity);  //velocity参数是Vec3向量，自带方向信息
             }
+            else {//低于刹车阈值就进入刹车状态
+                player.states.Change<BreakPlayerState>();
+            }
 
+        }
+        else {
+            //没有输入，根据摩擦力减速
+            player.Friction();
+            //减速到零，切换到Idle
+            if (player.horizontalVelocity.sqrMagnitude <= 0) {
+                player.states.Change<IdlePlayerState>();
+            }
         }
     }
 

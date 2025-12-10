@@ -5,13 +5,14 @@ using UnityEngine;
 [AddComponentMenu("Player/Player Animator")]
 public class PlayerAnimator : MonoBehaviour {
     
-    //强制转换类
+    //强制转换类，每个对象包含转换三要素：from哪个state、要去哪个state、在那一层
     [System.Serializable]
     public class ForcedTransition {
-        [Tooltip("角色状态机中，‘fromStateId’的状态动画播放完时，强制切换到另外的动画")]
-        public int fromStateId;
+        
         [Tooltip("目标动画的animator层index，Baselayer是0，依次递增")]
         public int animLayer;
+        [Tooltip("角色状态机中，‘fromStateId’的状态动画播放完时，强制切换到另外的动画")]
+        public int fromStateId;
         [Tooltip("要强制转换的动画名")]
         public string toAnimState;
     }
@@ -81,11 +82,11 @@ public class PlayerAnimator : MonoBehaviour {
     }
     
     /// <summary>
-    /// 强制过渡：从上一状态转换到目标to状态,用anim.Play()方法播放同一层级的目标动画
+    /// 强制过渡：从上一状态（用lastindex搜到的）转换到目标to状态,用anim.Play()方法播放同一层级的目标动画
     /// </summary>
     protected virtual void HandleForcedTransitions(){
         var lastStateIndex = player.states.lastIndex;
-        
+        //如果字典里有上一个状态的索引，获取索引对应的层级、
         if (m_forcedTransitions.ContainsKey(lastStateIndex)) {
             int layer = m_forcedTransitions[lastStateIndex].animLayer;
             anim.Play(m_forcedTransitions[lastStateIndex].toAnimState,layer);
@@ -130,5 +131,4 @@ public class PlayerAnimator : MonoBehaviour {
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed);
         anim.SetBool(m_isGroundedHash,player.isGrounded);
     }
-
 }
