@@ -53,10 +53,11 @@ public class PlayerCamera : MonoBehaviour {
     }
 
     protected void LateUpdate(){
+        
         HandleOrbit(); //玩家右摇杆输入
         HandleStrafeFacing();//跟着角色朝向
         HandleLagFollow(); //上下方向跟随/延迟
-        ApplyTargetPos();
+        ApplyTargetPos(); //放到最后，让其它计算先落地，最后一次性写入transform
     }
 
     /// <summary>       
@@ -137,37 +138,36 @@ public class PlayerCamera : MonoBehaviour {
     /// </summary>
     protected virtual void HandleLagFollow(){
         
-        //获取跟随目标点的位置
-        var targetPos = player.unsizedPos + new Vector3(0, heightOffset, 0);
-        //初始化相机在当前帧内的目标高度，用上一帧的target位置作为基础计算
-        var lastPos = m_cameraTargetPos; //相机上一帧的目标位置
-        var camHeightPos = lastPos.y;
+        //初始化相机目标点在当前帧内的高度，用上一帧的target位置作为基础计算
+        var curTargetPos = player.unsizedPos + new Vector3(0, heightOffset, 0);
+        var lastTargetPos = m_cameraTargetPos; //相机上一帧的目标位置
+        var camHeightPos = lastTargetPos.y;
         
         //地面
         if (player.isGrounded || IsFollowState()) {
             //如果玩家跳跃\下落等超过死区上限,相机向对应方向缓慢位移offset距离
-            if (targetPos.y > lastPos.y + upDeadZone) {
-                var offset = targetPos.y - upDeadZone - lastPos.y;
+            if (curTargetPos.y > lastTargetPos.y + upDeadZone) {
+                var offset = curTargetPos.y - upDeadZone - lastTargetPos.y;
                 //防止一帧内跳太多，突兀了，有个每帧位移的最大值
                 camHeightPos += Mathf.Min(offset, maxFollowSpeed * Time.deltaTime);
-            }else if (targetPos.y < lastPos.y - downDeadZone) {
-                var offset = targetPos.y  - lastPos.y + downDeadZone;//此时offset是负数
+            }else if (curTargetPos.y < lastTargetPos.y - downDeadZone) {
+                var offset = curTargetPos.y  - lastTargetPos.y + downDeadZone;//此时offset是负数
                 camHeightPos -= Mathf.Max(offset, maxFollowSpeed * Time.deltaTime);
             }
         }
         
         //空中
-        else if (targetPos.y > lastPos.y + airUpDeadZone) {
-            var offset = targetPos.y - airUpDeadZone - lastPos.y;
+        else if (curTargetPos.y > lastTargetPos.y + airUpDeadZone) {
+            var offset = curTargetPos.y - airUpDeadZone - lastTargetPos.y;
             //防止一帧内跳太多，突兀了，有个每帧位移的最大值
             camHeightPos += Mathf.Min(offset, maxFollowSpeed * Time.deltaTime);
-        }else if (targetPos.y < lastPos.y - airDownDeadZone) {
-            var offset = targetPos.y  - lastPos.y + airDownDeadZone;
+        }else if (curTargetPos.y < lastTargetPos.y - airDownDeadZone) {
+            var offset = curTargetPos.y  - lastTargetPos.y + airDownDeadZone;
             camHeightPos -= Mathf.Max(offset, maxFollowSpeed * Time.deltaTime);
         }
 
         //计算最终位置：除了高度信息都和target相同
-        m_cameraTargetPos = new Vector3(targetPos.x,camHeightPos, targetPos.z);
+        m_cameraTargetPos = new Vector3(curTargetPos.x,camHeightPos, curTargetPos.z);
     }
     /// <summary>
     /// 在玩家右摇杆输入的基础上，根据玩家速度朝向改变相机朝向

@@ -4979,7 +4979,6 @@ GameObject:
   - component: {fileID: 4136110905102452}
   - component: {fileID: 54061382318833688}
   - component: {fileID: 136491243290544384}
-  - component: {fileID: 95691277913748488}
   m_Layer: 0
   m_Name: Kazuko
   m_TagString: Untagged
@@ -5036,27 +5035,6 @@ CapsuleCollider:
   m_Height: 1.58
   m_Direction: 1
   m_Center: {x: 0, y: 0.79, z: 0}
---- !u!95 &95691277913748488
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1571125196395142}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: dd4fe296533713342b6bc2ebe4faedbd, type: 3}
-  m_Controller: {fileID: 9100000, guid: 9ebb13bdc71dc5f40a2658534e29a444, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1579794217178656
 GameObject:
   m_ObjectHideFlags: 0
