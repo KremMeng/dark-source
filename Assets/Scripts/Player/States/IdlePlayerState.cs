@@ -10,6 +10,7 @@ public class IdlePlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
+        player.Friction();
         //用cc的话需要接入手写的重力
         player.Gravity();
         var inputDirection = player.inputs.GetMovementDirction();

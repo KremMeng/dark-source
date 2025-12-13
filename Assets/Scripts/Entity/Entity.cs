@@ -23,7 +23,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     public Vector3 velocity { get; set; }   //当前速度
     
     //系数运行时可能会变，所以不放在静态配置里
-    public float turningDragMulti { get; set; } = 1.0f; //转向时阻力系数
+    public float turningDragMulti { get; set; } = 3.0f; //转向时阻力系数,值越大阻力越小
     public float maxSpeedMulti { get; set; } = 1.0f;    //最大速度系数
     public float accelerationMulti { get; set; } = 1.0f;    //加速度系数
     public float decelerMulti { get; set; } = 1.0f;    //加速度系数
@@ -131,11 +131,11 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     protected virtual void HandleActorController(){
         //位移==速度*时间
         if (cc.enabled) {
-            cc.Move(velocity * Time.deltaTime * 0.1f);
+            cc.Move(velocity * Time.deltaTime);
             return;
         }
         //如果没开启cc就用position计算
-        transform.position += velocity * Time.deltaTime * 0.1f;
+        transform.position += velocity * Time.deltaTime;
     }
     
     //Entity需要Manager来驱动
