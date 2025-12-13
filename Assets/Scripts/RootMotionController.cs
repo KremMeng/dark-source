@@ -14,3 +14,4 @@ public class RootMotionController : MonoBehaviour
         SendMessageUpwards("OnUpdateRM",anim.deltaPosition);//装箱
     }
 }
+  

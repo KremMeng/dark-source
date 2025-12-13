@@ -10,9 +10,9 @@ public class PlayerStat : EntityStat<PlayerStat> {
     public float snapForce = 15f;       // 黏到地面的吸附力
     public float slideForce = 10f;      // 下坡的额外推力
     public float rotationSpeed = 970f;  // 角色旋转速度（度/秒）
-    public float gravity = 38f;         // 普通重力加速度
-    public float fallGravity = 65f;     // 下落时额外重力加速度  
-    public float gravityMSpeed = 50f; // 重力作用下的最大下落速度
+    public float gravity = 9.8f;         // 普通重力加速度
+    public float fallGravity = 12f;     // 下落时额外重力加速度  
+    public float gravityMaxSpeed = 30f; // 重力作用下的最大下落速度
     
     //=========================运动属性=======================
     [Header("Motion Stats")] 

@@ -1,10 +1,12 @@
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 public abstract class EntityBase : MonoBehaviour {
 
     public Vector3 unsizedPos => transform.position;
     public bool isGrounded { get; protected set; } = true;
+    
+    public CharacterController cc { get; protected set; }
+    public float originHeight { get; protected set; }
 
     /// <summary>
     /// 检测是否在斜坡上，斜坡和平地的摩擦力不同
@@ -37,6 +39,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     protected virtual void Awake(){
         //初始化状态管理器
         InitializeStateManager();
+        InitializeCharactorController();
     }
 
     protected virtual void Update(){
@@ -44,11 +47,23 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
         HandlleStates();
         HandleActorController();
     }
+
+    protected virtual void InitializeCharactorController(){
+        //获取当前物体身上的cc
+        cc = GetComponent<CharacterController>();
+        //没有的话就添加一个cc组件
+        if (!cc) {
+            cc = gameObject.AddComponent<CharacterController>();
+        }
+        //设置一些基本参数
+        cc.skinWidth = 0.005f;
+        cc.minMoveDistance = 0;
+        originHeight = cc.height;
+    }
     /// <summary>
     /// 加速度--阻尼感
     /// </summary>
     /// <param name="inputDir">相机y轴下的输入方向</param>
-    /// <returns></returns>
     public void Accelerate(Vector3 inputDir,float turningDrag,float acceleration,float maxSpeed){
         
         if (inputDir.sqrMagnitude > 0) {
@@ -96,10 +111,30 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             transform.rotation = Quaternion.RotateTowards(currentRotation, targetRotation, rotationDelta);
         }
     }
-    
-    //角色动作控制器
+
+    /// <summary>
+    /// 给cc添加重力
+    /// </summary>
+    public virtual void Gravity(bool isGrounded,float gravityMulti,float gravityMaxSpeed,float gravity,float fallGravity){
+        var speed = verticalVelocity.y;
+        //如果向下的竖直速率还没有到上限，例如向下速度最大为-50，那么-30(下降)、+10(上升)都是可以的
+        if (!isGrounded && speed > -gravityMaxSpeed) {
+            //重力加速度，区分在空中上升和下降
+            var gForce = verticalVelocity.y > 0 ? gravity : fallGravity;
+            speed -= gForce * gravityMulti * Time.deltaTime;
+            //速度封底:如速度＝=-60那就取更大的-50
+            speed = Mathf.Max(speed, -gravityMaxSpeed);
+            verticalVelocity = new Vector3(0, speed, 0);
+        }
+    }
+    //角色动作控制--velocity位移
     protected virtual void HandleActorController(){
         //位移==速度*时间
+        if (cc.enabled) {
+            cc.Move(velocity * Time.deltaTime * 0.1f);
+            return;
+        }
+        //如果没开启cc就用position计算
         transform.position += velocity * Time.deltaTime * 0.1f;
     }
     

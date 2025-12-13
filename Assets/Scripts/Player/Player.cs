@@ -37,7 +37,16 @@ public class Player : Entity<Player> {
             Decelerate(stat.current.groundFriction);
         }
     }
-    
+
+    public virtual void Gravity(){
+        isGrounded = false;
+        var gravityMaxSpeed = stat.current.gravityMaxSpeed;
+        var gravityMulti = 1.0f;
+        var gravity = stat.current.gravity;
+        var fallGravity = stat.current.fallGravity;
+        
+        Gravity(isGrounded,gravityMulti,gravityMaxSpeed,gravity,fallGravity);
+    }
     /// <summary>
     /// 平滑地转向dir方向，角速度匀速
     /// </summary>

@@ -10,7 +10,8 @@ public class IdlePlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        //Debug.Log("IdlePlayerState::Onstep");
+        //用cc的话需要接入手写的重力
+        player.Gravity();
         var inputDirection = player.inputs.GetMovementDirction();
         if (inputDirection.sqrMagnitude > 0 || player.horizontalVelocity.sqrMagnitude > 0) {
             player.states.Change<WalkPlayerState>();

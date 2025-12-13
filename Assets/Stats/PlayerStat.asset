@@ -23,7 +23,7 @@ MonoBehaviour:
   acceleration: 13
   airAcceleration: 13
   deceleration: 28
-  groundFriction: 28
+  groundFriction: 35
   slopeFriction: 28
   maxSpeed: 6
   turningDrag: 5
