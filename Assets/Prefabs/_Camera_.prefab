@@ -853,12 +853,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 0}
   maxDistance: 4
-  initialPitchAngle: 20
-  heightOffset: 1
-  upDeadZone: 0.01
-  downDeadZone: 0.01
+  initialPitchAngle: 10
+  heightOffset: 1.5
+  upDeadZone: 0.05
+  downDeadZone: 0.05
   airUpDeadZone: 4
-  airDownDeadZone: 0
+  airDownDeadZone: 4
   maxFollowSpeed: 10
   maxAirFollowSpeed: 100
   canOrbit: 1

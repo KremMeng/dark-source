@@ -1,5 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.HID;
+using UnityEngine.UI;
 
 public class PlayerInputManager : MonoBehaviour {
     public InputActionAsset actions; //按键映射的配置文件，inspector里拖入
@@ -7,6 +10,11 @@ public class PlayerInputManager : MonoBehaviour {
     //硬件输入缓存
     protected InputAction m_movement;
     protected InputAction m_look;
+    protected InputAction m_jump;
+
+    protected float? m_timeOfLastJump; //可空值类型，记录自程序应用以来，上次跳跃的时间
+    protected float jumpBufferTimer = 0.15f; //跳跃缓冲计时器时间内按下第二次跳跃，落地后自动触发
+    
     protected Camera m_camera;
     protected float m_movementDirctionUnlockTime;//小于这个时长，锁定玩家的移动输入
 
@@ -19,6 +27,13 @@ public class PlayerInputManager : MonoBehaviour {
         actions.Enable();//新输入系统的安全设置:需要先手动激活
     }
 
+    protected void Update(){
+        //记录按下跳跃的全局时间
+        if (m_jump.WasPressedThisFrame()) {
+            m_timeOfLastJump = Time.time;
+        }
+    }
+
     protected virtual void OnEnable() => actions?.Enable();
     protected virtual void OnDisable() => actions?.Disable();
 
@@ -26,6 +41,7 @@ public class PlayerInputManager : MonoBehaviour {
     protected virtual void CacheActions(){
         m_movement = actions["move"];
         m_look = actions["look"];
+        m_jump = actions["jump"];
     }
 
     protected virtual void InitializeCamera() => m_camera = Camera.main;
@@ -88,4 +104,25 @@ public class PlayerInputManager : MonoBehaviour {
         direction = rotation * direction;//Unity内部运算符重载好了四元数运算
         return direction;
     }
+    /// <summary>
+    /// 是否允许再次跳跃，因为写在了各个基础状态的updtae里所以不能乱跳?
+    /// </summary>
+    /// <returns></returns>
+    public virtual bool CanJump(){
+        //上次跳跃时的时间存在 && 在jumpBuffer计时器时间内,允许再次跳跃
+        if (m_timeOfLastJump != null && Time.time - m_timeOfLastJump < jumpBufferTimer) {
+            m_timeOfLastJump = null;
+            return true;
+        }
+        return false;
+    }
+    //跳跃相关按键判定
+    //public virtual bool JumpOnPressed() => m_jump.WasPressedThisFrame();
+    public virtual bool JumpOnPressed(){
+        Debug.Log("pressed jump :" + m_jump.WasPressedThisFrame());
+        return m_jump.WasPressedThisFrame();
+    }
+    
+    public virtual bool JumpIsPresssing() => m_jump.IsPressed();
+    public virtual bool JumpOnReleased() => m_jump.WasReleasedThisFrame();
 }

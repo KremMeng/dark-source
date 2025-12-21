@@ -124,11 +124,13 @@ public class PlayerAnimator : MonoBehaviour {
         var horizonAnimSpeed = Mathf.Max(minHorizonAnimSpeed,horizonSpeed/player.stat.current.maxSpeed);
 
         //设置参数值
+        anim.SetInteger(m_jumpCounterHash,player.jumpCounter);
         anim.SetInteger(m_curStateHash,player.states.curIndex);
         anim.SetInteger(m_lastStateHash,player.states.lastIndex);
         anim.SetFloat(m_horizonSpeedHash,horizonSpeed);
         anim.SetFloat(m_verticalSpeedHash,verticalSpeed);
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed);
         anim.SetBool(m_isGroundedHash,player.isGrounded);
+        
     }
 }

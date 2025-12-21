@@ -12,7 +12,10 @@ public class WalkPlayerState : PlayerState {
     protected override void OnStep(Player player){
         player.Friction();
         //用cc的话需要接入手写的重力
+        player.Jump();
         player.Gravity();
+        //player.inputs.JumpOnPressed();
+        
         //检测相机空间下的玩家输入
         var inputDirection = player.inputs.GetMovementCameraDirction();
         if (inputDirection.sqrMagnitude > 0) {
@@ -25,9 +28,9 @@ public class WalkPlayerState : PlayerState {
                 player.Accelerate(inputDirection);  //速度
                 player.FaceDirectionSmooth(player.horizontalVelocity);  //velocity参数是Vec3向量，自带方向信息
             }
-            else {//低于刹车阈值就进入刹车状态
-                player.states.Change<BreakPlayerState>();
-            }
+            // else {//低于刹车阈值就进入刹车状态
+            //     player.states.Change<BreakPlayerState>();
+            // }
 
         }
         else {

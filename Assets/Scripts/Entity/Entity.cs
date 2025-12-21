@@ -3,7 +3,8 @@ using UnityEngine;
 public abstract class EntityBase : MonoBehaviour {
 
     public Vector3 unsizedPos => transform.position;
-    public bool isGrounded { get; protected set; } = true;
+    [SerializeField] public bool isGrounded { get; protected set; } = true;
+    public float timeOfLastGrounded { get; protected set; }
     
     public CharacterController cc { get; protected set; }
     public float originHeight { get; protected set; }
@@ -131,11 +132,11 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     protected virtual void HandleActorController(){
         //位移==速度*时间
         if (cc.enabled) {
-            cc.Move(velocity * Time.deltaTime);
+            cc.Move(velocity * Time.deltaTime * 0.08f);
             return;
         }
         //如果没开启cc就用position计算
-        transform.position += velocity * Time.deltaTime;
+        transform.position += velocity * Time.deltaTime * 0.08f;
     }
     
     //Entity需要Manager来驱动
