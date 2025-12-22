@@ -1,19 +1,56 @@
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public abstract class EntityBase : MonoBehaviour {
 
+    public EntityEvents entityEvents; 
     public Vector3 unsizedPos => transform.position;
+    public float m_groundOffset = 0.1f;
     [SerializeField] public bool isGrounded { get; protected set; } = true;
     public float timeOfLastGrounded { get; protected set; }
     
     public CharacterController cc { get; protected set; }
     public float originHeight { get; protected set; }
+    public float height => cc.height; //碰撞器的高度
+    public float radius => cc.radius; //碰撞器的直径
+    public Vector3 center => cc.center; //碰撞器相较于transform的local坐标偏移，为了包住角色在编辑器面板上设为（0，1，0）
+    public Vector3 position => transform.position + center; //加个center以防万一特殊情况需要改cc的中心，见上一条注释
+    
+    public float groundDip { get; protected set; }  //当前地面倾角
+    public Vector3 groundNormal { get; protected set; }   //当前的地面法线
+    public Vector3 localSlopeDir { get; protected set; }  //当前地面的局部斜坡朝向
+    public RaycastHit groundHit;    //留住当前地面检测点信息，以免后续有用
+
+    public Vector3 feetPos => position - transform.up * (height * 0.5f - cc.stepOffset); //stepOffset是台阶距离，也在面板上设置了
 
     /// <summary>
     /// 检测是否在斜坡上，斜坡和平地的摩擦力不同
     /// </summary>
     public virtual bool OnSlope(){
         return false;
+    }
+    
+    /// <summary>
+    /// 封装一下原球形射线检测方法，普通射线检测只能cast一个点出去，而这个可以roll一个有半径的球出去
+    /// </summary>
+    /// <param name="hit">地面碰撞点位置、法线等信息</param>
+    /// <param name="distance">可投射的距离</param>>
+    /// <returns>返回bool值</returns>
+    public virtual bool SphereCast(Vector3 castDir,float distance,
+        out RaycastHit hit,int layer = Physics.DefaultRaycastLayers,
+        QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Ignore)
+    {
+        float castDistance = Mathf.Abs(distance - radius);
+        return Physics.SphereCast(position,radius,castDir,
+            out hit,castDistance,layer,queryTriggerInteraction);
+    }
+    /// <summary>
+    /// 踩踏检测：判断hit点是不是在脚步下方
+    /// </summary>
+    /// <returns></returns>
+    public virtual bool IsUnderFeet(Vector3 hitPoint){
+        return feetPos.y > hitPoint.y;
     }
 
 }
@@ -44,9 +81,12 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     }
 
     protected virtual void Update(){
-        //处理状态机步进逻辑
-        HandlleStates();
-        HandleActorController();
+        //角色控制器开启时，处理状态机步进逻辑
+        if (cc.enabled) {
+            HandlleStates();
+            HandleActorController();
+            HandleGround();
+        }
     }
 
     protected virtual void InitializeCharactorController(){
@@ -144,4 +184,68 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
 
     //轮询
     protected virtual void HandlleStates() => states.Step();
+
+    //处理地面相关的逻辑
+    protected virtual void HandleGround(){
+        
+        float castRid = height * 0.5f + m_groundOffset;//胶囊中心点稍微抬高一点点，防止卡地形
+        //如果碰撞检测上了，而且正在下落或者已经落地
+        if (SphereCast(Vector3.down,castRid,out var hit) && verticalVelocity.y <= 0) {
+            //如果不在地面
+            if (!isGrounded) {
+                //如果满足落地条件，那就进入地面状态
+                if (CanLanding(hit)) {
+                    EnterGround(hit);
+                }
+            }
+            //如果在地，那就更新地面信息
+            else if (IsUnderFeet(hit.point)) {
+                UpdateGround(hit);
+            }
+        }
+        else {
+            ExitGround();
+        }
+    }
+   
+    /// <summary>
+    /// 判断是否满足落地条件
+    /// </summary>
+    /// <returns></returns>
+    public virtual bool CanLanding(RaycastHit hit){
+        //hit点在脚下 并且 落地点的法线和up夹角 ＜ 角色控制器的“最大限制角度”
+        return IsUnderFeet(hit.point) && Vector3.Angle(hit.normal, Vector3.up) < cc.slopeLimit;
+    }
+
+    protected virtual void EnterGround(RaycastHit hit){
+        //不在地的时候，转入地面状态，防止重复触发
+        if (!isGrounded) {
+            groundHit = hit;
+            isGrounded = true;
+            entityEvents.OnGroundEnter?.Invoke();
+        }
+    }
+    //角色刚离开地面调用
+    protected virtual void ExitGround(){
+        if (isGrounded) {
+            isGrounded = false;
+            //解绑与地面的父子关系，eg站在移动平台上
+            transform.parent = null;
+            //记录离开地面的时间（跳跃缓冲判断）
+            timeOfLastGrounded = Time.time;
+            //限制垂直速度：如果在向下运动不干涉，如果向上运动就要
+        }
+    }
+    //每帧更新地面相关数据
+    protected virtual void UpdateGround(RaycastHit hit){
+        if (isGrounded) {
+            groundHit = hit;
+            groundNormal = groundHit.normal;
+            groundDip = Vector3.Angle(Vector3.up, groundHit.normal);
+            //局部坡度法线方向
+            localSlopeDir = new Vector3(groundNormal.x, 0, groundNormal.z).normalized;
+            //如果地面tag为平台类型，让角色成为平台的子物体;tag是其它类型就不管
+            transform.parent = hit.collider.CompareTag(GameTags.Platform) ? hit.transform : null;
+        }
+    }
 }

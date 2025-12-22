@@ -14,6 +14,9 @@ public class Player : Entity<Player> {
         base.Awake();//先让父类初始化
         InitializeInputs();
         InitializeStat();
+        
+        //运行的时候监听落地事件，重置跳跃/空中技能次数
+        entityEvents.OnGroundEnter.AddListener(()=>ResetJump());
     }
 
     protected virtual void InitializeInputs() => inputs = GetComponent<PlayerInputManager>();
@@ -43,7 +46,6 @@ public class Player : Entity<Player> {
     }
 
     public virtual void Gravity(){
-        isGrounded = false;
         var gravityMaxSpeed = stat.current.gravityMaxSpeed;
         var gravityMulti = 1.0f;
         var gravity = stat.current.gravity;
@@ -57,11 +59,14 @@ public class Player : Entity<Player> {
     /// <param name="dir"></param>
     public virtual void FaceDirectionSmooth(Vector3 dir) => FaceDirection(dir, stat.current.rotationSpeed);
 
+    public virtual void AccelerateWithInputDir(){
+        var inputDir = inputs.GetMovementDirction();//基于相机的局部朝向
+        Accelerate(inputDir);
+    }
     /// <summary>
     /// 跳跃逻辑--主要进行跳跃条件判定
     /// </summary>
     public virtual void Jump(){
-        isGrounded = true;
         //是否触发多段跳
         bool canMultiJump = (jumpCounter > 0) && (jumpCounter < stat.current.multiJumps);
         //是否符合土狼跳跃宽限
@@ -83,4 +88,22 @@ public class Player : Entity<Player> {
         states.Change<FallPlayerState>();
         playerEvents.OnJump?.Invoke();
     }
+    /// <summary>
+    /// 重置跳跃计数，避免累加
+    /// </summary>
+    public virtual void ResetJump() => jumpCounter = 0;
+
+    public virtual void Fall(){
+        if(!isGrounded) states.Change<FallPlayerState>();
+    }
+    //把玩家强制贴到地面上.防止悬空
+    public virtual void SnapToGround() => SnapToGround(stat.current.snapForce);
+
+    public virtual void SnapToGround(float snapForce){
+        //接地且垂直速度朝下
+        if (isGrounded && verticalVelocity.y <= 0) {
+            verticalVelocity = Vector3.down * snapForce;
+        }
+    }
+
 }

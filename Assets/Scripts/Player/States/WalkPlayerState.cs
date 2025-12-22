@@ -10,11 +10,11 @@ public class WalkPlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        player.Friction();
-        //用cc的话需要接入手写的重力
+        //player.Friction();
+        player.Gravity();//用cc的话需要接入手写的重力
+        player.SnapToGround();
         player.Jump();
-        player.Gravity();
-        //player.inputs.JumpOnPressed();
+        player.Fall();
         
         //检测相机空间下的玩家输入
         var inputDirection = player.inputs.GetMovementCameraDirction();

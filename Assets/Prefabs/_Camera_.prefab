@@ -863,7 +863,7 @@ MonoBehaviour:
   maxAirFollowSpeed: 100
   canOrbit: 1
   canOrbitByHeading: 1
-  orbitVelocityMulti: 25
+  orbitVelocityMulti: 5
   maxPitchAngle: 80
   minPitchAngle: -34.8
 --- !u!1 &8331863316415259065

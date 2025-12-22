@@ -14,10 +14,10 @@ AnimatorStateMachine:
     m_Position: {x: -220, y: -30, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -6374446275470034490}
-    m_Position: {x: 50, y: 70, z: 0}
+    m_Position: {x: 120, y: 20, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -2860375979498374940}
-    m_Position: {x: 260, y: 160, z: 0}
+    m_Position: {x: 220, y: 80, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -848830139917559276}
     m_Position: {x: -220, y: 330, z: 0}
@@ -214,7 +214,7 @@ AnimatorStateTransition:
   m_Conditions:
   - m_ConditionMode: 6
     m_ConditionEvent: Current State
-    m_EventTreshold: 3
+    m_EventTreshold: 2
   - m_ConditionMode: 4
     m_ConditionEvent: Vertical Speed
     m_EventTreshold: 0
@@ -268,7 +268,7 @@ AnimatorStateTransition:
   m_Conditions:
   - m_ConditionMode: 6
     m_ConditionEvent: Current State
-    m_EventTreshold: 3
+    m_EventTreshold: 2
   - m_ConditionMode: 3
     m_ConditionEvent: Vertical Speed
     m_EventTreshold: 0
@@ -448,10 +448,7 @@ AnimatorStateTransition:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 
-  m_Conditions:
-  - m_ConditionMode: 6
-    m_ConditionEvent: Current State
-    m_EventTreshold: 2
+  m_Conditions: []
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1212905836772432768}
   m_Solo: 0
@@ -486,7 +483,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 940d0386ef4a1ff4cb04aae7e422eccd, type: 3}
+  m_Motion: {fileID: 3094330708855449807, guid: 1dce3ce39fd4c0f4d9d2dbd5929a328c, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -684,12 +681,6 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: Jump Counter
-    m_Type: 3
-    m_DefaultFloat: 0
-    m_DefaultInt: 0
-    m_DefaultBool: 0
-    m_Controller: {fileID: 9100000}
   - m_Name: Is Grounded
     m_Type: 4
     m_DefaultFloat: 0
@@ -704,6 +695,12 @@ AnimatorController:
     m_Controller: {fileID: 9100000}
   - m_Name: On State Changed
     m_Type: 9
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
+  - m_Name: Jump Counter
+    m_Type: 3
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
@@ -753,7 +750,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 3094330708855449807, guid: 05ab35d27bb28ad49bc9c2b098b821ae, type: 3}
+  m_Motion: {fileID: 7400000, guid: ff39722c6e51da1449fe51444d6d38ff, type: 3}
   m_Tag: 
   m_SpeedParameter: Lateral Animation Speed
   m_MirrorParameter: 
@@ -795,7 +792,7 @@ AnimatorStateTransition:
   m_Conditions:
   - m_ConditionMode: 6
     m_ConditionEvent: Current State
-    m_EventTreshold: 2
+    m_EventTreshold: 5
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 7506554709102176237}
   m_Solo: 0
@@ -1058,7 +1055,7 @@ AnimatorStateTransition:
     m_EventTreshold: 1
   - m_ConditionMode: 3
     m_ConditionEvent: Horizontal Speed
-    m_EventTreshold: 8
+    m_EventTreshold: 15
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 570428088815291891}
   m_Solo: 0
