@@ -49,7 +49,9 @@ public class PlayerAnimator : MonoBehaviour {
     [Header("Settings")] 
     public float minHorizonAnimSpeed = 0.5f;
     public List<ForcedTransition> forcedTransitions; //列表，存放强制转换的规则，例如walk2run
-
+    
+    private readonly Queue<System.Action> _finishCallbacks = new();
+    internal void QueueFinishCallBack(System.Action callback) => _finishCallbacks.Enqueue(callback);
     protected void Start(){
         
         InitializePlayer();
@@ -63,6 +65,7 @@ public class PlayerAnimator : MonoBehaviour {
     /// </summary>
     protected void LateUpdate(){
         UpdateAnimatorParams();
+        PollAnimFinish();
     }
 
     protected virtual void InitializePlayer(){
@@ -135,5 +138,16 @@ public class PlayerAnimator : MonoBehaviour {
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed);
         anim.SetBool(m_isGroundedHash,player.isGrounded);
         anim.SetBool(m_runHash,player.run);
+    }
+    /// <summary>
+    /// 当前动画播放完毕时切换到目标状态
+    /// </summary>
+    /// <typeparam name="State">目标状态</typeparam>
+    public virtual bool PollAnimFinish(){
+        if (_finishCallbacks.Count == 0) return false;
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime < 1.0f) return false;
+        _finishCallbacks.Dequeue()?.Invoke();
+        return true;
     }
 }

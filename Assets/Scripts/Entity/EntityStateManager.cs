@@ -84,4 +84,5 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
         events.onEnter.Invoke(current.GetType());
         events.onChange?.Invoke();//只要成功切了状态（不管从哪到哪），只要切完就喊一声
     }
+    
 }

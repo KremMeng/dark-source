@@ -375,7 +375,9 @@ MonoBehaviour:
   - IdlePlayerState
   - WalkPlayerState
   - RunPlayerState
-  - FallPlayerState
+  - BreakPlayerState
+  - JabPlayerState
+  - RollPlayerState
   - FallPlayerState
 --- !u!114 &133751273
 MonoBehaviour:

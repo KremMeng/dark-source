@@ -22,7 +22,7 @@ public class PlayerStat : EntityStat<PlayerStat> {
     public float deceleration = 28f;      //减速度
     public float groundFriction = 28f;    //地面摩擦力
     public float slopeFriction = 28f;     //斜坡摩擦力
-    public float maxSpeed = 2.0f;           //最大速度
+    public float maxSpeed = 12.0f;           //最大速度
     public float turningDrag = 5f;       //转向时的阻尼
     public float brakeThreshold = -0.8f;  //刹车判定阈值
     public float slopeUpwardForce = 25f;  //上坡的额外推力

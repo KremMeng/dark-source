@@ -13,9 +13,14 @@ public class RunPlayerState : PlayerState {
         player.Gravity();
         var inputDirection = player.inputs.GetMovementCameraDirction();
         player.FaceDirectionSmooth(inputDirection);
-        //player.Accelerate(inputDirection);
+        player.Accelerate(inputDirection);
         if (player.inputs.RunOnReleased()) {
-            player.states.Change<BreakPlayerState>();
+            if (inputDirection.sqrMagnitude != 0) {
+                player.states.Change<WalkPlayerState>();
+            }else if (inputDirection.sqrMagnitude <= 0) {
+                player.Decelerate();
+                player.states.Change<BreakPlayerState>();
+            }
         }
     }
 

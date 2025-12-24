@@ -4,18 +4,18 @@ using UnityEngine;
 [AddComponentMenu("Asset/Player/States/Break Player State")]
 public class BreakPlayerState : PlayerState{
     protected override void OnEnter(Player player){
+        //播放完切idle
+        player.ChangeOnAnimFinish(() => player.states.Change<IdlePlayerState>());
     }
 
     protected override void OnExit(Player player){
+        
     }
 
     protected override void OnStep(Player player){
         player.Gravity();
         player.Decelerate();
-        if (player.horizontalVelocity.sqrMagnitude == 0) {//如果完全停住
-            player.states.Change<IdlePlayerState>();
-        }
-    }
+      }   
 
     public override void OnContact(Player player, Collider other){
         
