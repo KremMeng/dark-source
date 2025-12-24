@@ -30,6 +30,7 @@ public class PlayerAnimator : MonoBehaviour {
     protected int m_jumpCounterHash;
     protected int m_isGroundedHash;
     protected int m_onStateChangeHash;
+    protected int m_runHash;
     
     protected Dictionary<int, ForcedTransition> m_forcedTransitions; //字典，存放状态列表的index和transition
                                                                      //from状态和to状态都在列表里，初始化时放入统称from，用的时候再转到to？
@@ -43,6 +44,7 @@ public class PlayerAnimator : MonoBehaviour {
     public string jumpCounterName = "Jump Counter";     //跳跃计数
     public string isGroundedName = "Is Grounded";       //在地面状态
     public string onStateChangedName = "On State Changed";      //状态切换触发器
+    public string runName = "Run";
    
     [Header("Settings")] 
     public float minHorizonAnimSpeed = 0.5f;
@@ -112,6 +114,7 @@ public class PlayerAnimator : MonoBehaviour {
         m_jumpCounterHash = Animator.StringToHash(jumpCounterName);
         m_isGroundedHash = Animator.StringToHash(isGroundedName);
         m_onStateChangeHash = Animator.StringToHash(onStateChangedName);
+        m_runHash = Animator.StringToHash(runName);
     }
     /// <summary>
     /// 用速度驱动，每帧更新动画机参数
@@ -131,6 +134,6 @@ public class PlayerAnimator : MonoBehaviour {
         anim.SetFloat(m_verticalSpeedHash,verticalSpeed);
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed);
         anim.SetBool(m_isGroundedHash,player.isGrounded);
-        
+        anim.SetBool(m_runHash,player.run);
     }
 }

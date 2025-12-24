@@ -1,8 +1,8 @@
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEditor.VersionControl;
 using UnityEngine;
-[AddComponentMenu("Asset/Player/States/Break Player State")]
-public class BreakPlayerState : PlayerState{
+using UnityEngine.PlayerLoop;
+
+public class RunPlayerState : PlayerState {
     protected override void OnEnter(Player player){
     }
 
@@ -11,9 +11,11 @@ public class BreakPlayerState : PlayerState{
 
     protected override void OnStep(Player player){
         player.Gravity();
-        player.Decelerate();
-        if (player.horizontalVelocity.sqrMagnitude == 0) {//如果完全停住
-            player.states.Change<IdlePlayerState>();
+        var inputDirection = player.inputs.GetMovementCameraDirction();
+        player.FaceDirectionSmooth(inputDirection);
+        //player.Accelerate(inputDirection);
+        if (player.inputs.RunOnReleased()) {
+            player.states.Change<BreakPlayerState>();
         }
     }
 

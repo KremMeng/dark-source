@@ -858,13 +858,13 @@ MonoBehaviour:
   upDeadZone: 0.05
   downDeadZone: 0.05
   airUpDeadZone: 4
-  airDownDeadZone: 4
-  maxFollowSpeed: 10
-  maxAirFollowSpeed: 100
+  airDownDeadZone: 8
+  maxFollowSpeed: 8
+  maxAirFollowSpeed: 30
   canOrbit: 1
   canOrbitByHeading: 1
   orbitVelocityMulti: 5
-  maxPitchAngle: 80
+  maxPitchAngle: 67.6
   minPitchAngle: -34.8
 --- !u!1 &8331863316415259065
 GameObject:

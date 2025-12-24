@@ -327,6 +327,10 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: ee9e39d0-7720-4157-bf08-c82fe439af3b
     m_ActionName: Player/jump[/Keyboard/space,/XInputControllerWindows/buttonEast]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 39d25e03-493d-40cc-a8ed-cf42f47712c8
+    m_ActionName: Player/run[/Keyboard/shift,/XInputControllerWindows/rightShoulder]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -370,6 +374,8 @@ MonoBehaviour:
   states:
   - IdlePlayerState
   - WalkPlayerState
+  - RunPlayerState
+  - FallPlayerState
   - FallPlayerState
 --- !u!114 &133751273
 MonoBehaviour:
@@ -446,6 +452,7 @@ MonoBehaviour:
   jumpCounterName: Jump Counter
   isGroundedName: Is Grounded
   onStateChangedName: On State Changed
+  runName: Run
   minHorizonAnimSpeed: 0.5
   forcedTransitions:
   - animLayer: 0

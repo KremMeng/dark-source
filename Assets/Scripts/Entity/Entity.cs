@@ -130,6 +130,13 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
         }
     }
+
+    /// <summary>
+    /// 匀速移动，仅仅在起步和和停止有短暂的加速度
+    /// </summary>
+    public void ConstantSpeedMove(Vector3 inputDir,float maxSpeed,float turningDrag){
+        
+    }
     /// <summary>
     /// 减速-
     /// </summary>
@@ -172,11 +179,11 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     protected virtual void HandleActorController(){
         //位移==速度*时间
         if (cc.enabled) {
-            cc.Move(velocity * Time.deltaTime * 0.08f);
+            cc.Move(velocity * (Time.deltaTime * 0.08f));
             return;
         }
         //如果没开启cc就用position计算
-        transform.position += velocity * Time.deltaTime * 0.08f;
+        transform.position += velocity * (Time.deltaTime * 0.08f);
     }
     
     //Entity需要Manager来驱动
@@ -245,7 +252,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             //局部坡度法线方向
             localSlopeDir = new Vector3(groundNormal.x, 0, groundNormal.z).normalized;
             //如果地面tag为平台类型，让角色成为平台的子物体;tag是其它类型就不管
-            transform.parent = hit.collider.CompareTag(GameTags.Platform) ? hit.transform : null;
+            //transform.parent = hit.collider.CompareTag(GameTags.Platform) ? hit.transform : null;
         }
     }
 }

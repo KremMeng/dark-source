@@ -26,7 +26,7 @@ MonoBehaviour:
   groundFriction: 32
   slopeFriction: 28
   maxSpeed: 6
-  turningDrag: 2
+  turningDrag: 45
   brakeThreshold: -0.8
   slopeUpwardForce: 25
   slopeDownwardForce: 28

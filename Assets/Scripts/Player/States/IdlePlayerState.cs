@@ -13,10 +13,12 @@ public class IdlePlayerState : PlayerState {
         //player.Friction();
         player.Gravity();//用cc的话需要接入手写的重力
         //Player.SnapToGround();
-        player.Jump();
+        //player.Jab();
         player.Fall();
+        player.Run();
+        player.Jump();
         var inputDirection = player.inputs.GetMovementDirction();
-        if (inputDirection.sqrMagnitude > 0 || player.horizontalVelocity.sqrMagnitude > 0) {
+        if (inputDirection.sqrMagnitude > 0) {
             player.states.Change<WalkPlayerState>();
         }
     }

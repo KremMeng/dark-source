@@ -9,6 +9,7 @@ public class Player : Entity<Player> {
     public PlayerStateManagerEvents playerEvents;
     
     public int jumpCounter { get; protected set; }
+    public bool run { get; protected set; }
     
     protected override void Awake(){
         base.Awake();//先让父类初始化
@@ -30,7 +31,11 @@ public class Player : Entity<Player> {
         
         Accelerate(inputDir,turningDrag,acceleration,maxSpeed);
     }
-    
+    public virtual void ConstantSpeedMove(Vector3 inputDir){
+        var maxSpeed = stat.current.maxSpeed;
+        var turningDrag = stat.current.turningDrag;
+        ConstantSpeedMove( inputDir, maxSpeed, turningDrag);
+    }
     public virtual void Decelerate() => Decelerate(stat.current.deceleration);
     
     /// <summary>
@@ -84,7 +89,6 @@ public class Player : Entity<Player> {
     //需要改成有水平wei'yi'd
     public virtual void Jump(float height){
         jumpCounter++;
-        verticalVelocity = new Vector3(0, height, 0);
         states.Change<FallPlayerState>();
         playerEvents.OnJump?.Invoke();
     }
@@ -92,9 +96,20 @@ public class Player : Entity<Player> {
     /// 重置跳跃计数，避免累加
     /// </summary>
     public virtual void ResetJump() => jumpCounter = 0;
-
+    
     public virtual void Fall(){
         if(!isGrounded) states.Change<FallPlayerState>();
+    }
+    /// <summary>
+    /// 跑步判定
+    /// </summary>
+    public virtual void Run(){
+        print("run pressing:  " + inputs.RunOnPressed());
+        print("isGrounded0 "+isGrounded);
+        if (isGrounded  && inputs.RunIsPressing()) {
+            run = true;
+            states.Change<RunPlayerState>();
+        }
     }
     //把玩家强制贴到地面上.防止悬空
     public virtual void SnapToGround() => SnapToGround(stat.current.snapForce);
