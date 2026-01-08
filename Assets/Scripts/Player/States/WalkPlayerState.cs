@@ -18,14 +18,15 @@ public class WalkPlayerState : PlayerState {
         //检测相机空间下的玩家输入
         var inputDirection = player.inputs.GetMovementCameraDirction();
         if (inputDirection.sqrMagnitude > 0) {
-            //player.Accelerate(inputDirection);
-            player.FaceDirectionSmooth(player.horizontalVelocity);
-        }
-        if (inputDirection.sqrMagnitude <= 0) {
+            player.Accelerate(inputDirection);
+            player.FaceDirectionSmooth(inputDirection);
+        }else{
             //没有输入，根据摩擦力减速
             player.Friction();
             //减速到零，切换到Idle
-            player.states.Change<IdlePlayerState>();
+            if (player.horizontalVelocity.sqrMagnitude <= 0.1f) {
+                player.states.Change<IdlePlayerState>();
+            }
         }
     }
 

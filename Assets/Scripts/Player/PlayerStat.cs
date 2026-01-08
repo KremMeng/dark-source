@@ -27,7 +27,9 @@ public class PlayerStat : EntityStat<PlayerStat> {
     public float brakeThreshold = -0.8f;  //刹车判定阈值
     public float slopeUpwardForce = 25f;  //上坡的额外推力
     public float slopeDownwardForce = 28f;//下坡的额外推力
-    
+    public float rotateLerpMulti = 12f; //匀速旋转因子
+    public float brakeLerp = 12f;
+    public float runMulti = 6.0f;
     //=========================跳跃属性=======================
     public float multiJumps = 1;    //可以额外进行多段跳的次数，设成1就是只能二段跳
     public float coyotoJumpThreshold = 0.15f;    //土狼宽限时长

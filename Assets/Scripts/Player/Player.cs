@@ -36,8 +36,8 @@ public class Player : Entity<Player> {
     }
     public virtual void ConstantSpeedMove(Vector3 inputDir){
         var maxSpeed = stat.current.maxSpeed;
-        var turningDrag = stat.current.turningDrag;
-        ConstantSpeedMove( inputDir, maxSpeed, turningDrag);
+        var rotateMulti = stat.current.rotateLerpMulti;
+        ConstantSpeedMove(inputDir, maxSpeed,rotateMulti);
     }
     public virtual void Decelerate() => Decelerate(stat.current.deceleration);
     

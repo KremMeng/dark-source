@@ -10,9 +10,7 @@ public class IdlePlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        //player.Friction();
         player.Gravity();//用cc的话需要接入手写的重力
-        //Player.SnapToGround();
         //player.Jab();
         player.Fall();
         player.Run();

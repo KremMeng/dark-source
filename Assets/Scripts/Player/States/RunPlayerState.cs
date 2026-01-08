@@ -12,8 +12,10 @@ public class RunPlayerState : PlayerState {
     protected override void OnStep(Player player){
         player.Gravity();
         var inputDirection = player.inputs.GetMovementCameraDirction();
-        player.FaceDirectionSmooth(inputDirection);
-        player.Accelerate(inputDirection);
+        if (inputDirection.sqrMagnitude > 0) {
+            player.Accelerate(inputDirection * player.stat.current.runMulti);  
+            player.FaceDirectionSmooth(inputDirection);
+        }
         if (player.inputs.RunOnReleased()) {
             if (inputDirection.sqrMagnitude != 0) {
                 player.states.Change<WalkPlayerState>();

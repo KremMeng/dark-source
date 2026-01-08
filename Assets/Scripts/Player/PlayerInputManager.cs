@@ -88,8 +88,7 @@ public class PlayerInputManager : MonoBehaviour {
         var deadzone = InputSystem.settings.defaultDeadzoneMin;
         axises.x = Mathf.Abs(axises.x) > deadzone ? RemapToDeadZone(axises.x, deadzone) : 0;
         axises.y = Mathf.Abs(axises.y) > deadzone ? RemapToDeadZone(axises.y, deadzone) : 0;
-        Vector3 axisesWithDeadZone = new Vector3(axises.x, 0, axises.y);
-        return axisesWithDeadZone; 
+        return new Vector3(axises.x, 0, axises.y);; 
     }
     /// <summary>
     /// 把输入区间映射到0-1
@@ -100,10 +99,13 @@ public class PlayerInputManager : MonoBehaviour {
     public virtual Vector3 GetMovementCameraDirction(){
         //获取原始输入方向
         var direction = GetMovementDirction();
-        //把输入转到摄像机水平朝向，并不是完整相机空间
-        float yaw = m_camera.transform.eulerAngles.y;//角色默认朝向+z，yaw是在此基础上的旋转角
-        var rotation = Quaternion.AngleAxis(yaw,Vector3.up);
-        direction = rotation * direction;//Unity内部运算符重载好了四元数运算
+        if (direction.sqrMagnitude > 0) {
+            //把输入转到摄像机水平朝向，并不是完整相机空间
+            float yaw = m_camera.transform.eulerAngles.y;//角色默认朝向+z，yaw是在此基础上的旋转角
+            var rotation = Quaternion.AngleAxis(yaw,Vector3.up);
+            direction = rotation * direction;//Unity内部运算符重载好了四元数运算
+            direction = direction.normalized;
+        }
         return direction;
     }
     /// <summary>

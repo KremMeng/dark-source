@@ -9,13 +9,14 @@ public abstract class EntityBase : MonoBehaviour {
     public float m_groundOffset = 0.1f;
     [SerializeField] public bool isGrounded { get; protected set; } = true;
     public float timeOfLastGrounded { get; protected set; }
-    
+    //cc
     public CharacterController cc { get; protected set; }
     public float originHeight { get; protected set; }
     public float height => cc.height; //碰撞器的高度
     public float radius => cc.radius; //碰撞器的直径
     public Vector3 center => cc.center; //碰撞器相较于transform的local坐标偏移，为了包住角色在编辑器面板上设为（0，1，0）
     public Vector3 position => transform.position + center; //加个center以防万一特殊情况需要改cc的中心，见上一条注释
+    //rigidbody
     
     public float groundDip { get; protected set; }  //当前地面倾角
     public Vector3 groundNormal { get; protected set; }   //当前的地面法线
@@ -61,10 +62,10 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     public Vector3 velocity { get; set; }   //当前速度
     
     //系数运行时可能会变，所以不放在静态配置里
-    public float turningDragMulti { get; set; } = 3.0f; //转向时阻力系数,值越大阻力越小
+    public float turningDragMulti { get; set; } = 1.0f; //转向时阻力系数,值越大阻力越小
     public float maxSpeedMulti { get; set; } = 1.0f;    //最大速度系数
     public float accelerationMulti { get; set; } = 1.0f;    //加速度系数
-    public float decelerMulti { get; set; } = 1.0f;    //加速度系数
+    public float decelerMulti { get; set; } = 5.0f;    //加速度系数
     public Vector3 horizontalVelocity {
         get { return new Vector3(velocity.x, 0, velocity.z); }
         set { velocity = new Vector3(value.x, velocity.y, value.z); }   //赋值时只改 X/Z，保留原 Y 
@@ -84,7 +85,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
         //角色控制器开启时，处理状态机步进逻辑
         if (cc.enabled) {
             HandlleStates();
-            HandleActorController();
+            HandleMovementController();
             HandleGround();
         }
     }
@@ -105,42 +106,50 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     /// 加速度--阻尼感
     /// </summary>
     /// <param name="inputDir">相机y轴下的输入方向</param>
-    public void Accelerate(Vector3 inputDir,float turningDrag,float acceleration,float maxSpeed){
+    public virtual void Accelerate(Vector3 inputDir,float turningDrag,float acceleration,float maxSpeed){
         
         if (inputDir.sqrMagnitude > 0) {
             //把水平速度拆成“想去的方向”和“想甩掉的残留方向”,让角色自然转向
-            var inputDirSpeed = Vector3.Dot(inputDir,horizontalVelocity);
+            var inputDirSpeed = Vector3.Dot(inputDir,horizontalVelocity); //cos投影模长
             var inputDirVelocity = inputDir * inputDirSpeed;
             var turningVelocity = horizontalVelocity - inputDirVelocity;
             
             //转向时会有阻力，需要逐渐减掉“想甩掉的残留方向”,直到0
             var turningDelta = turningDrag * turningDragMulti * Time.deltaTime;
-            turningVelocity = Vector3.MoveTowards(turningVelocity,Vector3.zero,turningDelta);
             
             //计算允许的最大速度,系数可以用于加buff
             var targetMaxSpeed = maxSpeed * maxSpeedMulti;
             //速度没到顶可以继续加，或要转向了也要先反向加速到0（否则转向会太慢）
             if (horizontalVelocity.magnitude < targetMaxSpeed || inputDirSpeed < 0) {
                 //计算速度，同时需要限制速度在±maxSpeed
-                inputDirSpeed += acceleration * accelerationMulti * Time.deltaTime;  //两个因素影响速度：加速度和dt
-                inputDirSpeed += Mathf.Clamp(inputDirSpeed,-targetMaxSpeed, targetMaxSpeed);
+                inputDirSpeed += acceleration * accelerationMulti*Time.deltaTime;  //两个因素影响速度：加速度和dt
+                inputDirSpeed = Mathf.Clamp(inputDirSpeed,-targetMaxSpeed, targetMaxSpeed);
             }
             //重新计算最终的：目标方向速度和水平速度
             inputDirVelocity = inputDir * inputDirSpeed;
+            turningVelocity = Vector3.MoveTowards(turningVelocity,Vector3.zero,turningDelta);
+            Debug.Log("输入方向速度："+inputDirVelocity.magnitude);
+            Debug.Log("甩掉的速度："+turningVelocity.magnitude);
+            turningVelocity = Vector3.zero;
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
+            horizontalVelocity = Vector3.ClampMagnitude(horizontalVelocity, maxSpeed * maxSpeedMulti);
         }
     }
 
     /// <summary>
-    /// 匀速移动，仅仅在起步和和停止有短暂的加速度
+    /// 匀速移动
     /// </summary>
-    public void ConstantSpeedMove(Vector3 inputDir,float maxSpeed,float turningDrag){
-        
+    public void ConstantSpeedMove(Vector3 inputDir,float maxSpeed,float rotateLerpMulti){
+        if (inputDir.sqrMagnitude > 0.01f) {
+            cc.Move(inputDir * maxSpeed * Time.deltaTime);
+            Quaternion target = Quaternion.LookRotation(inputDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, target, rotateLerpMulti * Time.deltaTime);
+        }
     }
     /// <summary>
     /// 减速-
     /// </summary>
-    public void Decelerate(float deceleration){
+    public virtual void Decelerate(float deceleration){
         var decelerateDelta = deceleration * Time.deltaTime * decelerMulti;
         horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, Vector3.zero, decelerateDelta);
     }
@@ -176,14 +185,17 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
         }
     }
     //角色动作控制--velocity位移
-    protected virtual void HandleActorController(){
-        //位移==速度*时间
+    protected virtual void HandleMovementController(){
+        //位移==速度*时间 
         if (cc.enabled) {
-            cc.Move(velocity * (Time.deltaTime * 0.08f));
+            cc.Move(velocity * Time.deltaTime*0.5f);
             return;
         }
-        //如果没开启cc就用position计算
-        transform.position += velocity * (Time.deltaTime * 0.08f);
+        else {
+            //如果没开启cc就用position计算
+            transform.position += velocity * Time.deltaTime*0.5f;
+        }
+        
     }
     
     //Entity需要Manager来驱动
