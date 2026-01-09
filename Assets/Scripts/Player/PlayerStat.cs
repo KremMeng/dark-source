@@ -28,8 +28,9 @@ public class PlayerStat : EntityStat<PlayerStat> {
     public float slopeUpwardForce = 25f;  //上坡的额外推力
     public float slopeDownwardForce = 28f;//下坡的额外推力
     public float rotateLerpMulti = 12f; //匀速旋转因子
-    public float brakeLerp = 12f;
-    public float runMulti = 6.0f;
+    public float brakeLerp = 12f;   //刹车插值系数
+    public float runMulti = 6.0f;   //跑步比起走路快的倍数
+    public float rollVelocity = 1.5f;   //翻滚向上冲量的大小
     //=========================跳跃属性=======================
     public float multiJumps = 1;    //可以额外进行多段跳的次数，设成1就是只能二段跳
     public float coyotoJumpThreshold = 0.15f;    //土狼宽限时长

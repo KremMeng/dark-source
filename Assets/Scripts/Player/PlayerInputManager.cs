@@ -12,6 +12,7 @@ public class PlayerInputManager : MonoBehaviour {
     protected InputAction m_look;
     protected InputAction m_jump;
     protected InputAction m_run;
+    protected InputAction m_roll;
 
     protected float? m_timeOfLastJump; //可空值类型，记录自程序应用以来，上次跳跃的时间
     protected float jumpBufferTimer = 0.15f; //跳跃缓冲计时器时间内按下第二次跳跃，落地后自动触发
@@ -44,6 +45,7 @@ public class PlayerInputManager : MonoBehaviour {
         m_look = actions["look"];
         m_jump = actions["jump"];
         m_run = actions["run"];
+        m_roll = actions["roll"];
     }
 
     protected virtual void InitializeCamera() => m_camera = Camera.main;
@@ -129,4 +131,10 @@ public class PlayerInputManager : MonoBehaviour {
     public virtual bool RunOnPressed() => m_run.WasPressedThisFrame();
     public virtual bool RunIsPressing() => m_run.IsPressed();
     public virtual bool RunOnReleased() => m_run.WasReleasedThisFrame();
+    
+    //翻滚、后撤相关键位判定
+    public virtual bool RollOnPressed() => m_roll.WasPressedThisFrame();
+    public virtual bool RollOnReleased() => m_roll.WasReleasedThisFrame();
+    
+    
 }

@@ -9,7 +9,7 @@ public class Player : Entity<Player> {
     public PlayerStateManagerEvents playerEvents;
     
     public int jumpCounter { get; protected set; }
-    public bool run { get; protected set; }
+  
     
     protected override void Awake(){
         base.Awake();//先让父类初始化
@@ -89,10 +89,12 @@ public class Player : Entity<Player> {
             verticalVelocity = Vector3.up * stat.current.minJumpHeight;
         }
     }
-    //需要改成有水平wei'yi'd
+    //需要改成有水平位移的
     public virtual void Jump(float height){
-        jumpCounter++;
-        states.Change<FallPlayerState>();
+        if (inputs.JumpOnPressed()) {
+            states.Change<JumpPlayerState>();
+            jumpCounter++;
+        }
         playerEvents.OnJump?.Invoke();
     }
     /// <summary>
@@ -109,11 +111,25 @@ public class Player : Entity<Player> {
     public virtual void Run(){
         print("run pressing:  " + inputs.RunOnPressed());
         print("isGrounded0 "+isGrounded);
-        if (isGrounded  && inputs.RunIsPressing()) {
-            run = true;
+        var inputDirection = inputs.GetMovementCameraDirction();
+        if (isGrounded  && inputs.RunIsPressing() && inputDirection.sqrMagnitude > 0) {
             states.Change<RunPlayerState>();
         }
     }
+    /// <summary>
+    /// 翻滚判定
+    /// </summary>
+    public virtual void Roll(){
+        //走路时直接翻滚
+        if (isGrounded && inputs.RollOnPressed() && states.curIndex == 1) {
+            states.Change<RollPlayerState>();
+        }
+        //跑步时先跳再翻滚
+        if (isGrounded && inputs.RollOnPressed() && states.curIndex == 2) {
+            states.Change<JumpPlayerState>();
+        }
+    }
+    
     //把玩家强制贴到地面上.防止悬空
     public virtual void SnapToGround() => SnapToGround(stat.current.snapForce);
 

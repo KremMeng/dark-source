@@ -40,6 +40,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "roll",
+                    "type": "Button",
+                    "id": "9cb4d334-946c-4a98-a35f-81902e5903ee",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -155,17 +164,6 @@
                 },
                 {
                     "name": "",
-                    "id": "980a6121-8dcf-4b75-9d46-e0bc84980c6d",
-                    "path": "<Keyboard>/space",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "jump",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "3a185ec1-a3e8-4477-ac6a-caee19dd94a7",
                     "path": "<Gamepad>/buttonEast",
                     "interactions": "",
@@ -179,6 +177,17 @@
                     "name": "",
                     "id": "6f605ea4-003c-4565-857b-83fc68ebdd89",
                     "path": "<XInputController>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d7f9b532-4c94-40e3-9dd4-35ac2b4d5411",
+                    "path": "<Keyboard>/ctrl",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -216,6 +225,39 @@
                     "processors": "",
                     "groups": "",
                     "action": "run",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d489df9d-e90f-4ffc-86bc-ca5f18af9115",
+                    "path": "<XInputController>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "roll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "159b335e-e1cc-455e-9cf8-0ba5531ae9ae",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "roll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d5f7cc62-01f3-459f-92ca-e26bf0697b9f",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "roll",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

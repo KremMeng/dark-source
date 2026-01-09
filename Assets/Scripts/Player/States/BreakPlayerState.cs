@@ -2,11 +2,10 @@ using UnityEngine;
 [AddComponentMenu("Asset/Player/States/Break Player State")]
 public class BreakPlayerState : PlayerState{
     protected override void OnEnter(Player player){
-        //播放完切idle
+        //播放完切idle,速度强制切0
         player.ChangeOnAnimFinish(() => player.states.Change<IdlePlayerState>());
-        //速度强制切0
         var inputDir = player.inputs.GetMovementCameraDirction();
-        if (inputDir.sqrMagnitude <= 0) {
+        if (inputDir.sqrMagnitude <= 0 && player.inputs.RunOnReleased()) {
             player.horizontalVelocity =
                 Vector3.Lerp(player.horizontalVelocity, Vector3.zero, player.stat.current.brakeLerp);
         }

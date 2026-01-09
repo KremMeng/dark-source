@@ -11,15 +11,14 @@ public class WalkPlayerState : PlayerState {
 
     protected override void OnStep(Player player){
         player.Gravity();//用cc的话需要接入手写的重力
-        player.Jump();
         player.Fall();
         player.Run();
-        
         //检测相机空间下的玩家输入
         var inputDirection = player.inputs.GetMovementCameraDirction();
         if (inputDirection.sqrMagnitude > 0) {
             player.Accelerate(inputDirection);
             player.FaceDirectionSmooth(inputDirection);
+            player.Roll();
         }else{
             //没有输入，根据摩擦力减速
             player.Friction();

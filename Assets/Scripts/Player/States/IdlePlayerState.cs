@@ -2,7 +2,10 @@ using UnityEngine;
 
 public class IdlePlayerState : PlayerState {
     protected override void OnEnter(Player player){
-        
+        float velocityY = player.verticalVelocity.y;
+        Vector3 velocity = player.horizontalVelocity;
+        velocityY = 0;
+        velocity = Vector3.zero;
     }
 
     protected override void OnExit(Player player){
