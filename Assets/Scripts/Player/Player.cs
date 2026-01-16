@@ -93,6 +93,7 @@ public class Player : Entity<Player> {
     public virtual void Jump(float height){
         if (inputs.JumpOnPressed()) {
             states.Change<JumpPlayerState>();
+            verticalVelocity = new Vector3(0, 1.0f, 0);
             jumpCounter++;
         }
         playerEvents.OnJump?.Invoke();
@@ -120,6 +121,10 @@ public class Player : Entity<Player> {
     /// 翻滚判定
     /// </summary>
     public virtual void Roll(){
+        //静止时后撤
+        if (isGrounded && inputs.RollOnPressed() && states.curIndex == 0) {
+            states.Change<JabPlayerState>();
+        }
         //走路时直接翻滚
         if (isGrounded && inputs.RollOnPressed() && states.curIndex == 1) {
             states.Change<RollPlayerState>();

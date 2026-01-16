@@ -16,7 +16,7 @@ MonoBehaviour:
   snapForce: 15
   slideForce: 10
   rotationSpeed: 970
-  gravity: 38
+  gravity: 35
   fallGravity: 65
   gravityMaxSpeed: 30
   applySlopeFactor: 1
@@ -26,10 +26,14 @@ MonoBehaviour:
   groundFriction: 32
   slopeFriction: 28
   maxSpeed: 6
-  turningDrag: 45
-  brakeThreshold: -0.8
+  turningDrag: 60
+  brakeThreshold: 0
   slopeUpwardForce: 25
   slopeDownwardForce: 28
+  rotateLerpMulti: 12
+  brakeLerp: 12
+  runMulti: 1.5
+  rollVelocity: 3.5
   multiJumps: 2
   coyotoJumpThreshold: 0.2
   maxJumpHeight: 18

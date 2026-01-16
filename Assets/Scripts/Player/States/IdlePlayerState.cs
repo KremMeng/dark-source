@@ -2,9 +2,7 @@ using UnityEngine;
 
 public class IdlePlayerState : PlayerState {
     protected override void OnEnter(Player player){
-        float velocityY = player.verticalVelocity.y;
         Vector3 velocity = player.horizontalVelocity;
-        velocityY = 0;
         velocity = Vector3.zero;
     }
 
@@ -13,8 +11,8 @@ public class IdlePlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        player.Gravity();//用cc的话需要接入手写的重力
-        //player.Jab();
+        Debug.Log(player.horizontalVelocity);
+        //player.Gravity();//用cc的话需要接入手写的重力
         player.Fall();
         player.Run();
         player.Jump();

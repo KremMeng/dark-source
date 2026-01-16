@@ -128,8 +128,8 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             //重新计算最终的：目标方向速度和水平速度
             inputDirVelocity = inputDir * inputDirSpeed;
             turningVelocity = Vector3.MoveTowards(turningVelocity,Vector3.zero,turningDelta);
-            Debug.Log("输入方向速度："+inputDirVelocity.magnitude);
-            Debug.Log("甩掉的速度："+turningVelocity.magnitude);
+            // Debug.Log("输入方向速度："+inputDirVelocity.magnitude);
+            // Debug.Log("甩掉的速度："+turningVelocity.magnitude);
             turningVelocity = Vector3.zero;
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
             horizontalVelocity = Vector3.ClampMagnitude(horizontalVelocity, maxSpeed * maxSpeedMulti);

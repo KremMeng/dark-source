@@ -18,7 +18,8 @@ public class WalkPlayerState : PlayerState {
         if (inputDirection.sqrMagnitude > 0) {
             player.Accelerate(inputDirection);
             player.FaceDirectionSmooth(inputDirection);
-            player.Roll();
+            //player.Roll();
+            player.Jump();
         }else{
             //没有输入，根据摩擦力减速
             player.Friction();
