@@ -9,6 +9,8 @@ public class Player : Entity<Player> {
     public PlayerStateManagerEvents playerEvents;
     
     public int jumpCounter { get; protected set; }
+    public bool roll { get; protected set; }
+    public bool jab { get; protected set; }
   
     
     protected override void Awake(){
@@ -110,28 +112,18 @@ public class Player : Entity<Player> {
     /// 跑步判定
     /// </summary>
     public virtual void Run(){
-        print("run pressing:  " + inputs.RunOnPressed());
-        print("isGrounded0 "+isGrounded);
         var inputDirection = inputs.GetMovementCameraDirction();
         if (isGrounded  && inputs.RunIsPressing() && inputDirection.sqrMagnitude > 0) {
             states.Change<RunPlayerState>();
         }
     }
     /// <summary>
-    /// 翻滚判定
+    /// Space 按键按下，根据速度触发后撤/
     /// </summary>
     public virtual void Roll(){
-        //静止时后撤
-        if (isGrounded && inputs.RollOnPressed() && states.curIndex == 0) {
-            states.Change<JabPlayerState>();
-        }
-        //走路时直接翻滚
-        if (isGrounded && inputs.RollOnPressed() && states.curIndex == 1) {
-            states.Change<RollPlayerState>();
-        }
-        //跑步时先跳再翻滚
-        if (isGrounded && inputs.RollOnPressed() && states.curIndex == 2) {
-            states.Change<JumpPlayerState>();
+        // //静止时后撤
+        if (false) {
+            horizontalVelocity = transform.forward * -1.5f;
         }
     }
     

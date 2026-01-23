@@ -7,9 +7,17 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4054046321143616323, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054081200098466073, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4054610601103686125, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
       propertyPath: m_Name
-      value: Kazuko
+      value: Kazuko Variant
       objectReference: {fileID: 0}
     - target: {fileID: 4054610601103686125, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
       propertyPath: m_IsActive
@@ -18,6 +26,14 @@ PrefabInstance:
     - target: {fileID: 4054813825192808945, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4054919936854678063, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4055422631668410211, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4057738828887882527, guid: 0ac9ef106597a7049a040ce828b2aa96, type: 3}
       propertyPath: m_RootOrder

@@ -16,6 +16,7 @@ public class IdlePlayerState : PlayerState {
         player.Fall();
         player.Run();
         player.Jump();
+        player.Roll();
         var inputDirection = player.inputs.GetMovementDirction();
         if (inputDirection.sqrMagnitude > 0) {
             player.states.Change<WalkPlayerState>();

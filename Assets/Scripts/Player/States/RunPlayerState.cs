@@ -15,7 +15,7 @@ public class RunPlayerState : PlayerState {
         if (inputDirection.sqrMagnitude > 0) {
             player.Accelerate(inputDirection * player.stat.current.runMulti);  
             player.FaceDirectionSmooth(inputDirection);
-            //player.Jump();
+         
         }
         if (player.inputs.RunOnReleased()) {
             if (inputDirection.sqrMagnitude != 0) {

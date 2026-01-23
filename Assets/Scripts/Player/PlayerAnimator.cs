@@ -28,6 +28,8 @@ public class PlayerAnimator : MonoBehaviour {
     protected int m_horizonAnimSpeedHash;
     protected int m_healthHash;
     protected int m_jumpCounterHash;
+    protected int m_jabHash;
+    protected int m_rollHash;
     protected int m_isGroundedHash;
     protected int m_onStateChangeHash;
     
@@ -43,6 +45,8 @@ public class PlayerAnimator : MonoBehaviour {
     public string jumpCounterName = "Jump Counter";     //跳跃计数
     public string isGroundedName = "Is Grounded";       //在地面状态
     public string onStateChangedName = "On State Changed";      //状态切换触发器
+    public string jabName = "Jab";
+    public string rollName = "Roll";
    
    
     [Header("Settings")] 
@@ -114,6 +118,8 @@ public class PlayerAnimator : MonoBehaviour {
         m_horizonAnimSpeedHash = Animator.StringToHash(horizonSpeedName);
         m_healthHash = Animator.StringToHash(healthName);
         m_jumpCounterHash = Animator.StringToHash(jumpCounterName);
+        m_jabHash = Animator.StringToHash(jabName);
+        m_rollHash = Animator.StringToHash(rollName);
         m_isGroundedHash = Animator.StringToHash(isGroundedName);
         m_onStateChangeHash = Animator.StringToHash(onStateChangedName);
     }
@@ -134,7 +140,18 @@ public class PlayerAnimator : MonoBehaviour {
         anim.SetFloat(m_horizonSpeedHash,horizonSpeed);
         anim.SetFloat(m_verticalSpeedHash,verticalSpeed);
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed);
+        
         anim.SetBool(m_isGroundedHash,player.isGrounded);
+        
+        if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.sqrMagnitude < 0.1f) {
+            anim.SetTrigger("Jab");
+            player.playerEvents.OnJab?.Invoke();
+        }
+        
+        if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.magnitude > 1.0f) {
+            anim.SetTrigger("Roll");
+            player.playerEvents.OnRoll?.Invoke();
+        }
     }
     /// <summary>
     /// 当前动画播放完毕时切换到目标状态

@@ -120,10 +120,10 @@ Material:
     - _ShadowSmooth: 0.2
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _SpecularGloss: 5.57
+    - _SpecularGloss: 2.01
     - _SpecularHighlights: 1
-    - _SpecularMulti: 0.747
-    - _SpecularRange: 0.842
+    - _SpecularMulti: 0.152
+    - _SpecularRange: 0.179
     - _SrcBlend: 1
     - _Surface: 0
     - _WorkflowMode: 1
