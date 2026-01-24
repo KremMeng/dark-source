@@ -143,15 +143,16 @@ public class PlayerAnimator : MonoBehaviour {
         
         anim.SetBool(m_isGroundedHash,player.isGrounded);
         
-        if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.sqrMagnitude < 0.1f) {
-            anim.SetTrigger("Jab");
-            player.playerEvents.OnJab?.Invoke();
-        }
-        
-        if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.magnitude > 1.0f) {
-            anim.SetTrigger("Roll");
-            player.playerEvents.OnRoll?.Invoke();
-        }
+        // if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.sqrMagnitude < 0.1f) {
+        //     anim.SetTrigger("Jab");
+        //     //player.horizontalVelocity = transform.forward * -1.2f;
+        //     player.playerEvents.OnJab?.Invoke();
+        // }
+        //
+        // if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.magnitude > 2.0f) {
+        //     anim.SetTrigger("Roll");
+        //     player.playerEvents.OnRoll?.Invoke();
+        // }
     }
     /// <summary>
     /// 当前动画播放完毕时切换到目标状态

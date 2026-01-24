@@ -8,6 +8,7 @@ public abstract class EntityBase : MonoBehaviour {
     public Vector3 unsizedPos => transform.position;
     public float m_groundOffset = 0.1f;
     [SerializeField] public bool isGrounded { get; protected set; } = true;
+    public bool lockInput { get; protected set; } = false;
     public float timeOfLastGrounded { get; protected set; }
     //cc
     public CharacterController cc { get; protected set; }
@@ -109,6 +110,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     public virtual void Accelerate(Vector3 inputDir,float turningDrag,float acceleration,float maxSpeed){
         
         if (inputDir.sqrMagnitude > 0) {
+            lockInput = false;
             //把水平速度拆成“想去的方向”和“想甩掉的残留方向”,让角色自然转向
             var inputDirSpeed = Vector3.Dot(inputDir,horizontalVelocity); //cos投影模长
             var inputDirVelocity = inputDir * inputDirSpeed;

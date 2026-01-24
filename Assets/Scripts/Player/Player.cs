@@ -121,9 +121,16 @@ public class Player : Entity<Player> {
     /// Space 按键按下，根据速度触发后撤/
     /// </summary>
     public virtual void Roll(){
+        Debug.Log("hor speed" + horizontalVelocity.sqrMagnitude);
         // //静止时后撤
-        if (false) {
-            horizontalVelocity = transform.forward * -1.5f;
+        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude < 0.1f) {
+            states.Change<JabPlayerState>();
+            //horizontalVelocity = transform.forward * -1.2f;
+            playerEvents.OnJab?.Invoke();
+        }
+        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude> 3.0f) {
+            states.Change<RollPlayerState>();
+            playerEvents.OnRoll?.Invoke();
         }
     }
     
