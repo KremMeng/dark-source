@@ -55,6 +55,7 @@ public class PlayerAnimator : MonoBehaviour {
     
     private readonly Queue<System.Action> _finishCallbacks = new();
     internal void QueueFinishCallBack(System.Action callback) => _finishCallbacks.Enqueue(callback);
+    
     protected void Start(){
         
         InitializePlayer();
@@ -165,4 +166,6 @@ public class PlayerAnimator : MonoBehaviour {
         _finishCallbacks.Dequeue()?.Invoke();
         return true;
     }
+
+   
 }

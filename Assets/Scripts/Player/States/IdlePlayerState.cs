@@ -2,8 +2,7 @@ using UnityEngine;
 
 public class IdlePlayerState : PlayerState {
     protected override void OnEnter(Player player){
-        Vector3 velocity = player.horizontalVelocity;
-        velocity = Vector3.zero;
+        player.IsIdleFreeze();
     }
 
     protected override void OnExit(Player player){
@@ -17,6 +16,7 @@ public class IdlePlayerState : PlayerState {
         player.Run();
         player.Jump();
         player.Roll();
+        
         var inputDirection = player.inputs.GetMovementDirction();
         if (inputDirection.sqrMagnitude > 0) {
             player.states.Change<WalkPlayerState>();

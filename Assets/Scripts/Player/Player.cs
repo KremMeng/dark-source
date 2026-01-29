@@ -8,6 +8,7 @@ public class Player : Entity<Player> {
 
     public PlayerStateManagerEvents playerEvents;
     
+    
     public int jumpCounter { get; protected set; }
     public bool roll { get; protected set; }
     public bool jab { get; protected set; }
@@ -121,16 +122,22 @@ public class Player : Entity<Player> {
     /// Space 按键按下，根据速度触发后撤/
     /// </summary>
     public virtual void Roll(){
-        Debug.Log("hor speed" + horizontalVelocity.sqrMagnitude);
-        // //静止时后撤
+        Debug.Log("hor speed" + horizontalVelocity.magnitude);
+        //移动时滚动
+        var inputDirection = inputs.GetMovementCameraDirction();
+        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.magnitude >1.0f) {
+            states.Change<RollPlayerState>();
+            playerEvents.OnRoll?.Invoke();
+        }
+
+        if (isGrounded && inputs.RollOnPressed() && inputs.RunIsPressing()) {
+            states.Change<JumpPlayerState>();
+        }
+        //静止时后撤
         if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude < 0.1f) {
             states.Change<JabPlayerState>();
             //horizontalVelocity = transform.forward * -1.2f;
             playerEvents.OnJab?.Invoke();
-        }
-        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude> 3.0f) {
-            states.Change<RollPlayerState>();
-            playerEvents.OnRoll?.Invoke();
         }
     }
     
@@ -143,5 +150,11 @@ public class Player : Entity<Player> {
             verticalVelocity = Vector3.down * snapForce;
         }
     }
+    public virtual void IsFrozeVelocity(bool yes){
+        freezeVelocity = yes;
+    }
+
+    public virtual void IsRollFreeze() => IsFrozeVelocity(true);
+    public virtual void IsIdleFreeze() => IsFrozeVelocity(true);
 
 }

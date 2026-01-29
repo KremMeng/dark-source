@@ -75,6 +75,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
         get { return new Vector3(0, velocity.y, 0); }
         set { velocity = new Vector3(velocity.x, value.y, velocity.z); }
     }
+    public bool freezeVelocity { get; protected set; } //进入状态时冻结速度防止平移
     
     protected virtual void Awake(){
         //初始化状态管理器
@@ -117,7 +118,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             var turningVelocity = horizontalVelocity - inputDirVelocity;
             
             //转向时会有阻力，需要逐渐减掉“想甩掉的残留方向”,直到0
-            var turningDelta = turningDrag * turningDragMulti * Time.deltaTime;
+            var turningDelta = horizontalVelocity.magnitude * turningDrag * turningDragMulti * Time.deltaTime;
             
             //计算允许的最大速度,系数可以用于加buff
             var targetMaxSpeed = maxSpeed * maxSpeedMulti;
@@ -130,11 +131,10 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             //重新计算最终的：目标方向速度和水平速度
             inputDirVelocity = inputDir * inputDirSpeed;
             turningVelocity = Vector3.MoveTowards(turningVelocity,Vector3.zero,turningDelta);
-            // Debug.Log("输入方向速度："+inputDirVelocity.magnitude);
-            // Debug.Log("甩掉的速度："+turningVelocity.magnitude);
-            turningVelocity = Vector3.zero;
+             Debug.Log("输入方向速度："+inputDirVelocity.magnitude);
+             Debug.Log("甩掉的速度："+turningVelocity.magnitude);
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
-            horizontalVelocity = Vector3.ClampMagnitude(horizontalVelocity, maxSpeed * maxSpeedMulti);
+            //horizontalVelocity = Vector3.ClampMagnitude(horizontalVelocity, maxSpeed * maxSpeedMulti);
         }
     }
 
@@ -184,18 +184,19 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             //速度封底:如速度＝=-60那就取更大的-50
             speed = Mathf.Max(speed, -gravityMaxSpeed);
             verticalVelocity = new Vector3(0, speed, 0);
+        }else if (isGrounded) {
+            verticalVelocity = new Vector3(0, -2.0f, 0);
         }
     }
     //角色动作控制--velocity位移
     protected virtual void HandleMovementController(){
         //位移==速度*时间 
-        if (cc.enabled) {
-            cc.Move(velocity * Time.deltaTime*0.5f);
-            return;
+        if (cc.enabled && !freezeVelocity) {
+            cc.Move(horizontalVelocity * Time.deltaTime);
         }
         else {
             //如果没开启cc就用position计算
-            transform.position += velocity * Time.deltaTime*0.5f;
+            transform.position += horizontalVelocity * Time.deltaTime;
         }
         
     }

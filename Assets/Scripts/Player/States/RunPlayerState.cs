@@ -13,7 +13,7 @@ public class RunPlayerState : PlayerState {
         player.Gravity();
         var inputDirection = player.inputs.GetMovementCameraDirction();
         if (inputDirection.sqrMagnitude > 0) {
-            player.Accelerate(inputDirection * player.stat.current.runMulti);  
+            player.Accelerate(inputDirection);  
             player.FaceDirectionSmooth(inputDirection);
             player.Roll();
         }
