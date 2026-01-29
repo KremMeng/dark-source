@@ -5,14 +5,14 @@ public class JumpPlayerState : PlayerState {
     }
 
     protected override void OnExit(Player player){
-        
+        player.IsNotFreeze();
     } 
 
     protected override void OnStep(Player player){
         // if (player.verticalVelocity.y <= 0) {
         //     player.states.Change<IdlePlayerState>();
         // }
-        player.verticalVelocity = new Vector3(0, 1.0f, 0);
+        player.verticalVelocity = new Vector3(0, 4.0f, 0);
         //播放完切roll
         player.ChangeOnAnimFinish(() =>  player.states.Change<RollPlayerState>());
     }

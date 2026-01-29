@@ -4,6 +4,7 @@ using UnityEngine.PlayerLoop;
 
 public class RunPlayerState : PlayerState {
     protected override void OnEnter(Player player){
+        player.IsNotFreeze();
     }
 
     protected override void OnExit(Player player){

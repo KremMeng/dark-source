@@ -12,7 +12,7 @@ public class FallPlayerState : PlayerState{
     protected override void OnStep(Player player){
         player.Gravity();
         player.SnapToGround();//吸附地面防止悬空
-        player.FaceDirectionSmooth(player.horizontalVelocity);
+//        player.FaceDirectionSmooth(player.horizontalVelocity);
         player.AccelerateWithInputDir();
         if (player.inputs.JumpOnPressed()) {
             player.Jump();

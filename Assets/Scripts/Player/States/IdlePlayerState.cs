@@ -6,12 +6,12 @@ public class IdlePlayerState : PlayerState {
     }
 
     protected override void OnExit(Player player){
-        
+        player.IsNotFreeze();
     }
 
     protected override void OnStep(Player player){
         Debug.Log(player.horizontalVelocity);
-        //player.Gravity();//用cc的话需要接入手写的重力
+        player.Gravity();//用cc的话需要接入手写的重力
         player.Fall();
         player.Run();
         player.Jump();

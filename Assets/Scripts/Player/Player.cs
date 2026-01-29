@@ -156,5 +156,6 @@ public class Player : Entity<Player> {
 
     public virtual void IsRollFreeze() => IsFrozeVelocity(true);
     public virtual void IsIdleFreeze() => IsFrozeVelocity(true);
+    public virtual void IsNotFreeze() => IsFrozeVelocity(false);
 
 }
