@@ -9,15 +9,9 @@ public class JumpPlayerState : PlayerState {
     } 
 
     protected override void OnStep(Player player){
-        if (player.horizontalVelocity.magnitude == 0) {
-            player.states.Change<IdlePlayerState>();
-        }
-        else {
             player.verticalVelocity = new Vector3(0, 4.0f, 0);
             //播放完切roll
             player.ChangeOnAnimFinish(() =>  player.states.Change<RollPlayerState>());
-        }
-        
     }
 
     public override void OnContact(Player player, Collider other){

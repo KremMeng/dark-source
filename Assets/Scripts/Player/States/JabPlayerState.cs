@@ -2,11 +2,10 @@ using UnityEngine;
 public class JabPlayerState : PlayerState {
     protected override void OnEnter(Player player){
         player.IsRollFreeze();
-        
     }
 
     protected override void OnExit(Player player){
-        player.velocity = Vector3.zero;
+        player.IsNotFreeze();
     } 
 
     protected override void OnStep(Player player){

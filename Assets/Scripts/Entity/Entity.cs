@@ -109,32 +109,41 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     /// </summary>
     /// <param name="inputDir">相机y轴下的输入方向</param>
     public virtual void Accelerate(Vector3 inputDir,float turningDrag,float acceleration,float maxSpeed){
-        
+            
         if (inputDir.sqrMagnitude > 0) {
             lockInput = false;
-            //把水平速度拆成“想去的方向”和“想甩掉的残留方向”,让角色自然转向
+            //把水平速度拆成"想去的方向"和"想甩掉的残留方向",让角色自然转向
             var inputDirSpeed = Vector3.Dot(inputDir,horizontalVelocity); //cos投影模长
             var inputDirVelocity = inputDir * inputDirSpeed;
             var turningVelocity = horizontalVelocity - inputDirVelocity;
-            
-            //转向时会有阻力，需要逐渐减掉“想甩掉的残留方向”,直到0
+                
+            //转向时会有阻力，需要逐渐减掉"想甩掉的残留方向",直到0
             var turningDelta = horizontalVelocity.magnitude * turningDrag * turningDragMulti * Time.deltaTime;
-            
+                
             //计算允许的最大速度,系数可以用于加buff
             var targetMaxSpeed = maxSpeed * maxSpeedMulti;
-            //速度没到顶可以继续加，或要转向了也要先反向加速到0（否则转向会太慢）
-            if (horizontalVelocity.magnitude < targetMaxSpeed || inputDirSpeed < 0) {
-                //计算速度，同时需要限制速度在±maxSpeed
-                inputDirSpeed += acceleration * accelerationMulti*Time.deltaTime;  //两个因素影响速度：加速度和dt
-                inputDirSpeed = Mathf.Clamp(inputDirSpeed,-targetMaxSpeed, targetMaxSpeed);
+                
+            //修正：确保速度不超过最大值
+            if (horizontalVelocity.magnitude >= targetMaxSpeed && inputDirSpeed >= 0) {
+                //已经达到最大速度且同向，不再加速
+                inputDirSpeed = Mathf.Min(inputDirSpeed, targetMaxSpeed);
             }
+            else {
+                //速度没到顶可以继续加，或要转向了也要先反向加速到0（否则转向会太慢）
+                inputDirSpeed += acceleration * accelerationMulti * Time.deltaTime;
+                //严格限制速度范围
+                inputDirSpeed = Mathf.Clamp(inputDirSpeed, -targetMaxSpeed, targetMaxSpeed);
+            }
+                
             //重新计算最终的：目标方向速度和水平速度
             inputDirVelocity = inputDir * inputDirSpeed;
-            turningVelocity = Vector3.MoveTowards(turningVelocity,Vector3.zero,turningDelta);
-             Debug.Log("输入方向速度："+inputDirVelocity.magnitude);
-             Debug.Log("甩掉的速度："+turningVelocity.magnitude);
+            turningVelocity = Vector3.MoveTowards(turningVelocity, Vector3.zero, turningDelta);
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
-            //horizontalVelocity = Vector3.ClampMagnitude(horizontalVelocity, maxSpeed * maxSpeedMulti);
+                
+            //额外的安全检查：确保总速度不超过上限
+            if (horizontalVelocity.magnitude > targetMaxSpeed) {
+                horizontalVelocity = horizontalVelocity.normalized * targetMaxSpeed;
+            }
         }
     }
 
@@ -184,9 +193,10 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             //速度封底:如速度＝=-60那就取更大的-50
             speed = Mathf.Max(speed, -gravityMaxSpeed);
             verticalVelocity = new Vector3(0, speed, 0);
-        }else if (isGrounded) {
-            verticalVelocity = new Vector3(0, -2.0f, 0);
-        }
+         } 
+        //else if (isGrounded) {
+        //     verticalVelocity = new Vector3(0, -1.0f, 0);
+        // }
     }
     //角色动作控制--velocity位移
     protected virtual void HandleMovementController(){

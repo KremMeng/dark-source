@@ -165,6 +165,12 @@ Shader "URP/ToonShading"
             }
             ENDHLSL
         }
+
+        // ---------- 阴影 Pass ----------
+        Pass
+        {
+            Name "ShadowCaster"
+        }
     }
     FallBack Off
 }

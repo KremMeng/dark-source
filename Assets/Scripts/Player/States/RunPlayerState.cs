@@ -12,6 +12,8 @@ public class RunPlayerState : PlayerState {
 
     protected override void OnStep(Player player){
         player.Gravity();
+        player.Fall();
+        player.SnapToGround();
         var inputDirection = player.inputs.GetMovementCameraDirction();
         if (inputDirection.sqrMagnitude > 0) {
             player.Accelerate(inputDirection);  
@@ -20,7 +22,8 @@ public class RunPlayerState : PlayerState {
         }
         if (player.inputs.RunOnReleased()) {
             if (inputDirection.sqrMagnitude != 0) {
-                player.states.Change<WalkPlayerState>();
+                player.Decelerate();
+                player.states.Change<IdlePlayerState>();
             }else if (inputDirection.sqrMagnitude <= 0) {
                 player.Decelerate();
                 player.states.Change<BreakPlayerState>();

@@ -125,7 +125,7 @@ public class Player : Entity<Player> {
         Debug.Log("hor speed" + horizontalVelocity.magnitude);
         //移动时滚动
         var inputDirection = inputs.GetMovementCameraDirction();
-        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.magnitude >1.0f) {
+        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.magnitude >0.5f) {
             states.Change<RollPlayerState>();
             playerEvents.OnRoll?.Invoke();
         }
