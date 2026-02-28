@@ -112,6 +112,9 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             
         if (inputDir.sqrMagnitude > 0) {
             lockInput = false;
+            //确保输入方向标准化（防止累积）
+            inputDir = inputDir.normalized;
+            
             //把水平速度拆成"想去的方向"和"想甩掉的残留方向",让角色自然转向
             var inputDirSpeed = Vector3.Dot(inputDir,horizontalVelocity); //cos投影模长
             var inputDirVelocity = inputDir * inputDirSpeed;
@@ -129,10 +132,12 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
                 inputDirSpeed = Mathf.Min(inputDirSpeed, targetMaxSpeed);
             }
             else {
-                //速度没到顶可以继续加，或要转向了也要先反向加速到0（否则转向会太慢）
-                inputDirSpeed += acceleration * accelerationMulti * Time.deltaTime;
-                //严格限制速度范围
-                inputDirSpeed = Mathf.Clamp(inputDirSpeed, -targetMaxSpeed, targetMaxSpeed);
+                //关键修复：只在需要加速时才增加速度，避免持续累积
+                if (inputDirSpeed < targetMaxSpeed) {
+                    inputDirSpeed += acceleration * accelerationMulti * Time.deltaTime;
+                    //严格限制速度范围
+                    inputDirSpeed = Mathf.Clamp(inputDirSpeed, -targetMaxSpeed, targetMaxSpeed);
+                }
             }
                 
             //重新计算最终的：目标方向速度和水平速度
