@@ -2,15 +2,14 @@ using UnityEngine;
 
 public class IdlePlayerState : PlayerState {
     protected override void OnEnter(Player player){
-        player.IsIdleFreeze();
+        //player.IsIdleFreeze();
     }
 
     protected override void OnExit(Player player){
-        player.IsNotFreeze();
+        //player.IsNotFreeze();
     }
 
     protected override void OnStep(Player player){
-        Debug.Log(player.horizontalVelocity);
         player.Gravity();//用cc的话需要接入手写的重力
         player.SnapToGround();
         player.Fall();
@@ -21,6 +20,7 @@ public class IdlePlayerState : PlayerState {
         
         var inputDirection = player.inputs.GetMovementDirction();
         if (inputDirection.sqrMagnitude > 0) {
+            Debug.Log("has input?" + (inputDirection.sqrMagnitude > 0 ? "True" : "False"));
             player.states.Change<WalkPlayerState>();
         }
     }

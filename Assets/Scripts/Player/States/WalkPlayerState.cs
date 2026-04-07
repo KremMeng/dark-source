@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class WalkPlayerState : PlayerState {
     protected override void OnEnter(Player player){
-        player.IsNotFreeze();
+        player.IsFrozeVelocity(false);
+        player.InputEnabled = true;
     }
 
     protected override void OnExit(Player player){
@@ -10,20 +11,24 @@ public class WalkPlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
+        // Debug.Log("isgrounded? "+ player.isGrounded);
+        // Debug.Log("inputs.RollOnPressed()? "+ player.inputs.RollOnPressed());
+         //if(player.horizontalVelocity.magnitude <=0.6) Debug.Log("speed " + (player.horizontalVelocity.magnitude ));
+         Debug.Log("speed " + (player.horizontalVelocity.magnitude ));
         player.Gravity();//用cc的话需要接入手写的重力
         player.SnapToGround();
-        player.Fall();
+        //player.Fall();
         player.Run();
+        player.Roll();
         //检测相机空间下的玩家输入
         var inputDirection = player.inputs.GetMovementCameraDirction();
+        player.Accelerate(inputDirection);
         if (inputDirection.sqrMagnitude > 0) {
-            player.Accelerate(inputDirection);
             player.FaceDirectionSmooth(inputDirection);
-            player.Roll();
-            player.Jump();
-        }else{
-            //没有输入，根据摩擦力减速
-            player.Friction();
+        }
+        //走路状态下如果没有输入，根据摩擦力减速
+        else if(player.states.curIndex == 1 && inputDirection.sqrMagnitude <= 0){
+            player.Decelerate();
             //减速到零，切换到Idle
             if (player.horizontalVelocity.sqrMagnitude <= 0.1f) {
                 player.states.Change<IdlePlayerState>();

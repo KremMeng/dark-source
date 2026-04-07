@@ -449,9 +449,9 @@ ModelImporter:
     - serializedVersion: 16
       name: Sprinting Forward Roll
       takeName: mixamo.com
-      internalID: 0
+      internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 32.4
+      lastFrame: 35
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -459,69 +459,42 @@ ModelImporter:
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 0
-      loopBlend: 0
+      loopBlend: 1
       loopBlendOrientation: 1
       loopBlendPositionY: 1
       loopBlendPositionXZ: 0
       keepOriginalOrientation: 1
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
+      keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves:
-      - name: rollHeight
+      - name: Curve
         curve:
           serializedVersion: 2
           curve:
           - serializedVersion: 3
-            time: 0.0012550354
+            time: 0
             value: 0
-            inSlope: -0.4913104
-            outSlope: -0.4913104
+            inSlope: 0
+            outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
+            inWeight: 0
+            outWeight: 0
           - serializedVersion: 3
-            time: 0.26640475
-            value: -0.46146482
-            inSlope: -4.670769
-            outSlope: -4.670769
+            time: 1.0046387
+            value: -0.039154053
+            inSlope: 0
+            outSlope: 0
             tangentMode: 0
             weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          - serializedVersion: 3
-            time: 0.4137944
-            value: -1.6425037
-            inSlope: -3.4686718
-            outSlope: -3.4686718
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          - serializedVersion: 3
-            time: 0.6793176
-            value: -1.7289027
-            inSlope: 1.9537139
-            outSlope: 1.9537139
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          - serializedVersion: 3
-            time: 1
-            value: 0
-            inSlope: 3.2770379
-            outSlope: 3.2770379
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
+            inWeight: 0
+            outWeight: 0
           preInfinity: 3
           postInfinity: 3
-          rotationOrder: 0
+          rotationOrder: 4
       events: []
       transformMask: []
       maskType: 3

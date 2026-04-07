@@ -114,30 +114,32 @@ public class Player : Entity<Player> {
     /// </summary>
     public virtual void Run(){
         var inputDirection = inputs.GetMovementCameraDirction();
-        if (isGrounded  && inputs.RunIsPressing() && inputDirection.sqrMagnitude > 0) {
+        if (isGrounded  && inputs.RunIsPressing() && inputDirection.sqrMagnitude >= 0) {
             states.Change<RunPlayerState>();
         }
     }
     /// <summary>
     /// Space 按键按下，根据速度触发后撤/
     /// </summary>
-    public virtual void Roll(){
-        Debug.Log("hor speed" + horizontalVelocity.magnitude);
-        //移动时滚动
-        var inputDirection = inputs.GetMovementCameraDirction();
-        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.magnitude >0.5f) {
+    public virtual void Roll(){               
+        
+        bool canRoll = isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude > 0.25f;
+        bool canJab = isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude < 0.01f;
+        bool canRollAfterJump = isGrounded && inputs.RollOnPressed() && inputs.RunIsPressing();
+        
+        //移动时滚动                                       
+        if (canRoll) {
             states.Change<RollPlayerState>();
             playerEvents.OnRoll?.Invoke();
         }
-
-        if (isGrounded && inputs.RollOnPressed() && inputs.RunIsPressing()) {
-            states.Change<JumpPlayerState>();
-        }
         //静止时后撤
-        if (isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude < 0.1f) {
+        else if (canJab) {
             states.Change<JabPlayerState>();
-            //horizontalVelocity = transform.forward * -1.2f;
             playerEvents.OnJab?.Invoke();
+        }
+        //跑步时先跳后翻滚
+        else if (canRollAfterJump) {
+            states.Change<JumpPlayerState>();
         }
     }
     
@@ -150,12 +152,5 @@ public class Player : Entity<Player> {
             verticalVelocity = Vector3.down * snapForce;
         }
     }
-    public virtual void IsFrozeVelocity(bool yes){
-        freezeVelocity = yes;
-    }
-
-    public virtual void IsRollFreeze() => IsFrozeVelocity(true);
-    public virtual void IsIdleFreeze() => IsFrozeVelocity(true);
-    public virtual void IsNotFreeze() => IsFrozeVelocity(false);
 
 }

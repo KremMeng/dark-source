@@ -36,4 +36,5 @@ public class PlayerStat : EntityStat<PlayerStat> {
     public float coyotoJumpThreshold = 0.15f;    //土狼宽限时长
     public float maxJumpHeight = 3.5f;  //最大跳跃高度
     public float minJumpHeight = 2.0f;    //最小跳跃高度
+    public float jumpForce = 3.0f; //roll向上的冲量
 }

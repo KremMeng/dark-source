@@ -43,7 +43,7 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
     //初始化状态列表和状态字典
     protected virtual void InitializeStates(){
         //拿到状态列表
-        m_list = GetStateList();
+        m_list = GetStateList();  
         //给列表里的状态元素配上type，加入状态字典
         foreach (var state in m_list) {
             
@@ -53,7 +53,7 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
                 m_state.Add(type,state);
             }
         }
-        //初始:把列表的第一个状态赋为current
+        //初始:把列表的第一个状态赋为current   
         current = m_list[0];
     }
     //每帧调用更新状态逻辑

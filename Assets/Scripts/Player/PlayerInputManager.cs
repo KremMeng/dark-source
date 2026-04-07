@@ -133,7 +133,7 @@ public class PlayerInputManager : MonoBehaviour {
     public virtual bool RunOnReleased() => m_run.WasReleasedThisFrame();
     
     //翻滚、后撤相关键位判定
-    public virtual bool RollOnPressed() => m_roll.WasPressedThisFrame();
+    public virtual bool RollOnPressed() => m_roll.IsPressed();
     public virtual bool RollOnReleased() => m_roll.WasReleasedThisFrame();
     
     

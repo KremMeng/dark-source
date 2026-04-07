@@ -1,14 +1,12 @@
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public abstract class EntityBase : MonoBehaviour {
 
     public EntityEvents entityEvents; 
     public Vector3 unsizedPos => transform.position;
     public float m_groundOffset = 0.1f;
-    [SerializeField] public bool isGrounded { get; protected set; } = true;
-    public bool lockInput { get; protected set; } = false;
+    [SerializeField] public bool isGrounded { get; protected set; }
+    public bool InputEnabled { get; set; }
     public float timeOfLastGrounded { get; protected set; }
     //cc
     public CharacterController cc { get; protected set; }
@@ -111,8 +109,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     public virtual void Accelerate(Vector3 inputDir,float turningDrag,float acceleration,float maxSpeed){
             
         if (inputDir.sqrMagnitude > 0) {
-            lockInput = false;
-            //确保输入方向标准化（防止累积）
+            //确保输入方向标准化（防止累积） 
             inputDir = inputDir.normalized;
             
             //把水平速度拆成"想去的方向"和"想甩掉的残留方向",让角色自然转向
@@ -144,7 +141,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             inputDirVelocity = inputDir * inputDirSpeed;
             turningVelocity = Vector3.MoveTowards(turningVelocity, Vector3.zero, turningDelta);
             horizontalVelocity = inputDirVelocity + turningVelocity;    //加速后的目标方向+逐渐衰减的残留方向
-                
+                  
             //额外的安全检查：确保总速度不超过上限
             if (horizontalVelocity.magnitude > targetMaxSpeed) {
                 horizontalVelocity = horizontalVelocity.normalized * targetMaxSpeed;
@@ -199,9 +196,9 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             speed = Mathf.Max(speed, -gravityMaxSpeed);
             verticalVelocity = new Vector3(0, speed, 0);
          } 
-        //else if (isGrounded) {
-        //     verticalVelocity = new Vector3(0, -1.0f, 0);
-        // }
+        else if (isGrounded) {
+             verticalVelocity = new Vector3(0, -1.0f, 0);
+         }
     }
     //角色动作控制--velocity位移
     protected virtual void HandleMovementController(){
@@ -284,5 +281,12 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             //如果地面tag为平台类型，让角色成为平台的子物体;tag是其它类型就不管
             //transform.parent = hit.collider.CompareTag(GameTags.Platform) ? hit.transform : null;
         }
+    }
+    /// <summary>
+    /// 设置一个布尔值flag，进入某个状态时冻结速度，防止平移(尤其是trigger一次的状态)
+    /// </summary>
+    /// <param name="yes">为true时冻结</param>
+    public virtual void IsFrozeVelocity(bool yes){
+        freezeVelocity = yes;
     }
 }

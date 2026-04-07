@@ -95,10 +95,12 @@ public class PlayerAnimator : MonoBehaviour {
     /// </summary>
     protected virtual void HandleForcedTransitions(){
         var lastStateIndex = player.states.lastIndex;
-        //如果字典里有上一个状态的索引，获取索引对应的层级、
+        //如果字典里有上一个状态的索引，获取索引对应的层级
         if (m_forcedTransitions.ContainsKey(lastStateIndex)) {
             int layer = m_forcedTransitions[lastStateIndex].animLayer;
-            anim.Play(m_forcedTransitions[lastStateIndex].toAnimState,layer);
+            //anim.Play(m_forcedTransitions[lastStateIndex].toAnimState,layer);
+            // 修复： normalizedTime 设为 0 确保从头播放，避免连续触发时的时序问题
+            anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.1f, layer, 0f);
         }
     }
     /// <summary>
@@ -136,12 +138,16 @@ public class PlayerAnimator : MonoBehaviour {
 
         //设置参数值
         anim.SetInteger(m_jumpCounterHash,player.jumpCounter);
+        
         anim.SetInteger(m_curStateHash,player.states.curIndex);
         anim.SetInteger(m_lastStateHash,player.states.lastIndex);
-        anim.SetFloat(m_horizonSpeedHash,horizonSpeed);
-        anim.SetFloat(m_verticalSpeedHash,verticalSpeed);
-        anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed);
         
+        //移除 Lerp，直接赋值。Lerp 在这里会导致速度参数更新滞后，影响状态判断
+        //anim.SetFloat(m_horizonSpeedHash, horizonSpeed * (player.inputs.RunIsPressing() ? 2.0f : 1.0f));
+        anim.SetFloat(m_horizonSpeedHash,Mathf.Lerp(0,horizonSpeed * (player.inputs.RunIsPressing() ? 2.0f : 1.0f),0.5f));
+        
+        anim.SetFloat(m_verticalSpeedHash,verticalSpeed);
+        anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed,1.0f,Time.deltaTime);
         anim.SetBool(m_isGroundedHash,player.isGrounded);
         
         // if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.sqrMagnitude < 0.1f) {
