@@ -11,6 +11,8 @@ public class WalkPlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
+        var anim = player.GetComponent<PlayerAnimator>();
+        Debug.Log("walk的播放进度： "+ (anim.anim.GetCurrentAnimatorStateInfo(0).normalizedTime % 1));
         // Debug.Log("isgrounded? "+ player.isGrounded);
         // Debug.Log("inputs.RollOnPressed()? "+ player.inputs.RollOnPressed());
          //if(player.horizontalVelocity.magnitude <=0.6) Debug.Log("speed " + (player.horizontalVelocity.magnitude ));

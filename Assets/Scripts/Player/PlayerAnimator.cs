@@ -53,8 +53,7 @@ public class PlayerAnimator : MonoBehaviour {
     public float minHorizonAnimSpeed = 0.5f;
     public List<ForcedTransition> forcedTransitions; //列表，存放强制转换的规则，例如walk2run
     
-    private readonly Queue<System.Action> _finishCallbacks = new();
-    internal void QueueFinishCallBack(System.Action callback) => _finishCallbacks.Enqueue(callback);
+    public Action _animFinishCallback = null;
     
     protected void Start(){
         
@@ -99,8 +98,12 @@ public class PlayerAnimator : MonoBehaviour {
         if (m_forcedTransitions.ContainsKey(lastStateIndex)) {
             int layer = m_forcedTransitions[lastStateIndex].animLayer;
             //anim.Play(m_forcedTransitions[lastStateIndex].toAnimState,layer);
-            // 修复： normalizedTime 设为 0 确保从头播放，避免连续触发时的时序问题
-            anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.1f, layer, 0f);
+            // normalizedTime 设为 0 确保从头播放，避免连续触发时的时序问题
+            AnimatorStateInfo curInfo = anim.GetCurrentAnimatorStateInfo(layer);
+            //检查是否已经在播放目标动画,确定没在播了再转
+            if (!curInfo.IsName(m_forcedTransitions[lastStateIndex].toAnimState)) {
+                anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.1f, layer, 0f);
+            }
         }
     }
     /// <summary>
@@ -166,11 +169,13 @@ public class PlayerAnimator : MonoBehaviour {
     /// </summary>
     /// <typeparam name="State">目标状态</typeparam>
     public virtual bool PollAnimFinish(){
-        if (_finishCallbacks.Count == 0) return false;
         var info = anim.GetCurrentAnimatorStateInfo(0);
-        if (info.normalizedTime < 1.0f) return false;
-        _finishCallbacks.Dequeue()?.Invoke();
-        return true;
+        if (info.normalizedTime >= 1.0f) {
+            _animFinishCallback?.Invoke();
+            _animFinishCallback = null;
+            return true;
+        }
+        return false;
     }
 
    

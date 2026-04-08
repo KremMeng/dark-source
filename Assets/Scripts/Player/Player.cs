@@ -25,9 +25,9 @@ public class Player : Entity<Player> {
 
     protected virtual void InitializeInputs() => inputs = GetComponent<PlayerInputManager>();
     protected virtual void InitializeStat() => stat = GetComponent<PlayerStatManager>();
-    
+
     internal void ChangeOnAnimFinish(System.Action callback) =>
-        GetComponent<PlayerAnimator>().QueueFinishCallBack(callback);
+        GetComponent<PlayerAnimator>()._animFinishCallback = callback;
 
     //从Entity类里封装转向、减速函数等
     public virtual void Accelerate(Vector3 inputDir){
