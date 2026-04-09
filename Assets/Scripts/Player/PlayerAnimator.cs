@@ -102,7 +102,7 @@ public class PlayerAnimator : MonoBehaviour {
             AnimatorStateInfo curInfo = anim.GetCurrentAnimatorStateInfo(layer);
             //检查是否已经在播放目标动画,确定没在播了再转
             if (!curInfo.IsName(m_forcedTransitions[lastStateIndex].toAnimState)) {
-                anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.1f, layer, 0f);
+                anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.2f, layer, 0f);
             }
         }
     }
@@ -145,9 +145,10 @@ public class PlayerAnimator : MonoBehaviour {
         anim.SetInteger(m_curStateHash,player.states.curIndex);
         anim.SetInteger(m_lastStateHash,player.states.lastIndex);
         
-        //移除 Lerp，直接赋值。Lerp 在这里会导致速度参数更新滞后，影响状态判断
-        //anim.SetFloat(m_horizonSpeedHash, horizonSpeed * (player.inputs.RunIsPressing() ? 2.0f : 1.0f));
-        anim.SetFloat(m_horizonSpeedHash,Mathf.Lerp(0,horizonSpeed * (player.inputs.RunIsPressing() ? 2.0f : 1.0f),0.5f));
+        // 2. 使用 Lerp 进行平滑过渡，0.3f 是插值系数（幅度）
+        // 这种方式会让 m_horizonSpeedHash 逐渐逼近 targetSpeed，产生自然的加速/减速动画过渡
+        float currentAnimSpeed = anim.GetFloat(m_horizonSpeedHash);
+        anim.SetFloat(m_horizonSpeedHash, Mathf.Lerp(currentAnimSpeed, horizonSpeed, 0.3f)); //不能从0开始
         
         anim.SetFloat(m_verticalSpeedHash,verticalSpeed);
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed,1.0f,Time.deltaTime);

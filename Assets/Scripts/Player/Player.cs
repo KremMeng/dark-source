@@ -8,7 +8,6 @@ public class Player : Entity<Player> {
 
     public PlayerStateManagerEvents playerEvents;
     
-    
     public int jumpCounter { get; protected set; }
     public bool roll { get; protected set; }
     public bool jab { get; protected set; }
@@ -34,6 +33,14 @@ public class Player : Entity<Player> {
         var turningDrag = stat.current.turningDrag;
         var acceleration = stat.current.acceleration;
         var maxSpeed = stat.current.maxSpeed;
+        
+        // 记录有效输入方向，用于翻滚
+        if (inputDir.sqrMagnitude != 0) {
+            lastMoveDirection = inputDir;
+        }
+        else {
+            lastMoveDirection = transform.forward;
+        }
         
         Accelerate(inputDir,turningDrag,acceleration,maxSpeed);
     }

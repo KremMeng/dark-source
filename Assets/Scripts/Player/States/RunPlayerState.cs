@@ -6,13 +6,15 @@ public class RunPlayerState : PlayerState {
     protected override void OnEnter(Player player){
         player.IsFrozeVelocity(false);
         player.InputEnabled = true;
+        player.maxSpeedMulti = 2.0f;
     }
 
     protected override void OnExit(Player player){
+        player.maxSpeedMulti = 1.0f;
     }
 
     protected override void OnStep(Player player){
-
+        Debug.Log(player.horizontalVelocity.magnitude);
         player.Gravity();
         player.SnapToGround();
         player.Roll();
