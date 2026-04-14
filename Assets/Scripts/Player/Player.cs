@@ -34,14 +34,6 @@ public class Player : Entity<Player> {
         var acceleration = stat.current.acceleration;
         var maxSpeed = stat.current.maxSpeed;
         
-        // 记录有效输入方向，用于翻滚
-        if (inputDir.sqrMagnitude != 0) {
-            lastMoveDirection = inputDir;
-        }
-        else {
-            lastMoveDirection = transform.forward;
-        }
-        
         Accelerate(inputDir,turningDrag,acceleration,maxSpeed);
     }
     public virtual void ConstantSpeedMove(Vector3 inputDir){
@@ -148,6 +140,22 @@ public class Player : Entity<Player> {
         else if (canRollAfterJump) {
             states.Change<JumpPlayerState>();
         }
+    }
+
+    /// <summary>
+    /// 根据世界空间的输入方向获取翻滚方向
+    /// </summary>
+    /// <param name="moveDir"></param>
+    public Vector3 GetRollDirection(){
+        Vector3 moveDir = inputs.GetMovementDirction();
+        // 记录有效输入方向，用于翻滚
+        if (moveDir.sqrMagnitude != 0) {
+            lastMoveDirection = moveDir;
+        }
+        else {
+            lastMoveDirection = transform.forward;
+        }
+        return lastMoveDirection;
     }
     
     //把玩家强制贴到地面上.防止悬空

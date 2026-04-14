@@ -2,7 +2,7 @@ using UnityEngine;
 public class RollPlayerState : PlayerState {
     protected override void OnEnter(Player player){
         // 进入Roll状态时，朝移动输入的方向翻滚
-        Vector3 rollDir = player.lastMoveDirection;                                
+        Vector3 rollDir = player.GetRollDirection();                                
         float rollSpeed = Mathf.Max(player.horizontalVelocity.magnitude, player.stat.current.maxSpeed * 1.2f); //保底初速度
         player.horizontalVelocity = rollDir * rollSpeed;
         //player.FaceDirection(rollDir, 720f); // 720度/秒的快速转向翻滚方向

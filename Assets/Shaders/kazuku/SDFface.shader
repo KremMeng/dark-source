@@ -173,17 +173,18 @@ Shader "URP/SDFface"
             Varyings vert (Attributes IN)
             {
                 Varyings OUT;
-                float4 pos = TransformObjectToHClip(IN.positionOS.xyz);
-                float3 viewNormal = TransformWorldToViewDir(TransformObjectToWorldNormal(IN.normalOS));
-                float2 offset = normalize(viewNormal.xy) * _OutlineWidth * 0.01 * pos.w;
-                pos.xy += offset;
-                OUT.positionHCS = pos;
+                // float3 posVS = TransformWorldToView(TransformObjectToWorld(IN.positionOS.xyz));
+                // float3 viewNormal = TransformWorldToViewDir(TransformObjectToWorldNormal(IN.normalOS));
+                // viewNormal.z = -0.5; // 指定z轴，避免穿帮
+                // posVS += normalize(float4(viewNormal, 0)) * _OutlineWidth;
+                // OUT.positionHCS = TransformObjectToHClip(posVS.xyz);
+                OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz + IN.normalOS * _OutlineWidth);
                 return OUT;
             }
 
             half4 frag (Varyings IN) : SV_Target
             {
-                return _OutlineColor;
+                return half4(_OutlineColor.rgb,1.0);
             }
             ENDHLSL
         }

@@ -6,12 +6,12 @@ Shader "URP/ToonShading"
         _RampTex      ("RampTex", 2D)        = "white" {}
         
         _MainColor    ("Main Color", Color)  = (1,1,1,1)
-        _ShadowColor  ("Shadow Color", Color)= (0.7,0.7,0.8,1)
-        _ShadowRange  ("Shadow Range", Range(0,1)) = 0.5
-        _ShadowSmooth ("Shadow Smooth", Range(0,1))= 0.2
+        _ShadowColor  ("Shadow Color", Color)= (0.7,0.7,0.7,1)
+        _ShadowRange  ("Shadow Range", Range(0,1)) = 0.7
+        _ShadowSmooth ("Shadow Smooth", Range(0,0.03))= 0.002
         
         _SpecularColor ("Specular Color", Color) = (1,1,1,1)
-        _SpecularRange ("Specular Range", Range(0,1)) = 0.9
+        _SpecularRange ("Specular Range", Range(0,1)) = 0.35
         _SpecularMulti ("Specular Multi", Range(0,1)) = 0.4
         _SpecularGloss ("Specular Gloss", Range(0.001,8)) = 4
         
@@ -52,13 +52,16 @@ Shader "URP/ToonShading"
                 float4 _MainTex_ST;
                 float4 _RampTex_ST;
                 half4  _MainColor;
+            
                 half4  _ShadowColor;
                 half   _ShadowRange;
-                half   _ShadowSmooth;
+                half   _ShadowSmooth;//明暗分界线的一小块区域
+            
                 half4  _SpecularColor;
                 half   _SpecularRange;
                 half   _SpecularMulti;
                 half   _SpecularGloss;
+            
                 half4  _RimColor;
                 half   _RimPower;
             CBUFFER_END
@@ -72,7 +75,7 @@ Shader "URP/ToonShading"
             
             struct Varyings
             {
-                float4 positionCS : SV_POSITION;
+                float4 positionHCS : SV_POSITION;
                 float2 uv          : TEXCOORD0;
                 float3 worldPos    : TEXCOORD1;
                 float3 worldNormal : TEXCOORD2;
@@ -81,44 +84,59 @@ Shader "URP/ToonShading"
             Varyings vert (Attributes IN)
             {
                 Varyings OUT;
-                OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
+                OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
+                OUT.uv          = TRANSFORM_TEX(IN.uv, _MainTex);
                 OUT.worldPos    = TransformObjectToWorld(IN.positionOS.xyz);
                 OUT.worldNormal = TransformObjectToWorldNormal(IN.normalOS);
-                OUT.uv          = TRANSFORM_TEX(IN.uv, _MainTex);
                 return OUT;
             }
             
             half4 frag (Varyings IN) : SV_Target
             {
-                half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv).rgb;
-                half4 ramp   = SAMPLE_TEXTURE2D(_RampTex, sampler_RampTex, IN.uv);
+                // 主光源的光照衰减
+                Light mainLight = GetMainLight(TransformWorldToShadowCoord(IN.worldPos)); 
+                half atten = mainLight.shadowAttenuation * mainLight.distanceAttenuation;
                 
-                Light mainLight = GetMainLight();
                 half3 worldNormal = normalize(IN.worldNormal);
                 half3 lightDir    = normalize(mainLight.direction);
                 half3 viewDir     = normalize(GetWorldSpaceViewDir(IN.worldPos));
+                half3 halfDir = normalize(lightDir + viewDir);
+
+                // Ambient
+                half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv).rgb;
+                half3 ambient = SampleSH(worldNormal) * albedo; //球谐SH环境光叠加材质颜色
                 
-                // 半兰伯特
+                // 漫反射
                 half halfLambert = saturate(dot(worldNormal, lightDir) * 0.5 + 0.5);
-                half rampU = saturate(_ShadowRange - (halfLambert + ramp.g) * 0.5);
-                half rampFactor = smoothstep(0, _ShadowSmooth, rampU);
-                half3 diffuse = lerp(_MainColor.rgb, _ShadowColor.rgb, rampFactor) * albedo;
+                half3 diffuse = _MainColor.rgb * albedo * halfLambert;
+                
+                // 明暗分界线过渡
+                half4 ramp = SAMPLE_TEXTURE2D(_RampTex, sampler_RampTex, IN.uv);
+                //计算当前像素和明暗分界线的距离
+                half rampDelta = saturate(_ShadowRange - (halfLambert + ramp.g) * 0.5); //约定取r或g通道存阴影Δ偏移值，归一化到0-1间
+                ramp = smoothstep(0, _ShadowSmooth, rampDelta); //平滑过渡带
+                
+                diffuse = lerp(diffuse, _ShadowColor.rgb, ramp);
                 
                 // Blinn-Phong 高光
-                half3 halfDir = normalize(lightDir + viewDir);
-                half nh = saturate(dot(worldNormal, halfDir));
-                half specMask = ramp.b;
-                half specRange = pow(nh, _SpecularGloss);
-                half3 specular = 0;
-                if (specRange >= 1 - specMask * _ShadowRange)
-                    specular = _SpecularMulti * ramp.r * _SpecularColor.rgb;
+                half NdotH = saturate(dot(worldNormal, halfDir));
+                half specularRange = pow(NdotH, _SpecularGloss);
+                half specularMask = ramp.b;
+                half specularTense = ramp.r;
+                // half condition = step(1 - specularMask*specularRange,_SpecularRange);
+                // half3 specular = condition * _SpecularColor.rgb * _SpecularMulti;
+                half3 specular=0;
+                if (specularRange >= 1-specularMask*_SpecularRange)
+                {
+                    specular = _SpecularColor.rgb * specularTense * _SpecularMulti;
+                }
                 
                 // 边缘光
                 half rim = 1 - saturate(dot(viewDir, worldNormal));
                 half3 rimColor = _RimColor.rgb * pow(rim, 1 / _RimPower);
                 
-                half3 final = diffuse + specular + rimColor;
-                return half4(final * mainLight.color, 1);
+                half3 final = ambient + diffuse + specular ;
+                return half4(final, 1.0);
             }
             ENDHLSL
         }
@@ -151,22 +169,24 @@ Shader "URP/ToonShading"
             Varyings vert (Attributes IN)
             {
                 Varyings OUT;
-                float4 pos = TransformObjectToHClip(IN.positionOS.xyz);
+                float3 posVS = TransformWorldToView(TransformObjectToWorld(IN.positionOS.xyz));
                 float3 viewNormal = TransformWorldToViewDir(TransformObjectToWorldNormal(IN.normalOS));
-                float2 offset = normalize(viewNormal.xy) * _OutlineWidth * 0.01 * pos.w;
-                pos.xy += offset;
-                OUT.positionHCS = pos;
+                
+                viewNormal.z = -0.5; // 指定z轴，避免穿帮
+                
+                posVS = posVS + viewNormal * _OutlineWidth * 0.01;
+                OUT.positionHCS = TransformWViewToHClip(posVS);
                 return OUT;
             }
             
             half4 frag (Varyings IN) : SV_Target
             {
-                return _OutlineColor;
+                return half4(_OutlineColor.rgb,1.0);
             }
             ENDHLSL
         }
 
-        // ---------- 阴影 Pass ----------
+        // ---------- 投影 Pass ----------
         Pass
         {
             Name "ShadowCaster"

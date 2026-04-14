@@ -20,12 +20,12 @@ MonoBehaviour:
   fallGravity: 65
   gravityMaxSpeed: 30
   applySlopeFactor: 1
-  acceleration: 1
+  acceleration: 2
   airAcceleration: 13
-  deceleration: 28
-  groundFriction: 32
+  deceleration: 20
+  groundFriction: 48
   slopeFriction: 28
-  maxSpeed: 6
+  maxSpeed: 2
   turningDrag: 60
   brakeThreshold: 0
   slopeUpwardForce: 25
@@ -38,3 +38,4 @@ MonoBehaviour:
   coyotoJumpThreshold: 0.2
   maxJumpHeight: 18
   minJumpHeight: 12
+  jumpForce: 1.2
