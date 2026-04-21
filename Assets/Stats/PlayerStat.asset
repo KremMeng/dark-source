@@ -20,10 +20,10 @@ MonoBehaviour:
   fallGravity: 65
   gravityMaxSpeed: 30
   applySlopeFactor: 1
-  acceleration: 2
+  acceleration: 5
   airAcceleration: 13
   deceleration: 20
-  groundFriction: 48
+  groundFriction: 10
   slopeFriction: 28
   maxSpeed: 2
   turningDrag: 60

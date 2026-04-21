@@ -13,7 +13,7 @@ Shader "URP/ToonShading"
         _SpecularColor ("Specular Color", Color) = (1,1,1,1)
         _SpecularRange ("Specular Range", Range(0,1)) = 0.35
         _SpecularMulti ("Specular Multi", Range(0,1)) = 0.4
-        _SpecularGloss ("Specular Gloss", Range(0.001,8)) = 4
+        _SpecularGloss ("Specular Gloss", Range(0.001,0.01)) = 0.003
         
         _RimColor      ("Rim Color", Color) = (0,0,0,1)
         _RimPower      ("Rim Power", Range(0.0001,5)) = 0.0001
@@ -104,32 +104,22 @@ Shader "URP/ToonShading"
 
                 // Ambient
                 half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv).rgb;
-                half3 ambient = SampleSH(worldNormal) * albedo; //球谐SH环境光叠加材质颜色
+                half ao = SampleAmbientOcclusion(IN.uv);
+                half3 ambient = ao * albedo; //环境光叠加材质颜色
                 
                 // 漫反射
                 half halfLambert = saturate(dot(worldNormal, lightDir) * 0.5 + 0.5);
                 half3 diffuse = _MainColor.rgb * albedo * halfLambert;
                 
-                // 明暗分界线过渡
+                // 阴影-明暗交界
                 half4 ramp = SAMPLE_TEXTURE2D(_RampTex, sampler_RampTex, IN.uv);
-                //计算当前像素和明暗分界线的距离
-                half rampDelta = saturate(_ShadowRange - (halfLambert + ramp.g) * 0.5); //约定取r或g通道存阴影Δ偏移值，归一化到0-1间
+                half rampDelta = saturate(_ShadowRange - (halfLambert + ramp.g) * 0.5); //计算当前像素和明暗分界线的距离，约定取r或g通道存阴影Δ偏移值，归一化到0-1间
                 ramp = smoothstep(0, _ShadowSmooth, rampDelta); //平滑过渡带
-                
                 diffuse = lerp(diffuse, _ShadowColor.rgb, ramp);
                 
                 // Blinn-Phong 高光
                 half NdotH = saturate(dot(worldNormal, halfDir));
-                half specularRange = pow(NdotH, _SpecularGloss);
-                half specularMask = ramp.b;
-                half specularTense = ramp.r;
-                // half condition = step(1 - specularMask*specularRange,_SpecularRange);
-                // half3 specular = condition * _SpecularColor.rgb * _SpecularMulti;
-                half3 specular=0;
-                if (specularRange >= 1-specularMask*_SpecularRange)
-                {
-                    specular = _SpecularColor.rgb * specularTense * _SpecularMulti;
-                }
+                half3 specular = _SpecularColor.rgb * step(_SpecularRange,pow(NdotH,1/_SpecularGloss));
                 
                 // 边缘光
                 half rim = 1 - saturate(dot(viewDir, worldNormal));

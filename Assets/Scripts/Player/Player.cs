@@ -147,9 +147,11 @@ public class Player : Entity<Player> {
     /// </summary>
     /// <param name="moveDir"></param>
     public Vector3 GetRollDirection(){
-        Vector3 moveDir = inputs.GetMovementDirction();
+        // 记录最后一帧的有效移动方向，用于翻滚惯性
+        Vector3 lastMoveDirection = Vector3.zero;
+        Vector3 moveDir = inputs.GetMovementCameraDirction();
         // 记录有效输入方向，用于翻滚
-        if (moveDir.sqrMagnitude != 0) {
+        if (moveDir.sqrMagnitude > 0) {
             lastMoveDirection = moveDir;
         }
         else {

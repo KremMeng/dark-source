@@ -75,9 +75,6 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     }
     public bool freezeVelocity { get; protected set; } //进入状态时冻结速度防止平移
     
-    // 记录最后一帧的有效移动方向，用于翻滚惯性
-    public Vector3 lastMoveDirection { get; protected set; }
-    
     protected virtual void Awake(){
         //初始化状态管理器
         InitializeStateManager();
