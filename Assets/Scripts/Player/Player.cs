@@ -113,7 +113,7 @@ public class Player : Entity<Player> {
     /// </summary>
     public virtual void Run(){
         var inputDirection = inputs.GetMovementCameraDirction();
-        if (isGrounded  && inputs.RunIsPressing() && inputDirection.sqrMagnitude >= 0) {
+        if (isGrounded  && inputs.RunIsPressing() && inputDirection.sqrMagnitude > 0) {
             states.Change<RunPlayerState>();
         }
     }
@@ -122,9 +122,10 @@ public class Player : Entity<Player> {
     /// </summary>
     public virtual void Roll(){               
         
-        bool canRoll = isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude > 0.25f;
-        bool canJab = isGrounded && inputs.RollOnPressed() && horizontalVelocity.sqrMagnitude < 0.01f;
-        bool canRollAfterJump = isGrounded && inputs.RollOnPressed() && inputs.RunIsPressing();
+        bool canRoll = isGrounded && inputs.RollOnPressed() && states.curIndex == 1;
+        bool canJab = isGrounded && inputs.RollOnPressed() && states.curIndex == 0;
+        //horizontalVelocity.sqrMagnitude < 0.01f
+        bool canRollAfterJump = isGrounded && inputs.RollOnPressed() && states.curIndex == 2;
         
         //移动时滚动                                       
         if (canRoll) {

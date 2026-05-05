@@ -1,6 +1,7 @@
 using UnityEngine;
 public class JumpPlayerState : PlayerState {
     protected override void OnEnter(Player player){
+        player.verticalVelocity = new Vector3(0, 4.0f, 0);
         player.IsFrozeVelocity(true);
         player.InputEnabled = false;
     }
@@ -10,7 +11,6 @@ public class JumpPlayerState : PlayerState {
     } 
 
     protected override void OnStep(Player player){
-            player.verticalVelocity = new Vector3(0, 4.0f, 0);
             //播放完切roll
             player.ChangeOnAnimFinish(() =>  player.states.Change<RollPlayerState>());
     }

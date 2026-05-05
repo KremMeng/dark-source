@@ -122,7 +122,7 @@ Shader "URP/ToonShading"
                 half3 specular = _SpecularColor.rgb * step(_SpecularRange,pow(NdotH,1/_SpecularGloss));
                 
                 // 边缘光
-                half rim = 1 - saturate(dot(viewDir, worldNormal));
+                half rim = 1 - saturate(dot(viewDir, worldNormal));  
                 half3 rimColor = _RimColor.rgb * pow(rim, 1 / _RimPower);
                 
                 half3 final = ambient + diffuse + specular ;

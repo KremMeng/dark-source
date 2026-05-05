@@ -101,9 +101,10 @@ public class PlayerAnimator : MonoBehaviour {
             // normalizedTime 设为 0 确保从头播放，避免连续触发时的时序问题
             AnimatorStateInfo curInfo = anim.GetCurrentAnimatorStateInfo(layer);
             //检查是否已经在播放目标动画,确定没在播了再转
-            if (!curInfo.IsName(m_forcedTransitions[lastStateIndex].toAnimState)) {
-                anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.2f, layer, 0f);
-            }
+            // if (!curInfo.IsName(m_forcedTransitions[lastStateIndex].toAnimState)) {
+            //     anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.3f, layer, 0f);
+            // }
+            anim.CrossFade(m_forcedTransitions[lastStateIndex].toAnimState, 0.3f, layer, 0f);
         }
     }
     /// <summary>

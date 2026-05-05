@@ -22,7 +22,6 @@ public class RunPlayerState : PlayerState {
         if (inputDirection.sqrMagnitude > 0) {
             player.Accelerate(inputDirection);  
             player.FaceDirectionSmooth(inputDirection);
-            
         }
         if (player.inputs.RunOnReleased()) {
             if (inputDirection.sqrMagnitude != 0) {
