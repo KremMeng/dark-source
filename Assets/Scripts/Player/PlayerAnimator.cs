@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 [RequireComponent(typeof(Player))]
 [AddComponentMenu("Player/Player Animator")]
@@ -53,7 +54,11 @@ public class PlayerAnimator : MonoBehaviour {
     public float minHorizonAnimSpeed = 0.5f;
     public List<ForcedTransition> forcedTransitions; //列表，存放强制转换的规则，例如walk2run
     
-    public Action _animFinishCallback = null;
+    // 各个状态的动画完成回调
+    public Action _rollFinishCallback;
+    public Action _jumpFinishCallback;
+    public Action _jabFinishCallback;
+    public Action _breakFinishCallback;
     
     protected void Start(){
         
@@ -68,7 +73,10 @@ public class PlayerAnimator : MonoBehaviour {
     /// </summary>
     protected void LateUpdate(){
         UpdateAnimatorParams();
-        PollAnimFinish();
+        RollAnimFinish();
+        JumpAnimFinish();
+        JabAnimFinish();
+        BreakAnimFinish();
     }
 
     protected virtual void InitializePlayer(){
@@ -167,18 +175,56 @@ public class PlayerAnimator : MonoBehaviour {
         // }
     }
     /// <summary>
-    /// 当前动画播放完毕时切换到目标状态
+    /// 当前roll动画播放完毕,切换到目标状态
     /// </summary>
     /// <typeparam name="State">目标状态</typeparam>
-    public virtual bool PollAnimFinish(){
+    public virtual bool RollAnimFinish(){
         var info = anim.GetCurrentAnimatorStateInfo(0);
-        if (info.normalizedTime >= 1.0f) {
-            _animFinishCallback?.Invoke();
-            _animFinishCallback = null;
+        
+        if (info.normalizedTime >= 1.0f && info.IsName("roll")) {
+            _rollFinishCallback?.Invoke();
+            _rollFinishCallback = null;
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// 当前jump动画播放完毕,切换到目标状态
+    /// </summary>
+    public virtual bool JumpAnimFinish(){
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime >= 1.0f && info.IsName("jump")) {
+            _jumpFinishCallback?.Invoke();
+            _jumpFinishCallback = null;
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// 当前break动画播放完毕,切换到目标状态
+    /// </summary>
+    public virtual bool BreakAnimFinish(){
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime >= 1.0f && info.IsName("break")) {
+            _breakFinishCallback?.Invoke();
+            _breakFinishCallback = null;
             return true;
         }
         return false;
     }
 
-   
+    /// <summary>
+    /// 当前jab动画播放完毕,切换到目标状态
+    /// </summary>
+    public virtual bool JabAnimFinish(){
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime >= 1.0f && info.IsName("jab")) {
+            _jabFinishCallback?.Invoke();
+            _jabFinishCallback = null;
+            return true;
+        }
+        return false;
+    }
+
+    
 }
