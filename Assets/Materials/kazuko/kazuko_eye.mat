@@ -147,7 +147,7 @@ Material:
     - _SpecularGloss: 4
     - _SpecularHighlights: 1
     - _SpecularMulti: 0.4
-    - _SpecularRange: 0.9
+    - _SpecularRange: 0.827
     - _SrcBlend: 1
     - _Surface: 0
     - _WorkflowMode: 1
@@ -161,7 +161,7 @@ Material:
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _RimColor: {r: 1, g: 1, b: 1, a: 1}
-    - _ShadowColor: {r: 0.7, g: 0.7, b: 0.8, a: 1}
+    - _ShadowColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
