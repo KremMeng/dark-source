@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: npc
-  m_Shader: {fileID: 4800000, guid: 95d8da529ee66d04bb72c8884923a7d7, type: 3}
+  m_Shader: {fileID: 4800000, guid: 25317e26c00d5a44398d2fc7e634a151, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -83,7 +83,6 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 0
-    - _AnisotropicRange: 0.5
     - _Blend: 0
     - _BumpScale: 1
     - _ClearCoatMask: 0
