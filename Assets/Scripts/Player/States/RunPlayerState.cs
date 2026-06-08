@@ -14,9 +14,7 @@ public class RunPlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        //Debug.Log(player.horizontalVelocity.magnitude);
-        // var anim = player.GetComponentInChildren<Animator>();
-        // Debug.Log(anim.GetNextAnimatorStateInfo(0).normalizedTime);
+        Debug.Log(player.horizontalVelocity.magnitude);
         player.Gravity();
         player.SnapToGround();
         player.Roll();

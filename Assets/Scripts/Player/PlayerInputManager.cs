@@ -122,15 +122,10 @@ public class PlayerInputManager : MonoBehaviour {
         }
         return false;
     }
-    
     //跳跃相关按键判定
     public virtual bool JumpOnPressed() => m_jump.WasPressedThisFrame();
     public virtual bool JumpIsPresssing() => m_jump.IsPressed();
     public virtual bool JumpOnReleased() => m_jump.WasReleasedThisFrame();
-    //走路相关键位判定
-    public virtual bool WalkOnPressed() => m_movement.WasPressedThisFrame();
-    public virtual bool WalkIsPressing() => m_movement.IsPressed();
-    public virtual bool WalkOnReleased() => m_movement.WasReleasedThisFrame();
 
     //跑步相关键位判定
     public virtual bool RunOnPressed() => m_run.WasPressedThisFrame();
@@ -138,9 +133,8 @@ public class PlayerInputManager : MonoBehaviour {
     public virtual bool RunOnReleased() => m_run.WasReleasedThisFrame();
     
     //翻滚、后撤相关键位判定
-    public virtual bool RollIsPressing() => m_roll.IsPressed();
+    public virtual bool RollOnPressed() => m_roll.IsPressed();
     public virtual bool RollOnReleased() => m_roll.WasReleasedThisFrame();
-    public virtual bool RollOnPressed() => m_roll.WasPressedThisFrame();
-
-
+    
+    
 }

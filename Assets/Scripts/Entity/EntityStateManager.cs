@@ -73,7 +73,6 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
 
     public virtual void Change(EntityState<T> targetState){
         // 目标状态存在、游戏未暂停时，调用退出状态的函数
-       
         if (targetState != null && Time.timeScale > 0) {
             current.Exit(entity);
             events.onExit.Invoke(current.GetType());
@@ -84,7 +83,6 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
         current.Enter(entity);
         events.onEnter.Invoke(current.GetType());
         events.onChange?.Invoke();//只要成功切了状态（不管从哪到哪），只要切完就喊一声
-
     }
     
 }

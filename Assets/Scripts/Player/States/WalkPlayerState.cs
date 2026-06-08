@@ -12,13 +12,10 @@ public class WalkPlayerState : PlayerState {
     }
 
     protected override void OnStep(Player player){
-        var anim = player.GetComponentInChildren<Animator>();
-        Debug.Log("walk: "+anim.GetNextAnimatorStateInfo(0).normalizedTime);
-        // Debug.Log("roll pressed?"+ player.inputs.RollOnPressed());
         // Debug.Log("isgrounded? "+ player.isGrounded);
         // Debug.Log("inputs.RollOnPressed()? "+ player.inputs.RollOnPressed());
          //if(player.horizontalVelocity.magnitude <=0.6) Debug.Log("speed " + (player.horizontalVelocity.magnitude ));
-         //Debug.Log("speed " + (player.horizontalVelocity.magnitude ));
+         Debug.Log("speed " + (player.horizontalVelocity.magnitude ));
         player.Gravity();//用cc的话需要接入手写的重力
         player.SnapToGround();
         //player.Fall();

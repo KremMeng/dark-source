@@ -24,30 +24,9 @@ public class Player : Entity<Player> {
 
     protected virtual void InitializeInputs() => inputs = GetComponent<PlayerInputManager>();
     protected virtual void InitializeStat() => stat = GetComponent<PlayerStatManager>();
-    
-    /// <summary>
-    /// 注册Roll动画完成回调
-    /// </summary>
-    internal void OnRollFinish(System.Action callback) =>
-        GetComponent<PlayerAnimator>()._rollFinishCallback = callback;
-    
-    /// <summary>
-    /// 注册Jump动画完成回调
-    /// </summary>
-    internal void OnJumpFinish(System.Action callback) =>
-        GetComponent<PlayerAnimator>()._jumpFinishCallback = callback;
-    
-    /// <summary>
-    /// 注册Jab动画完成回调
-    /// </summary>
-    internal void OnJabFinish(System.Action callback) =>
-        GetComponent<PlayerAnimator>()._jabFinishCallback = callback;
-    
-    /// <summary>
-    /// 注册Break动画完成回调
-    /// </summary>
-    internal void OnBreakFinish(System.Action callback) =>
-        GetComponent<PlayerAnimator>()._breakFinishCallback = callback;
+
+    internal void ChangeOnAnimFinish(System.Action callback) =>
+        GetComponent<PlayerAnimator>()._animFinishCallback = callback;
 
     //从Entity类里封装转向、减速函数等
     public virtual void Accelerate(Vector3 inputDir){
@@ -146,8 +125,7 @@ public class Player : Entity<Player> {
         bool canRoll = isGrounded && inputs.RollOnPressed() && states.curIndex == 1;
         bool canJab = isGrounded && inputs.RollOnPressed() && states.curIndex == 0;
         //horizontalVelocity.sqrMagnitude < 0.01f
-        bool canRollAfterJump = isGrounded && states.curIndex == 2 && inputs.RollOnPressed();
-        Debug.Log("canRollafterJump: "+canRollAfterJump+" canRoll: "+canRoll+"state cur:"+states.curIndex);
+        bool canRollAfterJump = isGrounded && inputs.RollOnPressed() && states.curIndex == 2;
         
         //移动时滚动                                       
         if (canRoll) {
@@ -191,31 +169,6 @@ public class Player : Entity<Player> {
         if (isGrounded && verticalVelocity.y <= 0) {
             verticalVelocity = Vector3.down * snapForce;
         }
-    }
-    
-    /// <summary>
-    /// roll结束检测
-    /// </summary>
-    public virtual bool RollAnimFinish(){
-        var anim = GetComponentInChildren<Animator>();
-        if (anim.GetNextAnimatorStateInfo(0).normalizedTime >= 1.0f &&
-            anim.GetNextAnimatorStateInfo(0).IsName("roll")) {
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// jump 结束检测
-    /// </summary>
-    public virtual bool JumpAnimFinish(){
-        var anim = GetComponentInChildren<Animator>();
-        if (anim.GetNextAnimatorStateInfo(0).normalizedTime >= 1.0f &&
-            anim.GetNextAnimatorStateInfo(0).IsName("jump")) {
-            return true;
-        }
-
-        return false;
     }
 
 }
