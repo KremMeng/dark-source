@@ -120,7 +120,7 @@ Material:
     - _ShadowSmooth: 0.2
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _SpecularGloss: 2.01
+    - _SpecularGloss: 0.00205
     - _SpecularHighlights: 1
     - _SpecularMulti: 0.152
     - _SpecularRange: 0.179
@@ -135,7 +135,7 @@ Material:
     - _MainColor: {r: 1, g: 1, b: 1, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _RimColor: {r: 0, g: 0, b: 0, a: 1}
-    - _ShadowColor: {r: 0.7, g: 0.7, b: 0.8, a: 1}
+    - _ShadowColor: {r: 0.515743, g: 0.515743, b: 0.5597484, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

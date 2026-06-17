@@ -133,7 +133,7 @@ public class Player : Entity<Player> {
     /// 跑步判定
     /// </summary>
     public virtual void Run(){
-        var inputDirection = inputs.GetMovementCameraDirction();
+        var inputDirection = inputs.GetMovementCSDirction();
         if (isGrounded  && inputs.RunIsPressing() && inputDirection.sqrMagnitude > 0) {
             states.Change<RunPlayerState>();
         }
@@ -172,7 +172,7 @@ public class Player : Entity<Player> {
     public Vector3 GetRollDirection(){
         // 记录最后一帧的有效移动方向，用于翻滚惯性
         Vector3 lastMoveDirection = Vector3.zero;
-        Vector3 moveDir = inputs.GetMovementCameraDirction();
+        Vector3 moveDir = inputs.GetMovementCSDirction();
         // 记录有效输入方向，用于翻滚
         if (moveDir.sqrMagnitude > 0) {
             lastMoveDirection = moveDir;

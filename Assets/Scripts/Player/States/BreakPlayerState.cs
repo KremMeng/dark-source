@@ -8,7 +8,7 @@ public class BreakPlayerState : PlayerState{
             player.states.Change<IdlePlayerState>();
         });
         
-        var inputDir = player.inputs.GetMovementCameraDirction();
+        var inputDir = player.inputs.GetMovementCSDirction();
         if (inputDir.sqrMagnitude <= 0 && player.inputs.RunOnReleased()) {
             player.horizontalVelocity =
                 Vector3.Lerp(player.horizontalVelocity, Vector3.zero, player.stat.current.brakeLerp);

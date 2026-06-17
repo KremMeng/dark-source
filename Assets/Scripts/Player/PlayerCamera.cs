@@ -130,7 +130,7 @@ public class PlayerCamera : MonoBehaviour {
     protected virtual float AngleClamp(float angle,float minAngle,float maxAngle){
         if (angle < -360) angle += 360;
         if (angle > 360) angle -= 360;
-        return Mathf.Clamp(angle, minAngle, maxAngle);
+        return Mathf.Clamp(angle, minAngle, maxAngle);    
     }
     
     /// <summary>

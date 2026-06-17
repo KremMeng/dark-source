@@ -20,7 +20,7 @@ public class RunPlayerState : PlayerState {
         player.Gravity();
         player.SnapToGround();
         player.Roll();
-        var inputDirection = player.inputs.GetMovementCameraDirction();
+        var inputDirection = player.inputs.GetMovementCSDirction();
         if (inputDirection.sqrMagnitude > 0) {
             player.Accelerate(inputDirection);  
             player.FaceDirectionSmooth(inputDirection);

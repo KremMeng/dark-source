@@ -98,7 +98,7 @@ public class PlayerInputManager : MonoBehaviour {
     protected float RemapToDeadZone(float value, float deadzone) =>
         (value - (value > 0 ? -deadzone : deadzone)) / (1 - deadzone);//输入值可能为负，同样要map
 
-    public virtual Vector3 GetMovementCameraDirction(){
+    public virtual Vector3 GetMovementCSDirction(){
         //获取原始输入方向
         var direction = GetMovementDirction();
         if (direction.sqrMagnitude > 0) {
