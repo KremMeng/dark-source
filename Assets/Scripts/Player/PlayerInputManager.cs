@@ -73,6 +73,7 @@ public class PlayerInputManager : MonoBehaviour {
             return GetAxisWithCrossDeadZone(cameraLook);
         }
     }
+    
     /// <summary>
     /// 获取当前输入，看是不是鼠标
     /// </summary>

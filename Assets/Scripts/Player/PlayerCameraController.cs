@@ -7,16 +7,19 @@ public class PlayerCameraController : MonoBehaviour {
     // --- 组件引用 ---
     public Player player;
     protected Camera mainCamera;
-    protected Transform cameraPos;
+    [SerializeField] private Transform cameraTarget; //缓存：界面拖节点，避免频繁查找
     
     // --- 相机参数 ---
     [Header("Camera Parameters")]
     public float cameraDistance; //臂长，用于缩放、拉远视角
     public float cameraHeight; //相机高度
     Vector3 orbitPivot; //旋转轴心
-    protected float cameraYaw; //绕y轴左右旋转角
-    protected float cameraPitch; //绕x轴上下旋转角
+    protected float cameraYawAngle; //绕y轴左右旋转角
+    protected float cameraPitchAngle; //绕x轴上下旋转角
+    
     public float mouseMulti = 5.0f;
+    public float cameraOffsetTime = 0.1f; //当前值reach目标值所需时间
+    private Vector3 cameraDampVelocity; //摄像机lag的插值速度
     
     public float horizonCamSpeed;
     public float verticalCamSpeed;
@@ -40,10 +43,9 @@ public class PlayerCameraController : MonoBehaviour {
     protected virtual void InitializeCameraParams(){
         player = FindObjectOfType<Player>();
         mainCamera = Camera.main;
-        orbitPivot = player.transform.position + new Vector3(0,cameraHeight, 0);
-        cameraPos = mainCamera.transform.parent.transform;
-        cameraYaw = player.transform.eulerAngles.y;
-        cameraPitch = cameraPos.transform.eulerAngles.x;
+        //cameraTarget = player.transform.Find("CameraTarget"); //已经序列化拖拽了，但是为了如果后续有类似切换角色的功能依旧需要手动初始化
+        cameraYawAngle = player.transform.eulerAngles.y;
+        cameraPitchAngle = cameraTarget.transform.eulerAngles.x;
     }
 
     /// <summary>
@@ -52,19 +54,18 @@ public class PlayerCameraController : MonoBehaviour {
     protected virtual void CameraViewRotation(){
         Vector3 lookDir = player.inputs.GetLookDirection();
         bool isMouseLook = player.inputs.IsLookingInMouse();
-        float mouseMulti = isMouseLook ? Time.timeScale : Time.deltaTime * 200;
+        mouseMulti = isMouseLook ? Time.timeScale : Time.deltaTime * 50;
         if (lookDir.sqrMagnitude > 0) {
-            cameraYaw += lookDir.x * horizonSpeedMulti * mouseMulti;
-            cameraPitch = cameraPitch -
-                          lookDir.z * verticalSpeedMulti * mouseMulti;
-            cameraPitch = VerticalClamp(cameraPitch, minPitchAngle, maxPitchAngle);
+            cameraYawAngle += lookDir.x * horizonSpeedMulti * mouseMulti;
+            cameraPitchAngle -= lookDir.z * verticalSpeedMulti * mouseMulti;
+            cameraPitchAngle = VerticalClamp(cameraPitchAngle, minPitchAngle, maxPitchAngle); 
         }
         // 更新旋转角
-        cameraPos.rotation = Quaternion.Euler(0, cameraYaw, 0);
-        transform.localEulerAngles = new Vector3(cameraPitch, 0, 0);
+         cameraTarget.transform.rotation = Quaternion.Euler(cameraPitchAngle, cameraYawAngle, 0);
+        
         // 更新相机位置
-        orbitPivot = player.transform.position + new Vector3(0,cameraHeight, 0);
-        cameraPos.position = orbitPivot + cameraDistance * -cameraPos.transform.forward;
+         orbitPivot = player.transform.position + new Vector3(0,cameraHeight, 0);
+         cameraTarget.position = orbitPivot + cameraDistance * -cameraTarget.transform.forward;
     }
 
     /// <summary>
@@ -87,9 +88,11 @@ public class PlayerCameraController : MonoBehaviour {
         }
     }
     /// <summary>
-    /// 延迟相机跟随（非子供向不要太夸张
+    /// 延迟相机：对相机和target的距离做插值过渡
     /// </summary>
     protected virtual void CameraLag(){
-        
+        mainCamera.transform.position = Vector3.SmoothDamp(mainCamera.transform.position, cameraTarget.position,
+            ref cameraDampVelocity, cameraOffsetTime);
+        mainCamera.transform.LookAt(orbitPivot);
     }
 }
