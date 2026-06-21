@@ -204,11 +204,11 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     protected virtual void HandleMovementController(){
         //位移==速度*时间 
         if (cc.enabled && !freezeVelocity) {
-            cc.Move(horizontalVelocity * Time.deltaTime);
+            cc.Move(velocity * Time.deltaTime);
         }
         else {
             //如果没开启cc就用position计算
-            transform.position += horizontalVelocity * Time.deltaTime;
+            transform.position += velocity * Time.deltaTime;
         }
         
     }

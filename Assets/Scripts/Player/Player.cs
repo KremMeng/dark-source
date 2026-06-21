@@ -147,7 +147,7 @@ public class Player : Entity<Player> {
         bool canJab = isGrounded && inputs.RollOnPressed() && states.curIndex == 0;
         //horizontalVelocity.sqrMagnitude < 0.01f
         bool canRollAfterJump = isGrounded && states.curIndex == 2 && inputs.RollOnPressed();
-        Debug.Log("canRollafterJump: "+canRollAfterJump+" canRoll: "+canRoll+"state cur:"+states.curIndex);
+        //Debug.Log("canRollafterJump: "+canRollAfterJump+" canRoll: "+canRoll+"state cur:"+states.curIndex);
         
         //移动时滚动                                       
         if (canRoll) {

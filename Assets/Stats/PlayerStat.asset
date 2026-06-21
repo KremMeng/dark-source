@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: PlayerStat
   m_EditorClassIdentifier: 
   pushForce: 4
-  snapForce: 15
+  snapForce: 0
   slideForce: 10
   rotationSpeed: 970
   gravity: 35
   fallGravity: 65
-  gravityMaxSpeed: 30
+  gravityMaxSpeed: 10
   applySlopeFactor: 1
   acceleration: 5
   airAcceleration: 13

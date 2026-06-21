@@ -13,10 +13,6 @@ public class FallPlayerState : PlayerState{
         player.Gravity();
         player.FaceDirectionSmooth(player.horizontalVelocity);
         player.AccelerateWithInputDir();
-        player.Jump();
-        // if (player.inputs.JumpOnPressed()) {
-        //     player.Jump();
-        // }
         if (player.isGrounded) {
             player.states.Change<IdlePlayerState>();
         }
