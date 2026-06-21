@@ -284,7 +284,7 @@ AnimatorStateTransition:
   m_Conditions:
   - m_ConditionMode: 6
     m_ConditionEvent: Current State
-    m_EventTreshold: 12
+    m_EventTreshold: 7
   - m_ConditionMode: 4
     m_ConditionEvent: Vertical Speed
     m_EventTreshold: 0

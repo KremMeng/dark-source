@@ -1920,6 +1920,7 @@ MonoBehaviour:
   cameraHeight: 1.5
   mouseMulti: 5
   cameraOffsetTime: 0.1
+  zoomVelocity: 10
   horizonCamSpeed: 20
   verticalCamSpeed: 50
   horizonSpeedMulti: 3
@@ -2432,11 +2433,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8263985876582238350, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9848078
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8263985876582238350, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.17364816
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8263985876582238350, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
       propertyPath: m_LocalRotation.y
@@ -2448,7 +2449,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8263985876582238350, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 20
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8263985876582238350, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y

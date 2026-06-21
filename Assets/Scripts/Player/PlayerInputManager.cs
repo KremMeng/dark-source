@@ -13,6 +13,7 @@ public class PlayerInputManager : MonoBehaviour {
     protected InputAction m_jump;
     protected InputAction m_run;
     protected InputAction m_roll;
+    protected InputAction m_zoom;
 
     protected float? m_timeOfLastJump; //可空值类型，记录自程序应用以来，上次跳跃的时间
     protected float jumpBufferTimer = 0.15f; //跳跃缓冲计时器时间内按下第二次跳跃，落地后自动触发
@@ -46,6 +47,7 @@ public class PlayerInputManager : MonoBehaviour {
         m_jump = actions["jump"];
         m_run = actions["run"];
         m_roll = actions["roll"];
+        m_zoom = actions["zoom"];
     }
 
     protected virtual void InitializeCamera() => m_camera = Camera.main;
@@ -81,6 +83,15 @@ public class PlayerInputManager : MonoBehaviour {
         //获取当前的控制设备activeControl
         if (m_look.activeControl == null) return false;
         return m_look.activeControl.device.name.Equals("Mouse"); //返回一个bool值
+    }
+
+    /// <summary>
+    /// 获取鼠标滚轮输入,绑定路径是 <Mouse>/scroll
+    /// </summary>
+    /// <returns></returns>
+    public virtual float GetMouseScroll(){
+        var scrollValue = m_zoom.ReadValue<Vector2>();
+        return scrollValue.y;
     }
     /// <summary>
     /// 考虑死区的水平面轴

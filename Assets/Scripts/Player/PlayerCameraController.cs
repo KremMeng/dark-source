@@ -19,7 +19,8 @@ public class PlayerCameraController : MonoBehaviour {
     
     public float mouseMulti = 5.0f;
     public float cameraOffsetTime = 0.1f; //当前值reach目标值所需时间
-    private Vector3 cameraDampVelocity; //摄像机lag的插值速度
+    private Vector3 cameraLagDampVelocity; //摄像机lag的插值速度
+    public float zoomVelocity; //缩放速度
     
     public float horizonCamSpeed;
     public float verticalCamSpeed;
@@ -38,6 +39,7 @@ public class PlayerCameraController : MonoBehaviour {
     protected virtual void LateUpdate(){
         CameraViewRotation();
         CameraLag();
+        CameraZoom();
     }
 
     protected virtual void InitializeCameraParams(){
@@ -80,11 +82,19 @@ public class PlayerCameraController : MonoBehaviour {
     /// <summary>
     /// 缩放视角
     /// </summary>
-    protected virtual void CameraZoom(){ 
+    protected virtual void CameraZoom(){
+        //缩放时禁止输入
+        player.InputEnabled = false;
         Vector3 moveDir = player.inputs.GetMovementDirction();
         Vector3 lookDir = player.inputs.GetLookDirection();
-        if (moveDir.sqrMagnitude > 0 && lookDir.sqrMagnitude > 0) {
-            
+        float scroll = player.inputs.GetMouseScroll();
+        //点乘判断摇杆方向
+        bool zoomIn = scroll > 0;
+        bool zoomOut = scroll < 0;
+        if (zoomIn) {
+            cameraDistance -= zoomVelocity * Time.deltaTime;
+        }else if (zoomOut) {
+            cameraDistance += zoomVelocity * Time.deltaTime;
         }
     }
     /// <summary>
@@ -92,7 +102,7 @@ public class PlayerCameraController : MonoBehaviour {
     /// </summary>
     protected virtual void CameraLag(){
         mainCamera.transform.position = Vector3.SmoothDamp(mainCamera.transform.position, cameraTarget.position,
-            ref cameraDampVelocity, cameraOffsetTime);
+            ref cameraLagDampVelocity, cameraOffsetTime);
         mainCamera.transform.LookAt(orbitPivot);
     }
 }
