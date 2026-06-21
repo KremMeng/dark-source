@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 
 // Camera Controller without Cinemachine
@@ -16,6 +17,7 @@ public class PlayerCameraController : MonoBehaviour {
     Vector3 orbitPivot; //旋转轴心
     protected float cameraYawAngle; //绕y轴左右旋转角
     protected float cameraPitchAngle; //绕x轴上下旋转角
+    [FormerlySerializedAs("inverseVerticalCam")] public bool inverseVerticalCamView;
     
     public float mouseMulti = 5.0f;
     public float cameraOffsetTime = 0.1f; //当前值reach目标值所需时间
@@ -59,7 +61,9 @@ public class PlayerCameraController : MonoBehaviour {
         mouseMulti = isMouseLook ? Time.timeScale : Time.deltaTime * 50;
         if (lookDir.sqrMagnitude > 0) {
             cameraYawAngle += lookDir.x * horizonSpeedMulti * mouseMulti;
-            cameraPitchAngle -= lookDir.z * verticalSpeedMulti * mouseMulti;
+            cameraPitchAngle = inverseVerticalCamView ? 
+                (cameraPitchAngle + lookDir.z * verticalSpeedMulti * mouseMulti ) :
+                (cameraPitchAngle - lookDir.z * verticalSpeedMulti * mouseMulti);
             cameraPitchAngle = VerticalClamp(cameraPitchAngle, minPitchAngle, maxPitchAngle); 
         }
         // 更新旋转角
@@ -96,6 +100,7 @@ public class PlayerCameraController : MonoBehaviour {
         }else if (zoomOut) {
             cameraDistance += zoomVelocity * Time.deltaTime;
         }
+        cameraDistance = Mathf.Clamp(cameraDistance, 1, 8);
     }
     /// <summary>
     /// 延迟相机：对相机和target的距离做插值过渡

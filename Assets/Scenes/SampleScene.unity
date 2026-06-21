@@ -1918,6 +1918,7 @@ MonoBehaviour:
   cameraTarget: {fileID: 1806561756}
   cameraDistance: 4
   cameraHeight: 1.5
+  inverseVerticalCam: 1
   mouseMulti: 5
   cameraOffsetTime: 0.1
   zoomVelocity: 10
