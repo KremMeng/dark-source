@@ -17,8 +17,8 @@ MonoBehaviour:
   slideForce: 10
   rotationSpeed: 970
   gravity: 10
-  fallGravity: 65
-  gravityMaxSpeed: 4
+  fallGravity: 15
+  gravityMaxSpeed: 8
   applySlopeFactor: 1
   acceleration: 5
   airAcceleration: 5

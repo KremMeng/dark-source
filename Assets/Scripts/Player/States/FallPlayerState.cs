@@ -17,11 +17,12 @@ public class FallPlayerState : PlayerState{
         
         // 下落过程中检测到落地，且竖直速度稍大
         if (player.isGrounded && player.verticalVelocity.sqrMagnitude > 0.01) {
+            player.verticalVelocity = Vector3.zero;
             player.states.Change<RollPlayerState>();
         }
-        // else {
-        //     player.states.Change<IdlePlayerState>();
-        // }
+        else {
+            player.states.Change<IdlePlayerState>();
+        }
     }
 
     public override void OnContact(Player player, Collider other){
