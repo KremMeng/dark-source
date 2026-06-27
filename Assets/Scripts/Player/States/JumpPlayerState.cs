@@ -1,7 +1,7 @@
 using UnityEngine;
 public class JumpPlayerState : PlayerState {
     protected override void OnEnter(Player player){
-        player.verticalVelocity = new Vector3(0, 4.0f, 0);
+       // player.verticalVelocity = new Vector3(0, 4.0f, 0);
         //player.IsFrozeVelocity(true);
         player.InputEnabled = false;
         

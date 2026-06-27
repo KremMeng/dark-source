@@ -16,12 +16,12 @@ MonoBehaviour:
   snapForce: 0
   slideForce: 10
   rotationSpeed: 970
-  gravity: 35
+  gravity: 10
   fallGravity: 65
-  gravityMaxSpeed: 10
+  gravityMaxSpeed: 4
   applySlopeFactor: 1
   acceleration: 5
-  airAcceleration: 13
+  airAcceleration: 5
   deceleration: 20
   groundFriction: 10
   slopeFriction: 28

@@ -17,6 +17,9 @@ public class RollPlayerState : PlayerState {
             else if (player.states.lastIndex == 7){
                 player.states.Change<RunPlayerState>();
             }
+            else if (player.states.lastIndex == 6) {
+                player.states.Change<IdlePlayerState>();
+            }
         });
         
         player.IsFrozeVelocity(true);
