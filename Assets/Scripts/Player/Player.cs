@@ -8,7 +8,8 @@ public class Player : Entity<Player> {
 
     public PlayerStateManagerEvents playerEvents;
     
-    public int jumpCounter { get; protected set; }
+    public int jumpCounter { get; protected set; } // 记录跳跃次数
+    public int comboCount{ get; set;} //记录连击次数，每攻击一次数值+1，三段后或超过响应窗口归零
     public bool roll { get; protected set; }
     public bool jab { get; protected set; }
   
@@ -48,6 +49,9 @@ public class Player : Entity<Player> {
     /// </summary>
     internal void OnBreakFinish(System.Action callback) =>
         GetComponent<PlayerAnimator>()._breakFinishCallback = callback;
+    
+    internal void OnAttackCFinish(System.Action callback) =>
+        GetComponent<PlayerAnimator>()._attackCFinishCallback = callback;
 
     //从Entity类里封装转向、减速函数等
     public virtual void Accelerate(Vector3 inputDir){

@@ -41,7 +41,7 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\IButton.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\IButton.cs" />
     <Compile Include="Assets\Scripts\Player\States\IdlePlayerState.cs" />
     <Compile Include="Assets\Scripts\Entity\Entity.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
@@ -49,27 +49,29 @@
     <Compile Include="Assets\Scripts\Player\PlayerState.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\IState.cs" />
     <Compile Include="Assets\HexTiles-Nature\Scripts\HexGrid.cs" />
-    <Compile Include="Assets\Scripts\JoystickInput.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\JoystickInput.cs" />
     <Compile Include="Assets\HexTiles-Nature\Scripts\GridSnapping.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerAnimator.cs" />
-    <Compile Include="Assets\Scripts\FSMOnUpdate.cs" />
-    <Compile Include="Assets\Scripts\ITimer.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMOnUpdate.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\ITimer0.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\States\AttackState.cs" />
     <Compile Include="Assets\Scripts\Player\States\FallPlayerState.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStateManagerEvents.cs" />
+    <Compile Include="Assets\Scripts\ITimer.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStateManager.cs" />
     <Compile Include="Assets\Scripts\Game\GameTags.cs" />
+    <Compile Include="Assets\Scripts\Player\States\AttackPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStatManager.cs" />
-    <Compile Include="Assets\Scripts\OnGroundSensor.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\OnGroundSensor.cs" />
     <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\NpcAI.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityState.cs" />
-    <Compile Include="Assets\Scripts\RootMotionController.cs" />
-    <Compile Include="Assets\Scripts\FSMOnExit.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\RootMotionController.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMOnExit.cs" />
     <Compile Include="Assets\HexTiles-Nature\Scripts\OLD\HexTileGrid.cs" />
     <Compile Include="Assets\Scripts\Player\States\RollPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStateManager.cs" />
-    <Compile Include="Assets\Scripts\TriggerResetter.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\TriggerResetter.cs" />
     <Compile Include="Assets\HexTiles-Nature\Scripts\OLD\HexTileOverrides.cs" />
     <Compile Include="Assets\Scripts\Player\States\BreakPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInputManager.cs" />
@@ -77,33 +79,38 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyState.cs" />
     <Compile Include="Assets\Scripts\Player\States\JumpPlayerState.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStatManager.cs" />
-    <Compile Include="Assets\Scripts\LeftButtonTest.cs" />
-    <Compile Include="Assets\Scripts\FSMOnEnter.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\LeftButtonTest.cs" />
+    <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboA.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMOnEnter.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityEvents.cs" />
-    <Compile Include="Assets\Scripts\CameraController.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\CameraController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCameraController.cs" />
     <Compile Include="Assets\JoystickTest.cs" />
     <Compile Include="Assets\HexTiles-Nature\Scripts\OLD\ModifyWaterUV.cs" />
+    <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboC.cs" />
     <Compile Include="Assets\Scripts\Tools\ClassTypeName.cs" />
     <Compile Include="Assets\Scripts\Tools\plugTool_Outline.cs" />
-    <Compile Include="Assets\Scripts\IUserInput.cs" />
-    <Compile Include="Assets\Scripts\keyboardInput.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\IUserInput.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\keyboardInput.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStat.cs" />
     <Compile Include="Assets\Scripts\Player\States\RunPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCamera.cs" />
-    <Compile Include="Assets\Scripts\DummyIUserInterface.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\DummyIUserInterface.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\States\ChaseState.cs" />
-    <Compile Include="Assets\Scripts\FSMClaerSignal.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMClaerSignal.cs" />
     <Compile Include="Assets\HexTiles-Nature\Scripts\RotationSnapping.cs" />
-    <Compile Include="Assets\Scripts\ActorController.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\ActorController.cs" />
     <Compile Include="Assets\Scripts\Player\States\JabPlayerState.cs" />
-    <Compile Include="Assets\Scripts\LeftArmAnimFix.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\LeftArmAnimFix.cs" />
     <Compile Include="Assets\Scripts\Player\States\WalkPlayerState.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\StateManager.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStateManagerEvents.cs" />
-    <Compile Include="Assets\Scripts\TesterHit.cs" />
+    <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboB.cs" />
+    <Compile Include="Assets\Scripts\DIsGard_OldVersion\TesterHit.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
+    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\MeshyAnimationIds.json" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_akarami_blend.shader" />
+    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\package.json" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\CharaOutline.cginc" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_hair_ds.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_hada.shader" />
@@ -118,6 +125,8 @@
     <None Include="Assets\Suriyun\UnityChanShader\Shader\readme.txt" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\CharaSkin.cginc" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_eye.shader" />
+    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\GeneratorConfig.json" />
+    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\FrontierSequenceProfiles.json" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_hair.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_eye_blend.shader" />
     <Reference Include="UnityEngine">
@@ -369,11 +378,14 @@
     <Reference Include="UnityEditor.UnityConnectModule">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEditor.UnityConnectModule.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\com.unity.visualscripting@1.9.4\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
+    <Reference Include="Codely.Newtonsoft.Json">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\cn.tuanjie.codely.bridge@1.0.66\Plugins\Codely.Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ReportGeneratorMerged">
       <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\com.unity.testtools.codecoverage@1.2.6\lib\ReportGenerator\ReportGeneratorMerged.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\com.unity.visualscripting@1.9.4\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\NetStandard\ref\2.1.0\netstandard.dll</HintPath>
@@ -849,11 +861,20 @@
     <Reference Include="Unity.RenderPipelines.Universal.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="UnityTcp.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\UnityTcp.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Cn.Tuanjie.Codely.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Cn.Tuanjie.Codely.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.VisualScripting.Shared.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Shared.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.InputSystem.ForUI">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.InputSystem.ForUI.dll</HintPath>
+    </Reference>
+    <Reference Include="Codely.Logging">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Codely.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
@@ -887,6 +908,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="tjgenerators.Editor.csproj">
+      <Project>{6dff003c-85eb-b0db-1942-f8a906ecb894}</Project>
+      <Name>tjgenerators.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="UnityTcp.CustomTool.csproj">
+      <Project>{6ef07d99-905e-3617-041e-d6492b071e77}</Project>
+      <Name>UnityTcp.CustomTool</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

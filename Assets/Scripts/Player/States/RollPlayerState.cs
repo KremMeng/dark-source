@@ -4,7 +4,7 @@ public class RollPlayerState : PlayerState {
         
         // 进入Roll状态时，朝移动输入的方向翻滚
         Vector3 rollDir = player.GetRollDirection();                                
-        float rollSpeed = Mathf.Max(player.horizontalVelocity.magnitude, player.stat.current.maxSpeed * 5.0f); //保底初速度
+        float rollSpeed = Mathf.Max(player.horizontalVelocity.magnitude, player.stat.current.maxSpeed * 3.0f); //保底初速度
         player.horizontalVelocity = rollDir * rollSpeed;
         //player.FaceDirection(rollDir, 720f); // 720度/秒的快速转向翻滚方向
         

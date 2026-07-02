@@ -16,11 +16,11 @@ public class FallPlayerState : PlayerState{
         player.AccelerateWithInputDir();
         
         // 下落过程中检测到落地，且竖直速度稍大
-        if (player.isGrounded && player.verticalVelocity.sqrMagnitude > 0.01) {
+        if (player.isGrounded && player.verticalVelocity.sqrMagnitude > 0.25) {
             player.verticalVelocity = Vector3.zero;
             player.states.Change<RollPlayerState>();
         }
-        else {
+        else if(player.isGrounded && player.verticalVelocity.sqrMagnitude < 0.25){
             player.states.Change<IdlePlayerState>();
         }
     }

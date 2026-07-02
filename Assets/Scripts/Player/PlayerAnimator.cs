@@ -33,6 +33,8 @@ public class PlayerAnimator : MonoBehaviour {
     protected int m_rollHash;
     protected int m_isGroundedHash;
     protected int m_onStateChangeHash;
+    protected int m_attackHash;
+    protected int m_comboHash;
     
     protected Dictionary<int, ForcedTransition> m_forcedTransitions; //字典，存放状态列表的index和transition
                                                                      //from状态和to状态都在列表里，初始化时放入统称from，用的时候再转到to？
@@ -48,6 +50,8 @@ public class PlayerAnimator : MonoBehaviour {
     public string onStateChangedName = "On State Changed";      //状态切换触发器
     public string jabName = "Jab";
     public string rollName = "Roll";
+    public string attackName = "Attack";
+    public string comboCount = "comboCount";
    
    
     [Header("Settings")] 
@@ -59,6 +63,7 @@ public class PlayerAnimator : MonoBehaviour {
     public Action _jumpFinishCallback;
     public Action _jabFinishCallback;
     public Action _breakFinishCallback;
+    public Action _attackCFinishCallback;
     
     protected void Start(){
         
@@ -137,6 +142,8 @@ public class PlayerAnimator : MonoBehaviour {
         m_rollHash = Animator.StringToHash(rollName);
         m_isGroundedHash = Animator.StringToHash(isGroundedName);
         m_onStateChangeHash = Animator.StringToHash(onStateChangedName);
+        m_attackHash = Animator.StringToHash(attackName);
+        m_comboHash = Animator.StringToHash(comboCount);
     }
     /// <summary>
     /// 用速度驱动，每帧更新动画机参数
@@ -163,16 +170,8 @@ public class PlayerAnimator : MonoBehaviour {
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed,1.0f,Time.deltaTime);
         anim.SetBool(m_isGroundedHash,player.isGrounded);
         
-        // if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.sqrMagnitude < 0.1f) {
-        //     anim.SetTrigger("Jab");
-        //     //player.horizontalVelocity = transform.forward * -1.2f;
-        //     player.playerEvents.OnJab?.Invoke();
-        // }
-        //
-        // if (player.isGrounded && player.inputs.RollOnPressed() && player.horizontalVelocity.magnitude > 2.0f) {
-        //     anim.SetTrigger("Roll");
-        //     player.playerEvents.OnRoll?.Invoke();
-        // }
+        anim.SetBool(m_attackHash,player.inputs.AttackOnPressed()); //是否攻击
+        anim.SetInteger(m_comboHash,player.comboCount); //记录当前是第几连击
     }
     /// <summary>
     /// 当前roll动画播放完毕,切换到目标状态

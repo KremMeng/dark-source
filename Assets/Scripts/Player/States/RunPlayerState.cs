@@ -26,6 +26,10 @@ public class RunPlayerState : PlayerState {
             player.Accelerate(inputDirection);  
             player.FaceDirectionSmooth(inputDirection);
         }
+        
+        if (inputDirection.sqrMagnitude <= 0) {
+            player.states.Change<WalkPlayerState>();
+        }
         if (player.inputs.RunOnReleased()) {
             if (inputDirection.sqrMagnitude != 0) {
                 player.states.Change<WalkPlayerState>();
