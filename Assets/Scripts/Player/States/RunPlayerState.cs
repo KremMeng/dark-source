@@ -21,6 +21,7 @@ public class RunPlayerState : PlayerState {
         player.SnapToGround();
         player.Roll();
         player.Fall();
+        player.Attack();
         var inputDirection = player.inputs.GetMovementCSDirction();
         if (inputDirection.sqrMagnitude > 0) {
             player.Accelerate(inputDirection);  

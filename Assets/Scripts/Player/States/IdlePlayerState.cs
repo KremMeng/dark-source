@@ -17,6 +17,7 @@ public class IdlePlayerState : PlayerState {
         player.Jump();
         player.Roll();
         player.Friction();
+        player.Attack();
         
         var inputDirection = player.inputs.GetMovementDirction();
         if (inputDirection.sqrMagnitude > 0) {

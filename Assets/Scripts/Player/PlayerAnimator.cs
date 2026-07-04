@@ -82,6 +82,7 @@ public class PlayerAnimator : MonoBehaviour {
         JumpAnimFinish();
         JabAnimFinish();
         BreakAnimFinish();
+        AttackCAnimFinish();
     }
 
     protected virtual void InitializePlayer(){
@@ -220,6 +221,19 @@ public class PlayerAnimator : MonoBehaviour {
         if (info.normalizedTime >= 1.0f && info.IsName("jab")) {
             _jabFinishCallback?.Invoke();
             _jabFinishCallback = null;
+            return true;
+        }
+        return false;
+    }
+    
+    /// <summary>
+    /// 当前attackC动画播放完毕,切换到目标状态
+    /// </summary>
+    public virtual bool AttackCAnimFinish(){
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime >= 1.0f && info.IsName("attackC")) {
+            _attackCFinishCallback?.Invoke();
+            _attackCFinishCallback = null;
             return true;
         }
         return false;

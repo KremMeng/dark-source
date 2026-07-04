@@ -6,4 +6,5 @@ public class PlayerStateManagerEvents : EntityStateManagerEvents {
     public UnityEvent OnJump;
     public UnityEvent OnJab;
     public UnityEvent OnRoll;
+    public UnityEvent OnAttack;
 }

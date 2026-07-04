@@ -170,6 +170,16 @@ public class Player : Entity<Player> {
     }
 
     /// <summary>
+    /// 攻击判定
+    /// </summary>
+    public virtual void Attack(){
+        if (inputs.AttackOnPressed()) {
+            states.Change<PlayerComboA>();
+            playerEvents.OnAttack?.Invoke();
+        }
+    }
+
+    /// <summary>
     /// 根据世界空间的输入方向获取翻滚方向
     /// </summary>
     /// <param name="moveDir"></param>
