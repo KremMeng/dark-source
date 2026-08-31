@@ -1,5 +1,5 @@
 /// <summary>
-/// 统一管理go的tag，避免代码中写死字符串
+/// 统一管理go的tag，避免在代码中寻找写死的字符串
 /// </summary>
 public class GameTags {
     public static string Player = "Player";

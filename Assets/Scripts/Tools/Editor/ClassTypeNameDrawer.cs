@@ -89,6 +89,7 @@ public class ClassTypeNameDrawer : PropertyDrawer
 
     /// <summary>
     /// Unity 内置 OnGUI 方法
+    /// 为避免每次 OnGUI 都反射（开销较大），可缓存类型列表，仅在程序集加载或脚本重编译时刷新。
     /// </summary>
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {

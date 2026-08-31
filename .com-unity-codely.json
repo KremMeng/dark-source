@@ -1,10 +1,10 @@
 {
-  "unity_port": 55354,
-  "stream_port": 52579,
+  "unity_port": 57368,
+  "stream_port": 62923,
   "created_date": "2026-07-02T08:03:15.8878832Z",
   "project_path": "K:/0.GameDev/DarkSouls/Assets",
   "reloading": false,
   "reason": "ready",
   "seq": 1,
-  "last_heartbeat": "2026-07-04T15:41:01.3220829Z"
+  "last_heartbeat": "2026-08-31T02:30:03.6187959Z"
 }

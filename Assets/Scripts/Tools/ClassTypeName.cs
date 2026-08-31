@@ -3,6 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 自定义属性，用于在 Inspector 中显示某个类型及其子类的类名选择器
+/// 自定义Attribute，这样可以在运行时通过状态名字符串来管理状态机，而无需手动维护列表
 /// 继承自 PropertyAttribute，可以附加到字段上
 /// </summary>
 public class ClassTypeName : PropertyAttribute

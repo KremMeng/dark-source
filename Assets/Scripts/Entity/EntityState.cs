@@ -10,7 +10,7 @@ public abstract class EntityState<T> where T : Entity<T> {
 
     public UnityEvent onExit;   //退出状态触发事件
     
-    public float timeSinecEntered { get; protected set; }   //计时/s
+    public float timeSinceEntered { get; protected set; }   //计时/s
 
     protected abstract void OnEnter(T entity);
     protected abstract void OnExit(T entity);
@@ -20,7 +20,7 @@ public abstract class EntityState<T> where T : Entity<T> {
     //进入状态时调用，触发onEnter事件
     public void Enter(T entity){
         
-        timeSinecEntered = 0;   //进入事件重置计时
+        timeSinceEntered = 0;   //进入事件重置计时
         onEnter?.Invoke();  //触发回调
         OnEnter(entity);    //调用子类定义的进入逻辑
     }
@@ -36,22 +36,21 @@ public abstract class EntityState<T> where T : Entity<T> {
     //每帧调用
     public void Step(T entity){
         OnStep(entity);
-        timeSinecEntered += Time.deltaTime;
+        timeSinceEntered += Time.deltaTime;
     }
-
-    //反射机制实例化状态，不具体区分实例，返回笼统的EntityState<T>类型
-    public static EntityState<T> CreateFromStatesNameString(string typeName){
-        var type = System.Type.GetType(typeName);//typeName来自于扫描的各个状态 ？
-        return (EntityState<T>)Activator.CreateInstance(type);//object强制转换
-    }
-
+    
     //把获取的实例加入list
-    public static List<EntityState<T>> CreateListFromStatesArray(string[] arr){
+    public static List<EntityState<T>> CreateStatesListAfterReflection(string[] statesStringsArray){
         List<EntityState<T>> list = new List<EntityState<T>>();
-        
-        foreach (var typeName in arr) {
-            list.Add(CreateFromStatesNameString(typeName));
+        foreach (var typeName in statesStringsArray) {
+            list.Add(CreateRefectionInstanceFromStatesNameString(typeName));
         }
         return list;
     }
+    //反射机制实例化状态，不具体区分实例，返回笼统的EntityState<T>类型
+    public static EntityState<T> CreateRefectionInstanceFromStatesNameString(string typeName){
+        var type = System.Type.GetType(typeName);//只有类型名字的字符串用System，有对象实例的用object
+        return (EntityState<T>)Activator.CreateInstance(type);//object强制转换
+    }
+
 }
