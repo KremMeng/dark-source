@@ -50,7 +50,7 @@ public abstract class EntityState<T> where T : Entity<T> {
     //反射机制实例化状态，不具体区分实例，返回笼统的EntityState<T>类型
     public static EntityState<T> CreateRefectionInstanceFromStatesNameString(string typeName){
         var type = System.Type.GetType(typeName);//只有类型名字的字符串用System，有对象实例的用object
-        return (EntityState<T>)Activator.CreateInstance(type);//object强制转换
+        return (EntityState<T>)Activator.CreateInstance(type);//object强制转换，string->EntityState<T>
     }
 
 }

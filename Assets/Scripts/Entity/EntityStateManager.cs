@@ -42,7 +42,7 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
     
     //初始化状态列表和状态字典
     protected virtual void InitializeStates(){
-        //拿到状态列表
+        //通过反射拿到状态列表
         m_list = GetStateList();  
         //给列表里的状态元素配上type，加入状态字典
         foreach (var state in m_list) {
@@ -84,7 +84,6 @@ public abstract class EntityStateManager<T> : EntityStateManager where T : Entit
         current.Enter(entity);
         events.onEnter.Invoke(current.GetType());
         events.onChange?.Invoke();//只要成功切了状态（不管从哪到哪），只要切完就喊一声
-
     }
     
 }

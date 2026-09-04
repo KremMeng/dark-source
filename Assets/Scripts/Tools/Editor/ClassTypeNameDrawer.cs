@@ -24,6 +24,29 @@ public class ClassTypeNameDrawer : PropertyDrawer
 
     // 是否已经初始化标记，避免重复初始化
     protected bool m_initialized = false;
+    /// <summary>
+    /// Unity 内置 OnGUI 方法
+    /// 为避免每次 OnGUI 都反射（开销较大），可缓存类型列表，仅在程序集加载或脚本重编译时刷新。
+    /// </summary>
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        // 第一次绘制时初始化
+        if (!m_initialized)
+        {
+            m_initialized = true;
+            Initialize();
+        }
+
+        // 确保有子类可供选择
+        if (m_names.Count > 0)
+        {
+            // 初始化属性值
+            InitializeProperty(property);
+
+            // 绘制下拉列表 GUI
+            HandleGUI(position, property, label);
+        }
+    }
 
     /// <summary>
     /// 初始化子类名称列表
@@ -85,30 +108,6 @@ public class ClassTypeNameDrawer : PropertyDrawer
 
         // 更新属性值为选择的完整类型名称
         property.stringValue = m_names[selected];
-    }
-
-    /// <summary>
-    /// Unity 内置 OnGUI 方法
-    /// 为避免每次 OnGUI 都反射（开销较大），可缓存类型列表，仅在程序集加载或脚本重编译时刷新。
-    /// </summary>
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {
-        // 第一次绘制时初始化
-        if (!m_initialized)
-        {
-            m_initialized = true;
-            Initialize();
-        }
-
-        // 确保有子类可供选择
-        if (m_names.Count > 0)
-        {
-            // 初始化属性值
-            InitializeProperty(property);
-
-            // 绘制下拉列表 GUI
-            HandleGUI(position, property, label);
-        }
     }
 }
 
