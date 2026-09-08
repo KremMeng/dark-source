@@ -54,9 +54,11 @@
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\ITimer0.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\States\AttackState.cs" />
     <Compile Include="Assets\Scripts\Player\States\FallPlayerState.cs" />
+    <Compile Include="Assets\Scripts\Enemy\States\ChaseEnemyState.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStateManagerEvents.cs" />
     <Compile Include="Assets\Scripts\ITimer.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStateManager.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyState.cs" />
     <Compile Include="Assets\Scripts\Game\GameTags.cs" />
     <Compile Include="Assets\Scripts\Player\States\AttackPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStatManager.cs" />
@@ -69,6 +71,7 @@
     <Compile Include="Assets\Scripts\Player\PlayerStateManager.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\TriggerResetter.cs" />
     <Compile Include="Assets\Scripts\Player\States\BreakPlayerState.cs" />
+    <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInputManager.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStat.cs" />
     <Compile Include="Assets\Scripts\Player\States\JumpPlayerState.cs" />
@@ -79,6 +82,7 @@
     <Compile Include="Assets\Scripts\Entity\EntityEvents.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\CameraController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCameraController.cs" />
+    <Compile Include="Assets\Scripts\Enemy\States\IdleEnemyState.cs" />
     <Compile Include="Assets\JoystickTest.cs" />
     <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboC.cs" />
     <Compile Include="Assets\Scripts\Tools\ClassTypeName.cs" />
@@ -100,13 +104,11 @@
     <Compile Include="Assets\Scripts\Player\PlayerStateManagerEvents.cs" />
     <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboB.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\TesterHit.cs" />
-    <Compile Include="Assets\Scripts\Enemy\EnemyState.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyHealth.cs" />
-    <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAnimator.cs" />
-    <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
-    <Compile Include="Assets\Scripts\Enemy\States\IdleEnemyState.cs" />
-    <Compile Include="Assets\Scripts\Enemy\States\ChaseEnemyState.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyStat.cs" />
+    <Compile Include="Assets\Scripts\Enemy\EnemyStatManager.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
     <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\MeshyAnimationIds.json" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_akarami_blend.shader" />

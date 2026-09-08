@@ -11,7 +11,7 @@ public class EnemyAnimator : MonoBehaviour{
     protected float m_healthHash;
     protected float m_attackHealth;
     protected float m_horizonSpeedHash;
-    protected float m_verticalSpeeHash;
+    protected float m_verticalSpeedHash;
 
     protected void Start(){
         InitializeHashParams();

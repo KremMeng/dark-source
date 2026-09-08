@@ -1357,6 +1357,7 @@ GameObject:
   - component: {fileID: 845881150}
   - component: {fileID: 845881152}
   - component: {fileID: 845881151}
+  - component: {fileID: 845881153}
   m_Layer: 0
   m_Name: EnemyHandle
   m_TagString: Enemy
@@ -1452,6 +1453,20 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   m_groundOffset: 0.1
+--- !u!114 &845881153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 845881148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f67e152d0d3d4c6e892115665baa0e70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stat:
+  - {fileID: 11400000, guid: fe78164ead9c21f4fab7db4a0488abd5, type: 2}
 --- !u!1 &1093532511
 GameObject:
   m_ObjectHideFlags: 0
