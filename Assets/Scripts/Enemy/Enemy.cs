@@ -29,34 +29,35 @@ public class Enemy : Entity<Enemy> {
     protected void InitializeStatManager() => stat = GetComponent<EnemyStatManager>();
     
     //碰撞相关参数,const编译器常量更省
-    protected const int maxViewColliders = 50;
-    protected const int maxAttackColliders = 50;
+    protected const int maxViewColliders = 128;
+    protected const int maxAttackColliders = 128;
     
     protected Collider[] viewColliders= new Collider[maxViewColliders];  
     protected Collider[] attackColliders= new Collider[maxAttackColliders];
     
     //用Enemy的数值，封装基类相关函数
 
-    //视野范围内
+    //根据视野绑定/解绑玩家
     protected virtual void HandleSight(){
         float radius = stat.current.viewRange;
-        float distance = 0;//敌人和玩家间的距离
+        float distance = (player.transform.position - transform.position).magnitude;;//敌人和玩家间的距离
         int numColliders = Physics.OverlapSphereNonAlloc(transform.position,radius,viewColliders);
-        //遍历碰撞体数组
-        for(int i = 0;i < numColliders;i++)
-        {
-            //检测到碰撞体player就锁定
-            if (viewColliders[i].CompareTag("Player") && viewColliders[i].TryGetComponent<Player>(out Player player)) {
-                this.player = player;
-                distance = (player.transform.position - transform.position).magnitude;
-                Debug.Log("角色进入视野范围，距离：" + distance);
-                
-                //出视野范围解除锁定
-                if(distance > stat.current.viewRange) {
-                    this.player = null;
-                    Debug.Log("角色已离开视野范围，距离：" + distance);
+        //没锁定玩家时，遍历碰撞体数组，检测到player就锁定
+        if (!player) {
+            for(int i = 0;i < numColliders;i++)
+            {
+                if (viewColliders[i].CompareTag("Player") && viewColliders[i].TryGetComponent<Player>(out Player player)) {
+                    this.player = player;
+                    Debug.Log("角色进入视野范围，距离：" + distance);
+                    //事件
                 }
             }
+        }
+        //出视野范围或角色死亡解除锁定
+        else if(distance > stat.current.viewRange || player.health.current == 0) {
+            this.player = null;
+            Debug.Log("角色已离开视野范围，距离：" + distance);
+            //事件
         }
     }
 

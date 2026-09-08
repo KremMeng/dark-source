@@ -6,6 +6,8 @@ public class Player : Entity<Player> {
     public PlayerInputManager inputs { get; protected set; }
     public PlayerStatManager stat { get; protected set; }
 
+    public PlayerHealth health;
+
     public PlayerStateManagerEvents playerEvents;
     
     public int jumpCounter { get; protected set; } // 记录跳跃次数
