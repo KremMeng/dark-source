@@ -13,7 +13,7 @@ public abstract class EntityBase : MonoBehaviour {
     public float originHeight { get; protected set; }
     public float height => cc.height; //碰撞器的高度
     public float radius => cc.radius; //碰撞器的直径
-    public Vector3 center => cc.center; //碰撞器相较于transform的local坐标偏移，为了包住角色在编辑器面板上设为（0，1，0）
+    public Vector3 center => cc.center; //碰撞器相较于transform的local坐标偏移，为了包住角色在编辑器面板上设为（0，1，0）,OS,not WS
     public Vector3 position => transform.position + center; //加个center以防万一特殊情况需要改cc的中心，见上一条注释
     //rigidbody
     
@@ -89,7 +89,31 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             HandleGround();
         }
     }
-
+    /// <summary>
+    /// test:only can be seen in Scene
+    /// </summary>
+    private void OnDrawGizmosSelected(){
+        if (cc == null) return;
+    
+        // 按照你之前的错误逻辑画一遍（你可以亲眼看到它飞到原点去）
+        float offset = cc.height/2.0f - cc.radius;
+        Vector3 point0 = cc.center + Vector3.up * offset;
+        Vector3 point1 = cc.center - Vector3.up * offset;
+        float capsuleRad = cc.radius + Physics.defaultContactOffset;
+    
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(point0, capsuleRad);
+        Gizmos.DrawWireSphere(point1, capsuleRad);
+    
+        // 再按正确的世界坐标画一遍（绿色，应该紧紧贴着敌人）
+        Vector3 worldCenter = transform.TransformPoint(cc.center);
+        Vector3 wPoint0 = worldCenter + transform.up * offset;
+        Vector3 wPoint1 = worldCenter - transform.up * offset;
+    
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(wPoint0, capsuleRad);
+        Gizmos.DrawWireSphere(wPoint1, capsuleRad);
+    }
     protected virtual void InitializeCharactorController(){
         //获取当前物体身上的cc
         cc = GetComponent<CharacterController>();
@@ -101,6 +125,17 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
         cc.skinWidth = 0.005f;
         cc.minMoveDistance = 0;
         originHeight = cc.height;
+    }
+    /// <summary>
+    /// 玩家间接触碰撞（掉血）,为了避免投影在数学轴上重叠提前触发碰撞判定，所以要给个容差参数allowrance
+    /// </summary>
+    protected virtual int EntityContactOverlap(Collider[] results,float allowrance){
+        Vector3 ccWorldCenter = transform.TransformPoint(cc.center);
+        float offset = cc.height/2.0f - cc.radius; //圆柱+2半球
+        Vector3 point0 = ccWorldCenter + Vector3.up * offset;
+        Vector3 point1 = ccWorldCenter - Vector3.up * offset;
+        float capsuleRad = cc.radius + Physics.defaultContactOffset + allowrance;
+        return Physics.OverlapCapsuleNonAlloc(point0, point1, capsuleRad, results);
     }
     /// <summary>
     /// 加速度--阻尼感
@@ -288,5 +323,12 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     /// <param name="yes">为true时冻结</param>
     public virtual void IsFrozeVelocity(bool yes){
         freezeVelocity = yes;
+    }
+
+    /// <summary>
+    /// 角色或敌人掉血函数
+    /// </summary>
+    public virtual void ApplyDamage(){
+        Debug.Log("实施掉血");
     }
 }

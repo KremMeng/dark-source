@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: EnemyStat
   m_EditorClassIdentifier: 
   viewRange: 5
+  contactAllowance: 0.1
