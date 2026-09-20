@@ -1323,7 +1323,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
   m_groundOffset: 0.1
-  canContactDamage: 1
+  canContactDamage: 0
 --- !u!114 &845881153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3019,7 +3019,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8263985876221627047, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.578
+      value: -2.418
       objectReference: {fileID: 0}
     - target: {fileID: 8263985876221627047, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
       propertyPath: m_LocalRotation.w
@@ -3157,7 +3157,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5310890746403735167, guid: e53ff97444f3cc044ba4584e5789e1c2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 1.567
       objectReference: {fileID: 0}
     - target: {fileID: 5310890746403735167, guid: e53ff97444f3cc044ba4584e5789e1c2, type: 3}
       propertyPath: m_LocalRotation.w

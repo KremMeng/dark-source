@@ -13,4 +13,12 @@ MonoBehaviour:
   m_Name: EnemyStat
   m_EditorClassIdentifier: 
   viewRange: 5
-  contactAllowance: 0.1
+  attackRange: 1
+  contactAllowance: 0.01
+  chaseSpeed: 5
+  turningSpeed: 25
+  turningDrag: 15
+  acceleration: 13
+  deceleration: 50
+  maxSpeed: 15
+  health: 10

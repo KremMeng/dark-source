@@ -88,7 +88,9 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
             HandleMovementController();
             HandleGround();
         }
+        OnUpdate();
     }
+    protected virtual void OnUpdate(){} //模板方法模式：父类定义骨架/流程，延迟到子类重写OnUpdate-->钩子方法
     /// <summary>
     /// test:only can be seen in Scene
     /// </summary>
@@ -326,7 +328,7 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     }
 
     /// <summary>
-    /// 角色或敌人掉血函数
+    /// 角色或敌人掉血函数,待实现
     /// </summary>
     public virtual void ApplyDamage(){
         Debug.Log("实施掉血");

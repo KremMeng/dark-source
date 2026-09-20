@@ -9,7 +9,7 @@ using UnityEngine;
             passingTime += Time.deltaTime;
             attackOnPressed = player.inputs.AttackOnPressed();
             canNextCombo = passingTime <= bufferDurationAfter && passingTime > bufferDurationBefore;
-            Debug.Log("是否按下按键？"+attackOnPressed+"，是否可进行下一次攻击？"+canNextCombo);
+            //Debug.Log("是否按下按键？"+attackOnPressed+"，是否可进行下一次攻击？"+canNextCombo);
             // 有了一次攻击以后，检查前后摇窗口，满足窗口范围就进行下一次攻击
             if (attackOnPressed && canNextCombo) {
                     player.states.Change<PlayerComboB>();
