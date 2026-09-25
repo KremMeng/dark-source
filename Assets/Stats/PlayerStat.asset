@@ -22,12 +22,12 @@ MonoBehaviour:
   applySlopeFactor: 1
   acceleration: 5
   airAcceleration: 5
-  deceleration: 20
-  groundFriction: 10
+  deceleration: 50
+  groundFriction: 40
   slopeFriction: 28
   maxSpeed: 2
-  turningDrag: 20
-  brakeThreshold: 0
+  turningDrag: 120
+  brakeThreshold: -0.8
   slopeUpwardForce: 25
   slopeDownwardForce: 28
   rotateLerpMulti: 12

@@ -15,7 +15,7 @@ public class WalkPlayerState : PlayerState {
         var anim = player.GetComponentInChildren<Animator>();
         //Debug.Log("walk: "+anim.GetNextAnimatorStateInfo(0).normalizedTime);
         // Debug.Log("roll pressed?"+ player.inputs.RollOnPressed());
-         Debug.Log("isgrounded? "+ player.isGrounded);
+         //Debug.Log("isgrounded? "+ player.isGrounded);
         // Debug.Log("inputs.RollOnPressed()? "+ player.inputs.RollOnPressed());
          //if(player.horizontalVelocity.magnitude <=0.6) Debug.Log("speed " + (player.horizontalVelocity.magnitude ));
          //Debug.Log("speed " + (player.horizontalVelocity.magnitude ));

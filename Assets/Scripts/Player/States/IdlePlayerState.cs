@@ -21,7 +21,7 @@ public class IdlePlayerState : PlayerState {
         
         var inputDirection = player.inputs.GetMovementDirction();
         if (inputDirection.sqrMagnitude > 0) {
-            Debug.Log("has input?" + (inputDirection.sqrMagnitude > 0 ? "True" : "False"));
+            //Debug.Log("has input?" + (inputDirection.sqrMagnitude > 0 ? "True" : "False"));
             player.states.Change<WalkPlayerState>();
         }
     }

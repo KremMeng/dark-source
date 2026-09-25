@@ -94,28 +94,28 @@ public abstract class Entity<T> : EntityBase where T : Entity<T> {
     /// <summary>
     /// test:only can be seen in Scene
     /// </summary>
-    private void OnDrawGizmosSelected(){
-        if (cc == null) return;
-    
-        // 按照你之前的错误逻辑画一遍（你可以亲眼看到它飞到原点去）
-        float offset = cc.height/2.0f - cc.radius;
-        Vector3 point0 = cc.center + Vector3.up * offset;
-        Vector3 point1 = cc.center - Vector3.up * offset;
-        float capsuleRad = cc.radius + Physics.defaultContactOffset;
-    
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(point0, capsuleRad);
-        Gizmos.DrawWireSphere(point1, capsuleRad);
-    
-        // 再按正确的世界坐标画一遍（绿色，应该紧紧贴着敌人）
-        Vector3 worldCenter = transform.TransformPoint(cc.center);
-        Vector3 wPoint0 = worldCenter + transform.up * offset;
-        Vector3 wPoint1 = worldCenter - transform.up * offset;
-    
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(wPoint0, capsuleRad);
-        Gizmos.DrawWireSphere(wPoint1, capsuleRad);
-    }
+    // private void OnDrawGizmosSelected(){
+    //     if (cc == null) return;
+    //
+    //     // 按照你之前的错误逻辑画一遍（你可以亲眼看到它飞到原点去）
+    //     float offset = cc.height/2.0f - cc.radius;
+    //     Vector3 point0 = cc.center + Vector3.up * offset;
+    //     Vector3 point1 = cc.center - Vector3.up * offset;
+    //     float capsuleRad = cc.radius + Physics.defaultContactOffset;
+    //
+    //     Gizmos.color = Color.red;
+    //     Gizmos.DrawWireSphere(point0, capsuleRad);
+    //     Gizmos.DrawWireSphere(point1, capsuleRad);
+    //
+    //     // 再按正确的世界坐标画一遍（绿色，应该紧紧贴着敌人）
+    //     Vector3 worldCenter = transform.TransformPoint(cc.center);
+    //     Vector3 wPoint0 = worldCenter + transform.up * offset;
+    //     Vector3 wPoint1 = worldCenter - transform.up * offset;
+    //
+    //     Gizmos.color = Color.green;
+    //     Gizmos.DrawWireSphere(wPoint0, capsuleRad);
+    //     Gizmos.DrawWireSphere(wPoint1, capsuleRad);
+    // }
     protected virtual void InitializeCharactorController(){
         //获取当前物体身上的cc
         cc = GetComponent<CharacterController>();

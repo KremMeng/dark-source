@@ -1,7 +1,8 @@
 using UnityEngine;
 public class RollPlayerState : PlayerState {
     protected override void OnEnter(Player player){
-        
+        player.IsFrozeVelocity(true);
+        player.InputEnabled = false;
         // 进入Roll状态时，朝移动输入的方向翻滚
         Vector3 rollDir = player.GetRollDirection();                                
         float rollSpeed = Mathf.Max(player.horizontalVelocity.magnitude, player.stat.current.maxSpeed * 3.0f); //保底初速度
@@ -22,15 +23,13 @@ public class RollPlayerState : PlayerState {
             }
         });
         
-        player.IsFrozeVelocity(true);
-        player.InputEnabled = false;
-        
     }
 
 
     protected override void OnExit(Player player){
         player.IsFrozeVelocity(false);                
         player.InputEnabled = true; // 确保退出时恢复输入
+        player.horizontalVelocity = new Vector3(0.1f,0.1f,0.1f); //为了避免转向后依旧收到roll冲量的影响导致倒着走的惯性
     } 
 
     protected override void OnStep(Player player){
