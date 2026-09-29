@@ -1,9 +1,8 @@
 fileFormatVersion: 2
-guid: da20d4cccce59704985bb345789f1c9e
-labels:
-- TuanjieAI
-PrefabImporter:
+guid: d062b88533e2fe447b20926bf15385e2
+NativeFormatImporter:
   externalObjects: {}
+  mainObjectFileID: 2100000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
