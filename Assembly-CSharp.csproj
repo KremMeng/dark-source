@@ -114,6 +114,7 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyHealth.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAnimator.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerParticle.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
     <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\MeshyAnimationIds.json" />
     <None Include="Assets\HovlStudio\Sword slash VFX\Demo scene\HDRP and URP.txt" />

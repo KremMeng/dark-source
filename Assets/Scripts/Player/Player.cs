@@ -9,6 +9,7 @@ public class Player : Entity<Player> {
     public PlayerHealth health;
 
     public PlayerStateManagerEvents playerEvents;
+    public PlayerParticle particles { get; protected set; }
     
     public int jumpCounter { get; protected set; } // 记录跳跃次数
     public int comboCount{ get; set;} //记录连击次数，每攻击一次数值+1，三段后或超过响应窗口归零
@@ -20,6 +21,7 @@ public class Player : Entity<Player> {
         base.Awake();//先让父类初始化
         InitializeInputs();
         InitializeStat();
+        InitializeParticle();
         
         //运行的时候监听落地事件，重置跳跃/空中技能次数
         entityEvents.OnGroundEnter.AddListener(()=>ResetJump());
@@ -27,6 +29,7 @@ public class Player : Entity<Player> {
 
     protected virtual void InitializeInputs() => inputs = GetComponent<PlayerInputManager>();
     protected virtual void InitializeStat() => stat = GetComponent<PlayerStatManager>();
+    protected virtual void InitializeParticle() => particles = GetComponent<PlayerParticle>();
     
     /// <summary>
     /// 注册Roll动画完成回调

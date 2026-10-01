@@ -170,7 +170,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8263985876221627025, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
   m_PrefabInstance: {fileID: 8263985876186557304}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 2118930837}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2ac5b277ea8e4452911a584b8de49a86, type: 3}
@@ -1493,7 +1493,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1187200792}
   m_Layer: 0
-  m_Name: SwordSlash
+  m_Name: SwordSlashA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7787,6 +7787,23 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 10, y: 4, z: 10}
   m_Center: {x: 0, y: -2, z: 0}
+--- !u!1 &2118930837 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8263985876221627043, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
+  m_PrefabInstance: {fileID: 8263985876186557304}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2118930845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2118930837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddf6a2b8a7964fe797df3d5d923fa989, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &4530003305092449915 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5310890746403735167, guid: e53ff97444f3cc044ba4584e5789e1c2, type: 3}
