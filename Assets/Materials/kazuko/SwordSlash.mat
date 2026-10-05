@@ -21,19 +21,20 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _DissolveTex:
-        m_Texture: {fileID: 2800000, guid: beea0694d337e23449c7d21e4dfef1cb, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7d68a918c0765ff46bd6aa7513519399, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: d2d212ea9b69a8345bd6b7debdf07fcd, type: 3}
-        m_Scale: {x: 1.23, y: 1}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DissolveFactor: 1
-    - _DissolveThreshold: 0.26
+    - _DissolveFactor: 0.323
+    - _DissolveThreshold: 0
     - _Opacity: 20
     m_Colors:
     - _MainColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ParticleColor: {r: 1, g: 1, b: 1, a: 1}
     - _XColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
