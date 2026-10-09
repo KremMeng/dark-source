@@ -5,14 +5,18 @@ Shader "URP/SwordSlash"
     {
         _MainTex ("Main Texture", 2D) = "white"{}
         _DissolveTex("溶解纹理",2D) = "white"{}
+        _EmissionTex("自发光纹理",2D) = "white"{}
         
         _MainColor ("Main Color",Color) = (1,1,1,1)
         _ParticleColor("ParticleColor",Color)=(1,1,1,1)
         
-        _Opacity("刀光透明度",Float) = 20 
-        //_DissolveFactor("溶解系数",Range(0,1)) = 1
-        //_DissolveThreshold("溶解阈值",Range(0,1))=0.3
-        _SpeedUV("Speed MainTex UV",Vector)=(0,0,0,0)
+        _Opacity("刀光透明度",Float) = 20
+        _EmissionFactor("自发光强度",Range(0,5)) = 2
+        _EmissionOutMin("最小自发光",Float) = -2
+        _EmissionOutMax("最大自发光",Float) = 1
+        _InMIn("最小输入颜色",Range(0,1))=0.3
+        
+        _SpeedUV("Speed MainTex UV(xy有效)",Vector)=(0,0,0,0)
     }
     
     SubShader
@@ -23,6 +27,7 @@ Shader "URP/SwordSlash"
             "Queue"="Transparent"
         }
         Blend SrcAlpha OneMinusSrcAlpha
+       // Blend SrcAlpha One
         ZWrite Off //关闭深度写入，防止物体相互覆盖遮挡，无法有透明效果
         Cull Off
         
@@ -47,16 +52,20 @@ Shader "URP/SwordSlash"
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST; //Tiling、Offset属性
                 float4 _DissolveTex_ST;
+                float4 _EmissionTex_ST;
                 float4 _MainColor;
                 float4 _ParticleColor;
                 float _Opacity;
+                float _EmissionFactor;
+                float _EmissionOutMin;
+                float _EmissionOutMax;
+                float _InMin;
                 float4 _SpeedUV;
-                //float _DissolveFactor;
-                //float _DissolveThreshold;
             CBUFFER_END
 
             TEXTURE2D(_MainTex);  SAMPLER(sampler_MainTex);
             TEXTURE2D(_DissolveTex);  SAMPLER(sampler_DissolveTex);
+            TEXTURE2D(_EmissionTex); SAMPLER(sampler_EmissionTex);
 
             struct Attributes //顶点输入属性
             {
@@ -108,10 +117,19 @@ Shader "URP/SwordSlash"
                 half4 dissolve = SAMPLE_TEXTURE2D(_DissolveTex,sampler_DissolveTex,flowUV);
                 dissolve *= t;
                 dissolve = step(w,dissolve); //曲线：阈值w随着曲线变化，刀光从0->1变深
-                
+
+                //自发光:让颜色从(0,1)线性映射到HDR区间
+                half4 emission = SAMPLE_TEXTURE2D(_EmissionTex,sampler_EmissionTex,IN.uv);
+                float inMax=1;
+                half4 emissionHDR = _EmissionOutMin + (emission - _InMin)*(_EmissionOutMax-_EmissionOutMin)/(inMax-_InMin);
+                emissionHDR = clamp(emissionHDR,0,1);//防止负数
+                emissionHDR *= _EmissionFactor;
                 color = color * _ParticleColor * dissolve;
+
+                half alpha = color.a;
+                half3 finalColor = emissionHDR.rgb; 
                 
-                return color;
+                return half4(finalColor,alpha); //之前的刀光形状作为a通道遮罩
             }
             ENDHLSL
         }

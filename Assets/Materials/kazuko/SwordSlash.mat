@@ -20,8 +20,16 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _BloomTex:
+        m_Texture: {fileID: 2800000, guid: 776495090b22ebc49af55b62923f4a68, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DissolveTex:
         m_Texture: {fileID: 2800000, guid: 3584f2bf4afb5284d91edb6a29126e62, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionTex:
+        m_Texture: {fileID: 2800000, guid: 776495090b22ebc49af55b62923f4a68, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -32,11 +40,15 @@ Material:
     m_Floats:
     - _DissolveFactor: 0.323
     - _DissolveThreshold: 0
+    - _EmissionFactor: 5
+    - _EmissionOutMax: 1
+    - _EmissionOutMin: -0.2
+    - _InMIn: 0
     - _Opacity: 20
     - _SpeedUV: -0.06
     m_Colors:
     - _MainColor: {r: 1, g: 1, b: 1, a: 1}
     - _ParticleColor: {r: 1, g: 1, b: 1, a: 1}
-    - _SpeedUV: {r: 0.3, g: 0, b: 0, a: 0}
+    - _SpeedUV: {r: 0.31, g: 0, b: 0, a: 0}
     - _XColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
