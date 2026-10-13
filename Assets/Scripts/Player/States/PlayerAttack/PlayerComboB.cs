@@ -3,6 +3,10 @@ public class PlayerComboB : AttackPlayerState {
     protected override void OnEnter(Player player){
         // 进入b段攻击，连击次数+1
         player.comboCount++;
+        // 播放刀光粒子特效
+        if (player.particles != null && player.particles.swordSlash != null) {
+            player.particles.Play(player.particles.swordSlash);
+        }
     }
     protected override void OnStep(Player player){
         // 有了上一次攻击以后，检查后摇窗口，满足窗口范围就进行下一次攻击

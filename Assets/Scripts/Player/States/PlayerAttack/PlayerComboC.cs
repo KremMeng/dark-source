@@ -5,6 +5,10 @@ using UnityEngine;
             player.InputEnabled = false;
             // 进入攻击c段，连击次数+1
             player.comboCount++;
+            // 播放刀光粒子特效
+            if (player.particles != null && player.particles.swordSlash != null) {
+                player.particles.Play(player.particles.swordSlash);
+            }
             player.OnAttackCFinish(() => {
                 player.states.Change<IdlePlayerState>();
             });

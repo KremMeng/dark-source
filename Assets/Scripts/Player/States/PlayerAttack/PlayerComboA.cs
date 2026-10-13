@@ -3,7 +3,10 @@ using UnityEngine;
         protected override void OnEnter(Player player){
             // 进入a段攻击，连击次数+1
             player.comboCount++;
-            //particle.Play(swordParticle);
+            // 播放刀光粒子特效
+            if (player.particles != null && player.particles.swordSlash != null) {
+                player.particles.Play(player.particles.swordSlash);
+            }
             //如果角色不在idle状态就触发了攻击，那就让速度归零
             if (player.states.lastIndex == 1 || player.states.lastIndex == 2) {
                 
