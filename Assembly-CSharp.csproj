@@ -26,7 +26,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>Temp\Bin\Debug\Assembly-CSharp\</OutputPath>
-    <DefineConstants>UNITY_2021_3_45;UNITY_2021_3;UNITY_2021;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;UNITY_2019_4_OR_NEWER;UNITY_2020_1_OR_NEWER;UNITY_2020_2_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2021_1_OR_NEWER;UNITY_2021_2_OR_NEWER;UNITY_2021_3_OR_NEWER;PLATFORM_ARCH_64;UNITY_64;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_EVENT_QUEUE;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_VIRTUALTEXTURING;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;ENABLE_MANAGED_UNITYTLS;INCLUDE_DYNAMIC_GI;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_VIDEO;ENABLE_ACCELERATOR_CLIENT_DEBUGGING;PLATFORM_STANDALONE;TEXTCORE_1_0_OR_NEWER;PLATFORM_STANDALONE_WIN;UNITY_STANDALONE_WIN;UNITY_STANDALONE;UNITY_UGP_API;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_NVIDIA;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT;ENABLE_OUT_OF_PROCESS_CRASH_HANDLER;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP;GFXDEVICE_WAITFOREVENT_MESSAGEPUMP;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_STANDARD_2_0;NET_STANDARD;NET_STANDARD_2_1;NETSTANDARD;NETSTANDARD2_1;ENABLE_PROFILER;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_IG;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_INPUT_SYSTEM;ENABLE_LEGACY_INPUT_MANAGER;TEXTCORE_FONT_ENGINE_1_5_OR_NEWER;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
+    <DefineConstants>UNITY_2021_3_45;UNITY_2021_3;UNITY_2021;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;UNITY_2019_4_OR_NEWER;UNITY_2020_1_OR_NEWER;UNITY_2020_2_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2021_1_OR_NEWER;UNITY_2021_2_OR_NEWER;UNITY_2021_3_OR_NEWER;PLATFORM_ARCH_64;UNITY_64;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_EVENT_QUEUE;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_VIRTUALTEXTURING;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;ENABLE_MANAGED_UNITYTLS;INCLUDE_DYNAMIC_GI;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_VIDEO;ENABLE_ACCELERATOR_CLIENT_DEBUGGING;PLATFORM_STANDALONE;TEXTCORE_1_0_OR_NEWER;PLATFORM_STANDALONE_WIN;UNITY_STANDALONE_WIN;UNITY_STANDALONE;UNITY_UGP_API;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_NVIDIA;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT;ENABLE_OUT_OF_PROCESS_CRASH_HANDLER;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP;GFXDEVICE_WAITFOREVENT_MESSAGEPUMP;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_STANDARD_2_0;NET_STANDARD;NET_STANDARD_2_1;NETSTANDARD;NETSTANDARD2_1;ENABLE_PROFILER;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_IG;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_INPUT_SYSTEM;ENABLE_LEGACY_INPUT_MANAGER;TEXTCORE_FONT_ENGINE_1_5_OR_NEWER;MAGICACLOTH2;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0169,0649</NoWarn>
@@ -41,18 +41,18 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Timeline\SwordTrailClip.cs" />
     <Compile Include="Assets\Scripts\Timeline\TransformTrack.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\IButton.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerParticle.cs" />
-    <Compile Include="Assets\Scripts\Timeline\SwordTrailTrack.cs" />
     <Compile Include="Assets\Scripts\Player\States\IdlePlayerState.cs" />
     <Compile Include="Assets\Scripts\Entity\Entity.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\States\WalkState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerState.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\IState.cs" />
+    <Compile Include="Assets\HexTiles-Nature\Scripts\HexGrid.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\JoystickInput.cs" />
+    <Compile Include="Assets\HexTiles-Nature\Scripts\GridSnapping.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerAnimator.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMOnUpdate.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\ITimer0.cs" />
@@ -72,12 +72,13 @@
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\RootMotionController.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStat.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMOnExit.cs" />
+    <Compile Include="Assets\HexTiles-Nature\Scripts\OLD\HexTileGrid.cs" />
     <Compile Include="Assets\Scripts\Timeline\TransformClip.cs" />
     <Compile Include="Assets\Scripts\Player\States\RollPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerStateManager.cs" />
     <Compile Include="Assets\Scripts\Enemy\States\PatrolEnemyState.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerSwordTrail.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\TriggerResetter.cs" />
+    <Compile Include="Assets\HexTiles-Nature\Scripts\OLD\HexTileOverrides.cs" />
     <Compile Include="Assets\Scripts\Player\States\BreakPlayerState.cs" />
     <Compile Include="Assets\Scripts\Enemy\Enemy.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerInputManager.cs" />
@@ -86,16 +87,15 @@
     <Compile Include="Assets\Scripts\Player\States\JumpPlayerState.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStatManager.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyWayPointManager.cs" />
-    <Compile Include="Assets\Scripts\Player\SwordTrailEffect.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\LeftButtonTest.cs" />
     <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboA.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMOnEnter.cs" />
-    <Compile Include="Assets\Scripts\Timeline\SwordTrailBehavior.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityEvents.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\CameraController.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCameraController.cs" />
     <Compile Include="Assets\Scripts\Enemy\States\IdleEnemyState.cs" />
     <Compile Include="Assets\JoystickTest.cs" />
+    <Compile Include="Assets\HexTiles-Nature\Scripts\OLD\ModifyWaterUV.cs" />
     <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboC.cs" />
     <Compile Include="Assets\Scripts\Tools\ClassTypeName.cs" />
     <Compile Include="Assets\Scripts\Timeline\TransformBehavior.cs" />
@@ -108,8 +108,10 @@
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\DummyIUserInterface.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\States\ChaseState.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMClaerSignal.cs" />
+    <Compile Include="Assets\HexTiles-Nature\Scripts\RotationSnapping.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\ActorController.cs" />
     <Compile Include="Assets\Scripts\Player\States\JabPlayerState.cs" />
+    <Compile Include="Assets\Scripts\Player\Skill\ISkillHandler.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\LeftArmAnimFix.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityHealth.cs" />
@@ -124,6 +126,7 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
     <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\MeshyAnimationIds.json" />
+    <None Include="Assets\opengameasset.net.txt" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_akarami_blend.shader" />
     <None Include="Assets\Shaders\kazuku\SDFface.shader" />
     <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\package.json" />
@@ -398,14 +401,20 @@
     <Reference Include="UnityEditor.UnityConnectModule">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEditor.UnityConnectModule.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Collections.LowLevel.ILSupport">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\com.unity.collections@1.5.2\Unity.Collections.LowLevel.ILSupport\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
+    </Reference>
     <Reference Include="Codely.Newtonsoft.Json">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\cn.tuanjie.codely.bridge@1.0.66\Plugins\Codely.Newtonsoft.Json.dll</HintPath>
+      <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\cn.tuanjie.codely.bridge@1.0.80\Plugins\Codely.Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ReportGeneratorMerged">
       <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\com.unity.testtools.codecoverage@1.2.6\lib\ReportGenerator\ReportGeneratorMerged.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
       <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\com.unity.visualscripting@1.9.4\Runtime\VisualScripting.Flow\Dependencies\NCalc\Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\PackageCache\com.unity.nuget.mono-cecil@1.11.4\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="netstandard">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\NetStandard\ref\2.1.0\netstandard.dll</HintPath>
@@ -773,26 +782,17 @@
     <Reference Include="System.Xml.Serialization">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.Xml.Serialization.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.VisualScripting.Flow.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Flow.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.VSCode.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VSCode.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Shaders">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor.CacheServer">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\UnityEditor.CacheServer.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.VisualStudio.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Performance.Profile-Analyzer.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Performance.Profile-Analyzer.Editor.dll</HintPath>
@@ -803,35 +803,17 @@
     <Reference Include="Unity.Addressables">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Addressables.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Timeline">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.VisualScripting.Core.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Core.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.VisualScripting.State.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.State.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Burst.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Burst.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Searcher.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Searcher.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Unity.VisualScripting.SettingsProvider.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.SettingsProvider.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.TestTools.CodeCoverage.Editor.OpenCover.Mono.Reflection.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.ResourceManager">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ResourceManager.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
@@ -845,11 +827,68 @@
     <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.VisualScripting.Flow">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Flow.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.EditorCoroutines.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.EditorCoroutines.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ShaderGraph.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Cinemachine">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Cinemachine.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Collections.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="com.unity.cinemachine.editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\com.unity.cinemachine.editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Addressables.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Addressables.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Flow.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Flow.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="PPv2URPConverters">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\PPv2URPConverters.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualStudio.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Core.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Core.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Burst.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Burst.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.ResourceManager">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ResourceManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VisualScripting.Flow">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Flow.dll</HintPath>
     </Reference>
     <Reference Include="Unity.PlasticSCM.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.PlasticSCM.Editor.dll</HintPath>
@@ -857,32 +896,20 @@
     <Reference Include="Unity.VisualScripting.Core">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.EditorCoroutines.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.EditorCoroutines.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.ShaderGraph.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="PPv2URPConverters">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\PPv2URPConverters.dll</HintPath>
-    </Reference>
-    <Reference Include="Cinemachine">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Cinemachine.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Burst">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Burst.dll</HintPath>
-    </Reference>
-    <Reference Include="com.unity.cinemachine.editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\com.unity.cinemachine.editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Editor.dll</HintPath>
     </Reference>
     <Reference Include="UnityTcp.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\UnityTcp.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Codely.Common">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Codely.Common.dll</HintPath>
     </Reference>
     <Reference Include="Cn.Tuanjie.Codely.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Cn.Tuanjie.Codely.Editor.dll</HintPath>
@@ -893,23 +920,14 @@
     <Reference Include="Unity.InputSystem.ForUI">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.InputSystem.ForUI.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Timeline.Editor.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.Mathematics.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.ScriptableBuildPipeline">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ScriptableBuildPipeline.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Addressables.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Addressables.Editor.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ScriptableBuildPipeline.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.ScriptableBuildPipeline.Editor.dll</HintPath>
@@ -923,14 +941,25 @@
     <Reference Include="Unity.VisualScripting.State">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.State.dll</HintPath>
     </Reference>
-    <Reference Include="Codely.Logging">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Codely.Logging.dll</HintPath>
+    <Reference Include="Unity.Animation.Rigging.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Animation.Rigging.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Animation.Rigging">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Animation.Rigging.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="tjgenerators.Editor.csproj">
       <Project>{6dff003c-85eb-b0db-1942-f8a906ecb894}</Project>
       <Name>tjgenerators.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="MagicaClothV2.Editor.csproj">
+      <Project>{cfe2ecc3-cc9e-b104-0a9b-08c1f1de5a84}</Project>
+      <Name>MagicaClothV2.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="MagicaClothV2.csproj">
+      <Project>{9ed97af2-010a-abb6-9e41-ebbc6bb55e69}</Project>
+      <Name>MagicaClothV2</Name>
     </ProjectReference>
     <ProjectReference Include="UnityTcp.CustomTool.csproj">
       <Project>{6ef07d99-905e-3617-041e-d6492b071e77}</Project>

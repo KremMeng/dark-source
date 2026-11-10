@@ -3,11 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{7b584996-7d38-1e30-5578-5bcd172d441e}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicaClothV2", "MagicaClothV2.csproj", "{9ed97af2-010a-abb6-9e41-ebbc6bb55e69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicaCloth2Example", "MagicaCloth2Example.csproj", "{5511ede9-3309-5053-f241-f1fb6a3ce092}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tjgenerators.Editor", "tjgenerators.Editor.csproj", "{6dff003c-85eb-b0db-1942-f8a906ecb894}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicaClothV2.Editor", "MagicaClothV2.Editor.csproj", "{cfe2ecc3-cc9e-b104-0a9b-08c1f1de5a84}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityTcp.CustomTool", "UnityTcp.CustomTool.csproj", "{6ef07d99-905e-3617-041e-d6492b071e77}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{fa3e34ff-ac1a-c620-0076-1bfb3764f409}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicaCloth2UPMImporterShaderGraph", "MagicaCloth2UPMImporterShaderGraph.csproj", "{0c7b15fc-c75e-b81c-8010-f63744464311}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicaClothV2UPMImporterCollections", "MagicaClothV2UPMImporterCollections.csproj", "{de2273bd-746d-6878-2854-9e3e22092ee4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicaClothV2UPMImporterBurst", "MagicaClothV2UPMImporterBurst.csproj", "{e5b86ea4-6add-15ad-21e2-0c04bdbcdc01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,12 +28,24 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7b584996-7d38-1e30-5578-5bcd172d441e}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7b584996-7d38-1e30-5578-5bcd172d441e}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ed97af2-010a-abb6-9e41-ebbc6bb55e69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ed97af2-010a-abb6-9e41-ebbc6bb55e69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5511ede9-3309-5053-f241-f1fb6a3ce092}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5511ede9-3309-5053-f241-f1fb6a3ce092}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6dff003c-85eb-b0db-1942-f8a906ecb894}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6dff003c-85eb-b0db-1942-f8a906ecb894}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{cfe2ecc3-cc9e-b104-0a9b-08c1f1de5a84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{cfe2ecc3-cc9e-b104-0a9b-08c1f1de5a84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6ef07d99-905e-3617-041e-d6492b071e77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6ef07d99-905e-3617-041e-d6492b071e77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{fa3e34ff-ac1a-c620-0076-1bfb3764f409}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{fa3e34ff-ac1a-c620-0076-1bfb3764f409}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0c7b15fc-c75e-b81c-8010-f63744464311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0c7b15fc-c75e-b81c-8010-f63744464311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{de2273bd-746d-6878-2854-9e3e22092ee4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{de2273bd-746d-6878-2854-9e3e22092ee4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{e5b86ea4-6add-15ad-21e2-0c04bdbcdc01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{e5b86ea4-6add-15ad-21e2-0c04bdbcdc01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
