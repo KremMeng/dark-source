@@ -21,15 +21,7 @@ namespace TJGenerators.UI
     public abstract class GenerationWindowBase : EditorWindow
     {
         // ========== 用户信息 ==========
-        protected int currentCredits;
-        protected bool hasLoadedUserInfo;
-        private UserInfoBar.CreditsTextLayoutCache _creditsTextCache;
-        protected int currentGenerationCost;
-        private readonly Dictionary<string, int> _generationCostCache =
-            new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        private readonly List<GenerationCreditHelper.CostComponent> _estimatedCostComponents =
-            new List<GenerationCreditHelper.CostComponent>();
-        private int _lastGeneratorCostFactorsHash = int.MinValue;
+        // LastUserInfo 由 UserInfoHelper 维护，底部栏直接读取邮箱
 
         // ========== 生成器相关 ==========
         protected List<ModelGeneratorBase> _generators;
@@ -119,6 +111,12 @@ namespace TJGenerators.UI
         /// </summary>
         protected virtual void OnEnable()
         {
+            // Domain reload 会清空不可序列化的生成器实例；若仍标记就绪则强制重新初始化并恢复模型选择。
+            if (_windowContentReady && NeedsGeneratorRebootstrap())
+                _windowContentReady = false;
+
+            if (!_windowContentReady)
+                BootstrapWindow();
             TJGeneratorsL10n.OnLanguageChanged += Repaint;
         }
 
@@ -127,13 +125,67 @@ namespace TJGenerators.UI
             TJGeneratorsL10n.OnLanguageChanged -= Repaint;
         }
 
+        // ========== 窗口内容延迟初始化 ==========
+        [NonSerialized] private bool _windowContentReady;
+        [NonSerialized] private int _bootstrapRetryCount;
+        private const int MaxBootstrapRetries = 5;
+
+        /// <summary>
+        /// Domain reload 后生成器列表或当前选择丢失时需要重新 Bootstrap。
+        /// </summary>
+        private bool NeedsGeneratorRebootstrap()
+        {
+            return _generators == null || _generators.Count == 0 || _currentGenerator == null;
+        }
+
+        /// <summary>
+        /// 在目标资产/模式确定后执行首次初始化。由 <see cref="OnEnable"/> 在首帧绘制前同步调用；
+        /// OpenForAsset 须在 <see cref="EditorWindow.Show"/> 之前完成 setTarget，以便 Bootstrap 读到正确绑定。
+        /// 对已就绪的窗口幂等（防止重复完整初始化）。
+        /// Domain reload 后 AssetDatabase 可能尚未就绪导致生成器列表为空，此时通过 delayCall 重试。
+        /// </summary>
+        protected void BootstrapWindow()
+        {
+            if (_windowContentReady)
+                return;
+            OnBootstrapWindowContent();
+            if (_generators == null || _generators.Count == 0)
+            {
+                if (_bootstrapRetryCount < MaxBootstrapRetries)
+                {
+                    _bootstrapRetryCount++;
+                    _windowContentReady = false;
+                    EditorApplication.delayCall += () =>
+                    {
+                        BootstrapWindow();
+                        Repaint();
+                    };
+                    return;
+                }
+                TJLog.LogWarning($"{LogTag} 多次重试后仍未找到生成器配置，请检查 GeneratorConfig.json");
+            }
+            else if (_currentGenerator == null)
+            {
+                // 生成器已加载但当前模型丢失（domain reload），按偏好恢复选择。
+                SelectDefaultGeneratorFromPreference(WindowConfigType);
+            }
+            _bootstrapRetryCount = 0;
+            _windowContentReady = true;
+        }
+
+        /// <summary>首次初始化：生成器、历史、任务恢复等。子类重写。</summary>
+        protected virtual void OnBootstrapWindowContent() { }
+
+        /// <summary>域重载或窗口重新启用时刷新。子类重写。</summary>
+        protected virtual void OnRefreshWindowContent() { }
+
         /// <summary>
         /// 设置历史记录列表，任务恢复后刷新时调用。
         /// </summary>
         protected abstract void SetHistory(List<TJGeneratorsGenerationHistoryItem> history);
 
         /// <summary>
-        /// 检查并恢复中断的任务。子类在 OnEnable 中调用。
+        /// 检查并恢复中断的任务。通常在 <see cref="OnRefreshWindowContent"/> 中调用。
         /// </summary>
         protected void CheckAndRecoverInterruptedTasks()
         {
@@ -144,15 +196,6 @@ namespace TJGenerators.UI
                 ResumeInterruptedTask,
                 Repaint
             );
-        }
-
-        /// <summary>
-        /// DPI / 显示器缩放变化时刷新 IMGUI 缓存，减轻与 Hierarchy 等面板的 scaling mismatch 警告。
-        /// </summary>
-        protected override void OnBackingScaleFactorChanged()
-        {
-            CommonStyles.HandleBackingScaleChange();
-            Repaint();
         }
 
         /// <summary>
@@ -232,14 +275,10 @@ namespace TJGenerators.UI
         }
 
         /// <summary>
-        /// 标准的用户信息加载回调，设置 currentCredits、hasLoadedUserInfo 并刷新界面。
+        /// 标准的用户信息加载回调（邮箱等已写入 <see cref="UserInfoHelper.LastUserInfo"/>）。
         /// </summary>
         protected void OnUserInfoLoaded(int? credits)
         {
-            if (credits == null)
-                return;
-            currentCredits = credits.Value;
-            hasLoadedUserInfo = true;
             Repaint();
         }
 
@@ -269,9 +308,6 @@ namespace TJGenerators.UI
                 position.height,
                 leftPanelWidth,
                 drawAction,
-                hasLoadedUserInfo,
-                currentCredits,
-                ref _creditsTextCache,
                 GetStatusBarEmail());
         }
 
@@ -342,6 +378,172 @@ namespace TJGenerators.UI
         {
             float inset = HistoryPreviewBaseInsetTotal * GetHistoryTileScale();
             return Mathf.Max(1f, tileWidth - inset);
+        }
+
+        /// <summary>
+        /// 标准历史面板配置：网格缩略图 + 可选大预览 + 底部操作区。
+        /// </summary>
+        protected sealed class StandardHistoryPanelOptions
+        {
+            public Action<Rect, TJGeneratorsGenerationHistoryItem> DrawTilePreview;
+            public Func<TJGeneratorsGenerationHistoryItem, string> GetModelLabel;
+            public Action<int> ShowContextMenu;
+            public Action DrawHistoryActions;
+
+            public Func<TJGeneratorsGenerationHistoryItem, string> GetPrimaryLabel;
+            public Func<TJGeneratorsGenerationHistoryItem, Texture2D> GetLargePreviewTexture;
+            public Func<float, float, float> DrawLargePreviewBlock;
+            public Action OnBeforeDraw;
+            public Action<int, int> OnBeforeSelectHistoryItem;
+            public float BottomMargin = 100f;
+            public float ScrollTopSpacing;
+            public bool AddPanelTopSpacing;
+            public float? HistoryContentWidth;
+            public Func<float, float> GetLabelHeight;
+        }
+
+        /// <summary>
+        /// 校正 <see cref="selectedHistoryIndex"/>，避免列表为空或越界。
+        /// </summary>
+        protected void EnsureHistorySelectionIndex()
+        {
+            if (generationHistory == null)
+                generationHistory = new List<TJGeneratorsGenerationHistoryItem>();
+
+            if (generationHistory.Count > 0)
+                selectedHistoryIndex = Mathf.Clamp(selectedHistoryIndex, 0, generationHistory.Count - 1);
+            else
+                selectedHistoryIndex = -1;
+        }
+
+        /// <summary>
+        /// 绘制标准历史面板：大预览区、网格缩略图、底部操作按钮。
+        /// </summary>
+        protected void DrawStandardHistoryPanel(float panelWidth, StandardHistoryPanelOptions options)
+        {
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
+
+            float historyPanelHeight = isVerticalLayout ? position.height * 0.45f : position.height;
+            EnsureHistorySelectionIndex();
+            options.OnBeforeDraw?.Invoke();
+
+            UIComponents.BeginHistoryPanel(panelWidth, historyPanelHeight, isVerticalLayout);
+            if (options.AddPanelTopSpacing)
+                GUILayout.Space(5);
+
+            float previewBlockHeight = 0f;
+            if (options.DrawLargePreviewBlock != null)
+                previewBlockHeight = options.DrawLargePreviewBlock(panelWidth, historyPanelHeight);
+            else if (options.GetLargePreviewTexture != null)
+                previewBlockHeight = DrawDefaultHistoryLargePreview(panelWidth, historyPanelHeight, options.GetLargePreviewTexture);
+
+            if (options.ScrollTopSpacing > 0f)
+                GUILayout.Space(options.ScrollTopSpacing);
+
+            float scrollHeight = historyPanelHeight - previewBlockHeight - options.ScrollTopSpacing - options.BottomMargin;
+            historyScrollPosition = GUILayout.BeginScrollView(
+                historyScrollPosition,
+                GUIStyle.none,
+                GUI.skin.verticalScrollbar,
+                GUILayout.Height(scrollHeight));
+
+            if (generationHistory.Count == 0)
+                UIComponents.DrawHistoryEmptyState();
+            else
+                DrawStandardHistoryGrid(options);
+
+            GUILayout.EndScrollView();
+            options.DrawHistoryActions?.Invoke();
+            UIComponents.EndHistoryPanel();
+        }
+
+        protected float DrawDefaultHistoryLargePreview(
+            float panelWidth,
+            float historyPanelHeight,
+            Func<TJGeneratorsGenerationHistoryItem, Texture2D> getPreviewTexture)
+        {
+            Texture2D historyPreviewTex = null;
+            bool showHistoryPreview = false;
+            if (selectedHistoryIndex >= 0 && selectedHistoryIndex < generationHistory.Count)
+            {
+                var selectedItem = generationHistory[selectedHistoryIndex];
+                if (!selectedItem.isGenerating)
+                {
+                    showHistoryPreview = true;
+                    historyPreviewTex = getPreviewTexture?.Invoke(selectedItem);
+                }
+            }
+
+            return UIComponents.DrawHistoryTexturePreview(
+                historyPreviewTex,
+                showHistoryPreview,
+                isVerticalLayout,
+                panelWidth,
+                historyPanelHeight);
+        }
+
+        private void DrawStandardHistoryGrid(StandardHistoryPanelOptions options)
+        {
+            float tileWidth = currentHistoryTileSize;
+            float labelHeight = options.GetLabelHeight != null
+                ? options.GetLabelHeight(tileWidth)
+                : (currentHistoryTileSize >= 100f ? 40f : 32f);
+            float tileHeight = tileWidth + labelHeight;
+            float contentWidth = options.HistoryContentWidth
+                ?? CommonStyles.HistoryScrollViewLayoutWidth(currentHistoryPanelWidth);
+            int itemsPerRow = ComputeHistoryItemsPerRow(contentWidth, tileWidth);
+
+            for (int i = 0; i < generationHistory.Count; i += itemsPerRow)
+            {
+                GUILayout.BeginHorizontal();
+                for (int j = 0; j < itemsPerRow && (i + j) < generationHistory.Count; j++)
+                {
+                    int index = i + j;
+                    var item = generationHistory[index];
+                    bool isSelected = selectedHistoryIndex == index;
+
+                    GUILayout.BeginVertical(
+                        GetScaledHistoryTileStyle(isSelected),
+                        GUILayout.Width(tileWidth),
+                        GUILayout.Height(tileHeight));
+
+                    float previewSize = GetScaledHistoryPreviewSize(tileWidth);
+                    Rect previewRect = GUILayoutUtility.GetRect(previewSize, previewSize);
+                    options.DrawTilePreview?.Invoke(previewRect, item);
+
+                    if (!item.isGenerating
+                        && Event.current.type == EventType.MouseDown
+                        && previewRect.Contains(Event.current.mousePosition))
+                    {
+                        int oldIndex = selectedHistoryIndex;
+                        options.OnBeforeSelectHistoryItem?.Invoke(index, oldIndex);
+                        selectedHistoryIndex = index;
+                        Event.current.Use();
+                        Repaint();
+                    }
+
+                    if (!item.isGenerating
+                        && options.ShowContextMenu != null
+                        && Event.current.type == EventType.ContextClick
+                        && previewRect.Contains(Event.current.mousePosition))
+                    {
+                        options.ShowContextMenu(index);
+                        Event.current.Use();
+                    }
+
+                    string primaryLabel = options.GetPrimaryLabel != null
+                        ? options.GetPrimaryLabel(item)
+                        : item.GetDisplayName();
+                    GUILayout.Label(primaryLabel, CommonStyles.HistoryLabelStyle);
+
+                    if (options.GetModelLabel != null)
+                        GUILayout.Label(options.GetModelLabel(item), CommonStyles.SmallGreyCenterLabelStyle);
+
+                    GUILayout.EndVertical();
+                }
+                GUILayout.EndHorizontal();
+            }
         }
 
         /// <summary>
@@ -445,8 +647,6 @@ namespace TJGenerators.UI
             {
                 currentSelectedModel = BuildModelInfoFromGenerator(_currentGenerator);
             }
-            ResetGenerationCostFactorsTracking();
-            RefreshGenerationCost();
         }
 
         /// <summary>
@@ -567,7 +767,7 @@ namespace TJGenerators.UI
         }
 
         /// <summary>
-        /// 刷新用户信息（积分等）。子类可直接使用或重写。
+        /// 刷新用户信息。子类可直接使用或重写。
         /// </summary>
         public virtual void RefreshUserInfo()
         {
@@ -608,8 +808,6 @@ namespace TJGenerators.UI
                 _currentGenerator = _generators[indexed];
                 currentSelectedModel = model;
                 ResetInputStateAfterModelChange();
-                ResetGenerationCostFactorsTracking();
-                RefreshGenerationCost();
                 Repaint();
                 return;
             }
@@ -623,8 +821,6 @@ namespace TJGenerators.UI
                 _currentGenerator = _generators[i];
                 currentSelectedModel = model;
                 ResetInputStateAfterModelChange();
-                ResetGenerationCostFactorsTracking();
-                RefreshGenerationCost();
                 Repaint();
                 return;
             }
@@ -642,101 +838,6 @@ namespace TJGenerators.UI
         {
             if (!ShouldShowTextInput(config))
                 prompt = string.Empty;
-        }
-
-        protected void ResetGenerationCostFactorsTracking()
-        {
-            _lastGeneratorCostFactorsHash = int.MinValue;
-        }
-
-        /// <summary>
-        /// 根据 <see cref="DynamicGenerator"/> 当前输入模式、参考图、高级参数等刷新按钮积分展示。
-        /// 在参数 UI 每帧绘制末尾调用，仅在影响因素变化时请求接口。
-        /// </summary>
-        public void TryRefreshGenerationCostFromGenerator(DynamicGenerator generator)
-        {
-            if (generator == null)
-                return;
-
-            int hash = generator.ComputeCostFactorsHash();
-            if (hash == _lastGeneratorCostFactorsHash)
-                return;
-
-            _lastGeneratorCostFactorsHash = hash;
-            RefreshGenerationCost();
-        }
-
-        protected void SyncGenerationCostWithCurrentGeneratorState()
-        {
-            if (_currentGenerator is DynamicGenerator dyn)
-                TryRefreshGenerationCostFromGenerator(dyn);
-        }
-
-        protected void RefreshGenerationCost()
-        {
-            if (_currentGenerator is DynamicGenerator dynamicGenerator)
-            {
-                dynamicGenerator.BuildEstimatedCostComponents(_estimatedCostComponents);
-                if (_estimatedCostComponents.Count == 0)
-                {
-                    ApplyGenerationCost(0);
-                    return;
-                }
-
-                string cacheKey = GenerationCreditHelper.BuildTotalCostCacheKey(_estimatedCostComponents);
-                if (!string.IsNullOrEmpty(cacheKey) && _generationCostCache.TryGetValue(cacheKey, out int cached))
-                {
-                    ApplyGenerationCost(cached);
-                    return;
-                }
-
-                EditorCoroutineUtility.StartCoroutineOwnerless(
-                    GenerationCreditHelper.GetTotalGenerationCostCoroutine(
-                        _estimatedCostComponents,
-                        cost =>
-                        {
-                            int resolved = Mathf.Max(0, cost ?? 0);
-                            if (!string.IsNullOrEmpty(cacheKey))
-                                _generationCostCache[cacheKey] = resolved;
-                            ApplyGenerationCost(resolved);
-                        }));
-                return;
-            }
-
-            string modelId = currentSelectedModel?.Id ?? _currentGenerator?.GeneratorId;
-            if (string.IsNullOrEmpty(modelId))
-            {
-                ApplyGenerationCost(0);
-                return;
-            }
-
-            string apiEndpoint = _currentGenerator?.ApiEndpoint;
-            string singleCacheKey = GenerationCreditHelper.BuildCostCacheKey(modelId, apiEndpoint);
-            if (!string.IsNullOrEmpty(singleCacheKey) && _generationCostCache.TryGetValue(singleCacheKey, out int singleCached))
-            {
-                ApplyGenerationCost(singleCached);
-                return;
-            }
-
-            EditorCoroutineUtility.StartCoroutineOwnerless(
-                GenerationCreditHelper.GetGenerationCostByIdCoroutine(
-                    modelId,
-                    apiEndpoint,
-                    cost =>
-                    {
-                        int resolved = Mathf.Max(0, cost ?? 0);
-                        if (!string.IsNullOrEmpty(singleCacheKey))
-                            _generationCostCache[singleCacheKey] = resolved;
-                        ApplyGenerationCost(resolved);
-                    }));
-        }
-
-        protected void ApplyGenerationCost(int cost)
-        {
-            currentGenerationCost = Mathf.Max(0, cost);
-            if (_currentGenerator is DynamicGenerator dynamicGenerator)
-                dynamicGenerator.SetGenerateCost(currentGenerationCost);
-            Repaint();
         }
 
         /// <summary>
@@ -846,7 +947,7 @@ namespace TJGenerators.UI
             => config?.uiLayout == null || config.uiLayout.showImageUpload;
 
         /// <summary>
-        /// 当前生成器禁用参考图上传时，清空列表中的参考图并同步积分预览状态。
+        /// 当前生成器禁用参考图上传时，清空列表中的参考图。
         /// </summary>
         protected void ClearReferenceImagesWhenUploadHidden(
             GeneratorConfig config,
@@ -861,11 +962,10 @@ namespace TJGenerators.UI
                 return;
 
             UploadImageComponents.ClearReferenceImages(referenceImagePaths, referenceUploadedImages);
-            SyncReferenceImagesForCostPreview(false);
         }
 
         /// <summary>
-        /// 当前生成器禁用参考图上传时，清空单张参考图并同步积分预览状态。
+        /// 当前生成器禁用参考图上传时，清空单张参考图。
         /// </summary>
         protected void ClearSingleReferenceImageWhenUploadHidden(
             GeneratorConfig config,
@@ -878,13 +978,6 @@ namespace TJGenerators.UI
                 return;
 
             UploadImageComponents.ClearSingleReferenceImage(ref imagePath, ref uploadedImage);
-            SyncReferenceImagesForCostPreview(false);
-        }
-
-        private void SyncReferenceImagesForCostPreview(bool hasReferenceImages)
-        {
-            if (_currentGenerator is DynamicGenerator dyn)
-                dyn.SyncReferenceImagesForCostPreview(hasReferenceImages);
         }
 
         /// <summary>
@@ -895,7 +988,8 @@ namespace TJGenerators.UI
             string controlName,
             GeneratorConfig config = null)
         {
-            config ??= GetCurrentGeneratorConfig();
+            if (config == null)
+                config = GetCurrentGeneratorConfig();
             if (!ShouldShowTextInput(config))
                 return string.Empty;
 
@@ -924,7 +1018,8 @@ namespace TJGenerators.UI
             List<ParameterConfig> parameters,
             GeneratorConfig config = null)
         {
-            config ??= GetCurrentGeneratorConfig();
+            if (config == null)
+                config = GetCurrentGeneratorConfig();
             return UIComponents.DrawAdvancedSettingsFoldout(
                 expanded,
                 provider,
@@ -934,7 +1029,8 @@ namespace TJGenerators.UI
 
         protected int GetMaxReferenceImages(GeneratorConfig genConfig = null)
         {
-            genConfig ??= GetCurrentGeneratorConfig();
+            if (genConfig == null)
+                genConfig = GetCurrentGeneratorConfig();
             return ConfigManager.ResolveMaxReferenceImages(WindowConfigType, genConfig);
         }
 
@@ -1015,9 +1111,6 @@ namespace TJGenerators.UI
                     path,
                     texture,
                     Repaint);
-                if (_currentGenerator is DynamicGenerator dyn)
-                    dyn.SyncReferenceImagesForCostPreview(
-                        referenceImagePaths != null && referenceImagePaths.Count > 0);
             });
         }
 
@@ -1211,7 +1304,7 @@ namespace TJGenerators.UI
             Action<TWindow, TJGeneratorsAssetReference> setTarget,
             Action onEmptyPath = null
         )
-            where TWindow : EditorWindow
+            where TWindow : GenerationWindowBase
         {
             if (string.IsNullOrEmpty(assetPath))
             {
@@ -1235,11 +1328,37 @@ namespace TJGenerators.UI
             var window = getOrCreateWindow();
             var assetRef = TJGeneratorsAssetReference.FromPath(assetPath);
             setTarget(window, assetRef);
+            // CreateInstance triggers OnEnable/Bootstrap before setTarget runs, so the
+            // target asset is null at that point and history loads empty. Reload now that
+            // the target is assigned.
+            window.RefreshHistory();
             window.titleContent = new GUIContent(
                 string.Format(titleFormat, Path.GetFileNameWithoutExtension(assetPath))
             );
+            SetDefaultWindowSize(window);
             window.Show();
             openWindows[guid] = window;
+        }
+
+        /// <summary>
+        /// 在 Show 后再次应用已知矩形，避免首帧 OnGUI 改 minSize 导致窗口偏移。
+        /// 不增加堆叠偏移计数（矩形已由 GetDefaultMainWindowRect 计算）。
+        /// </summary>
+        protected static void FinalizeMainWindowShow<TWindow>(TWindow window, Rect rect)
+            where TWindow : EditorWindow
+        {
+            ScheduleWindowPositionReapply(window, rect);
+        }
+
+        private static void ScheduleWindowPositionReapply(EditorWindow window, Rect rect)
+        {
+            window.position = rect;
+            Rect capturedPos = rect;
+            EditorApplication.delayCall += () =>
+            {
+                if (window != null)
+                    window.position = capturedPos;
+            };
         }
 
         protected static Rect GetDefaultMainWindowRect()
@@ -1262,15 +1381,7 @@ namespace TJGenerators.UI
                 pos.height = UIComponents.DefaultMainWindowHeight;
 
             Rect rect = UIComponents.GetDefaultMainWindowRect(pos.width, pos.height, designStackOffset);
-            window.position = rect;
-
-            // Unity 在 Show() 后会在下一帧再布局，直接设 position 容易被覆盖，下一帧再设一次
-            Rect capturedPos = rect;
-            EditorApplication.delayCall += () =>
-            {
-                if (window != null)
-                    window.position = capturedPos;
-            };
+            ScheduleWindowPositionReapply(window, rect);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace TJGenerators
     /// <summary>
     /// TJGenerators 3D模型生成窗口 - 作为容器协调各种生成器
     /// </summary>
-    public class TJGenerators3DModelWindow : GenerationWindowBase, IGenerationPipelineHost
+    public class TJGenerators3DModelWindow : GenerationWindowBase, IGenerationPipelineHost, IGenerationTriggerHost
     {
         private string _userEmail = "user123@unity.cn";
         // ========== 基类抽象属性实现 ==========
@@ -76,6 +76,7 @@ namespace TJGenerators
                 focus: true
             );
             window.titleContent = new GUIContent(TJGeneratorsL10n.L("TJGenerators 3D模型"));
+            FinalizeMainWindowShow(window, rect);
         }
         
         public static void OpenForAsset(string assetPath)
@@ -88,7 +89,6 @@ namespace TJGenerators
                 () =>
                 {
                     var window = CreateInstance<TJGenerators3DModelWindow>();
-                    SetDefaultWindowSize(window);
                     return window;
                 },
                 (w, r) => w.targetAsset = r,
@@ -99,32 +99,35 @@ namespace TJGenerators
         
         // ========== 生命周期 ==========
         
+        protected override void OnBootstrapWindowContent()
+        {
+            // Re-register after domain reload so OpenForAsset finds this window instead of creating a duplicate.
+            if (targetAsset != null && !string.IsNullOrEmpty(targetAsset.guid))
+                openWindows[targetAsset.guid] = this;
+
+            EnsureModelPreview();
+            InitializeGenerators();
+            OnRefreshWindowContent();
+        }
+
+        protected override void OnRefreshWindowContent()
+        {
+            generationHistory = TJGeneratorsHistoryManager.LoadHistoryForAsset(GetCurrentAssetGuid());
+            CheckAndRecoverInterruptedTasks();
+            Repaint();
+        }
+
         protected override void OnEnable()
         {
             base.OnEnable();
+            // Bootstrap is skipped when already ready; still recreate preview after OnDisable disposed it.
+            EnsureModelPreview();
             wantsMouseMove = true;
-            InitializeGenerators();
-            
-            _modelPreview = new Model3DPreview();
 
-            // 延迟加载历史记录
-            EditorApplication.delayCall += () =>
-            {
-                if (this != null)
-                {
-                    generationHistory = TJGeneratorsHistoryManager.LoadHistoryForAsset(GetCurrentAssetGuid());
-                    Repaint();
-                }
-            };
-            
-            // 初始化时获取用户信息
             EditorCoroutineUtility.StartCoroutineOwnerless(
                 UserInfoHelper.GetUserInfoDetailCoroutine(
                     ConfigManager.GetUserInfoUrl(),
                     OnUserDetailInfoLoaded));
-            
-            // 检查是否有可恢复的任务
-            CheckAndRecoverInterruptedTasks();
         }
         
         protected override void OnDisable()
@@ -140,7 +143,14 @@ namespace TJGenerators
             ConfigManager.OnConfigUpdated -= OnConfigUpdatedByType;
 
             _modelPreview?.Dispose();
+            _modelPreview = null;
             ClearPreviewCaches();
+        }
+
+        private void EnsureModelPreview()
+        {
+            if (_modelPreview == null)
+                _modelPreview = new Model3DPreview();
         }
         
         private void InitializeGenerators()
@@ -295,12 +305,6 @@ namespace TJGenerators
             if (userInfo == null)
                 return;
 
-            if (userInfo.credits != null)
-            {
-                currentCredits = userInfo.credits.currentCredits;
-                hasLoadedUserInfo = true;
-            }
-
             _userEmail = string.IsNullOrEmpty(userInfo.email) ? "--" : userInfo.email;
             Repaint();
         }
@@ -405,9 +409,12 @@ namespace TJGenerators
                     {
                         if (TryGetGeneratorByModelVersion(selectedItem.modelVersion, out var gen) && gen != null)
                         {
-                            previewRotation = gen.GetPipelineSettings().GetModelRotation();
+                            var settings = gen.GetPipelineSettings();
+                            if (settings != null)
+                                previewRotation = settings.GetModelRotation();
                         }
                     }
+                    EnsureModelPreview();
                     _modelPreview.Draw(selectedItem.modelPath, CommonStyles.HistoryPanelInnerWidth(currentHistoryPanelWidth), previewRotation, Repaint);
                     GUILayout.Space(12);
                 }
@@ -591,24 +598,6 @@ namespace TJGenerators
                 return modelVersion;
             }
 
-            // Hunyuan 模型
-            if (modelVersion.StartsWith("Hunyuan") || modelVersion == "Hunyuan")
-            {
-                return "Hunyuan 3D";
-            }
-
-            // 模型转换
-            if (modelVersion == "Conversion")
-            {
-                return TJGeneratorsL10n.L("模型转换");
-            }
-
-            // 混元智能减面
-            if (modelVersion == "HunyuanLowPoly")
-            {
-                return TJGeneratorsL10n.L("智能减面");
-            }
-
             return modelVersion;
         }
         
@@ -774,7 +763,7 @@ namespace TJGenerators
                 float timeElapsed = 0f;
                 float interval = 0.5f;
                 
-                while (uwr.result == UnityWebRequest.Result.InProgress && timeElapsed < timeout)
+                while (UnityWebRequestCompat.IsInProgress(uwr) && timeElapsed < timeout)
                 {
                     double startWait = EditorApplication.timeSinceStartup;
                     while (EditorApplication.timeSinceStartup - startWait < interval)
@@ -784,7 +773,7 @@ namespace TJGenerators
                     timeElapsed += interval;
                 }
                 
-                if (uwr.result == UnityWebRequest.Result.Success)
+                if (UnityWebRequestCompat.IsSuccess(uwr))
                 {
                     byte[] imageData = uwr.downloadHandler.data;
                     if (imageData != null && imageData.Length > 0)
@@ -912,7 +901,7 @@ namespace TJGenerators
             float scale = GetScaleForModelVersion(item.modelVersion);
             Vector3 rotation = GetRotationForModelVersion(item.modelVersion);
             _pipeline.BindModelToPrefab(item.modelPath, scale, rotation);
-            ShowPreviewModel(item.modelPath);
+            OnGenerationCompleted(item.modelPath);
             
             TJLog.Log($"已将历史模型 {item.modelPath} 应用到 {targetAsset.GetPath()} (scale={scale}, rotation={rotation})");
         }
@@ -939,27 +928,14 @@ namespace TJGenerators
 
         private string GetGeneratorIdFromModelVersion(string modelVersion)
         {
-            return modelVersion.ToLower() switch
+            switch (modelVersion.ToLower())
             {
-                "rodin" => "rodin",
-                "hunyuan 3d" => "hunyuan",
-                "hunyuan" => "hunyuan",
-                "tencent-generation" => "tencent-generation",
-                "混元3.1" => "tencent-generation",
-                "hunyuanlowpoly" => "hunyuan-lowpoly",
-                "hunyuan-lowpoly" => "hunyuan-lowpoly",
-                "混元智能减面" => "hunyuan-lowpoly",
-                "hunyuan-multi-image-to-3d" => "hunyuan-multi-image-to-3d",
-                "混元多视图生3d" => "hunyuan-multi-image-to-3d",
-                "meshy-animation" => "meshy-animation",
-                "meshy-image-to-3d" => "meshy-image-to-3d", 
-                "meshy-multi-image-to-3d" => "meshy-multi-image-to-3d",
-                // 兼容可能的displayName变体
-                "meshy 图生3d" => "meshy-image-to-3d",
-                "meshy 动画模型" => "meshy-animation",
-                "meshy 多图生3d" => "meshy-multi-image-to-3d",
-                _ => "tripo"  // 默认使用tripo配置
-            };
+                case "rodin":                        return "rodin";
+                case "tencent-generation":           return "tencent-generation";
+                case "混元3.1":                       return "tencent-generation";
+                case "tripo-p1-animation":           return "tripo-p1-animation";
+                default:                             return "tripo";  // 默认使用tripo配置
+            }
         }
         
         private void ShowHistoryInProject(int index)
@@ -988,7 +964,7 @@ namespace TJGenerators
         }
         
         
-        public void ShowPreviewModel(string assetPath)
+        public void OnGenerationCompleted(string assetPath)
         {
             if (generationHistory != null && !string.IsNullOrEmpty(assetPath))
             {
@@ -1021,15 +997,7 @@ namespace TJGenerators
             Repaint();
         }
         
-        // 纹理资产处理（3D模型窗口不处理，返回null）
-        public string GetTextureSavePath(ModelGeneratorBase generator) => null;
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator) { }
-
-        public string GetAudioSavePath(ModelGeneratorBase generator) => null;
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
-
-        public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
+        // 3D 模型窗口不处理纹理/音频/视频媒体路径
 
         // ========== 场景实例查找 ==========
 
@@ -1148,6 +1116,8 @@ namespace TJGenerators
         {
             if (targetAsset != null && targetAsset.IsValid())
                 return;
+
+            string previousGuid = targetAsset?.guid ?? "";
             
             if (!AssetDatabase.IsValidFolder("Assets/TJGenerators"))
             {
@@ -1169,6 +1139,10 @@ namespace TJGenerators
             if (!string.IsNullOrEmpty(targetAsset.guid))
             {
                 openWindows[targetAsset.guid] = this;
+                if (string.IsNullOrEmpty(previousGuid))
+                    TJGeneratorsHistoryManager.RewriteAssetGuid("", targetAsset.guid,
+                        item => string.IsNullOrEmpty(item.modelPath)
+                             || item.modelPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase));
             }
             
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -1181,7 +1155,8 @@ namespace TJGenerators
                     Selection.activeObject = instance;
                 }
             }
-            
+
+            RefreshHistory();
             Repaint();
         }
         

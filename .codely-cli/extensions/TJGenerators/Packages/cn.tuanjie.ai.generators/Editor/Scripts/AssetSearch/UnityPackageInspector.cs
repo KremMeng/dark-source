@@ -22,31 +22,33 @@ namespace TJGenerators.AssetSearch
         public static List<string> GetPackageFileList(string filePath)
         {
             var paths = new List<string>();
-            using var fileStream = File.OpenRead(filePath);
-            using var gzip = new GZipStream(fileStream, CompressionMode.Decompress);
-            var header = new byte[512];
-
-            while (true)
+            using (var fileStream = File.OpenRead(filePath))
+            using (var gzip = new GZipStream(fileStream, CompressionMode.Decompress))
             {
-                if (ReadFull(gzip, header, 512) < 512) break;
-                if (IsZeroBlock(header)) break;
+                var header = new byte[512];
 
-                string name = ReadNullTerminatedString(header, 0, 100);
-                long size = ParseOctal(header, 124, 12);
-                long dataBlocks = (size + 511) / 512;
+                while (true)
+                {
+                    if (ReadFull(gzip, header, 512) < 512) break;
+                    if (IsZeroBlock(header)) break;
 
-                var parts = name.TrimEnd('/').Split('/');
-                if (parts.Length == 2 && parts[1] == "pathname" && size > 0 && size < 4096)
-                {
-                    var buf = new byte[dataBlocks * 512];
-                    ReadFull(gzip, buf, (int)(dataBlocks * 512));
-                    string assetPath = Encoding.UTF8.GetString(buf, 0, (int)size).Trim();
-                    if (!string.IsNullOrEmpty(assetPath))
-                        paths.Add(assetPath);
-                }
-                else
-                {
-                    SkipBytes(gzip, dataBlocks * 512);
+                    string name = ReadNullTerminatedString(header, 0, 100);
+                    long size = ParseOctal(header, 124, 12);
+                    long dataBlocks = (size + 511) / 512;
+
+                    var parts = name.TrimEnd('/').Split('/');
+                    if (parts.Length == 2 && parts[1] == "pathname" && size > 0 && size < 4096)
+                    {
+                        var buf = new byte[dataBlocks * 512];
+                        ReadFull(gzip, buf, (int)(dataBlocks * 512));
+                        string assetPath = Encoding.UTF8.GetString(buf, 0, (int)size).Trim();
+                        if (!string.IsNullOrEmpty(assetPath))
+                            paths.Add(assetPath);
+                    }
+                    else
+                    {
+                        SkipBytes(gzip, dataBlocks * 512);
+                    }
                 }
             }
             return paths;
@@ -58,34 +60,36 @@ namespace TJGenerators.AssetSearch
         public static Dictionary<string, string> GetGuidPathnames(string filePath)
         {
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            using var fs   = File.OpenRead(filePath);
-            using var gz   = new GZipStream(fs, CompressionMode.Decompress);
-            var header     = new byte[512];
-
-            while (ReadFull(gz, header, 512) == 512)
+            using (var fs = File.OpenRead(filePath))
+            using (var gz = new GZipStream(fs, CompressionMode.Decompress))
             {
-                if (IsZeroBlock(header)) break;
-                string name  = ReadNullTerminatedString(header, 0, 100);
-                long   size  = ParseOctal(header, 124, 12);
-                long   blocks = (size + 511) / 512;
+                var header = new byte[512];
 
-                int    slash      = name.IndexOf('/');
-                bool   isPathname = slash > 0 &&
-                                    string.Equals(name.Substring(slash + 1).TrimEnd('/'),
-                                                  "pathname", StringComparison.Ordinal);
+                while (ReadFull(gz, header, 512) == 512)
+                {
+                    if (IsZeroBlock(header)) break;
+                    string name  = ReadNullTerminatedString(header, 0, 100);
+                    long   size  = ParseOctal(header, 124, 12);
+                    long   blocks = (size + 511) / 512;
 
-                if (isPathname && size > 0 && size < 4096)
-                {
-                    string guid = name.Substring(0, slash);
-                    var    buf  = new byte[blocks * 512];
-                    ReadFull(gz, buf, (int)(blocks * 512));
-                    string assetPath = Encoding.UTF8.GetString(buf, 0, (int)size).Trim();
-                    if (!string.IsNullOrEmpty(assetPath))
-                        result[guid] = assetPath;
-                }
-                else
-                {
-                    SkipBytes(gz, blocks * 512);
+                    int    slash      = name.IndexOf('/');
+                    bool   isPathname = slash > 0 &&
+                                        string.Equals(name.Substring(slash + 1).TrimEnd('/'),
+                                                      "pathname", StringComparison.Ordinal);
+
+                    if (isPathname && size > 0 && size < 4096)
+                    {
+                        string guid = name.Substring(0, slash);
+                        var    buf  = new byte[blocks * 512];
+                        ReadFull(gz, buf, (int)(blocks * 512));
+                        string assetPath = Encoding.UTF8.GetString(buf, 0, (int)size).Trim();
+                        if (!string.IsNullOrEmpty(assetPath))
+                            result[guid] = assetPath;
+                    }
+                    else
+                    {
+                        SkipBytes(gz, blocks * 512);
+                    }
                 }
             }
             return result;

@@ -6,6 +6,7 @@ using Codely.Newtonsoft.Json;
 using Codely.Newtonsoft.Json.Linq;
 using TJGenerators.Config;
 using TJGenerators.Utils;
+using UnityEngine;
 
 namespace TJGenerators.Generators
 {
@@ -153,9 +154,6 @@ namespace TJGenerators.Generators
                 $"[DynamicRequestJsonBuilder] BuildRequestJson: inputMode={ctx.CurrentInputMode}, multiViewCount={ctx.MultiViewCount}"
             );
 
-            if (uiLayout.showObjSelector && !string.IsNullOrEmpty(ctx.SourceObjUrl))
-                root["objUrl"] = ctx.SourceObjUrl;
-
             bool isAudio = string.Equals(
                 config.outputType,
                 "audio",
@@ -200,6 +198,7 @@ namespace TJGenerators.Generators
                     if (string.IsNullOrEmpty(p) || !File.Exists(p))
                         continue;
                     byte[] imageData = File.ReadAllBytes(p);
+                    imageData = CompressImageIfNeeded(imageData, p);
                     string base64 = Convert.ToBase64String(imageData);
                     if (config.imageBase64WithPrefix)
                     {
@@ -234,6 +233,7 @@ namespace TJGenerators.Generators
             )
             {
                 byte[] imageData = File.ReadAllBytes(ctx.ImagePath);
+                imageData = CompressImageIfNeeded(imageData, ctx.ImagePath);
                 string base64 = Convert.ToBase64String(imageData);
                 string fileName = Path.GetFileName(ctx.ImagePath);
                 string ext = Path.GetExtension(ctx.ImagePath).ToLower();
@@ -289,6 +289,7 @@ namespace TJGenerators.Generators
                         if (!string.IsNullOrEmpty(frontPath) && File.Exists(frontPath))
                         {
                             byte[] frontBytes = File.ReadAllBytes(frontPath);
+                            frontBytes = CompressImageIfNeeded(frontBytes, frontPath);
                             string frontB64 = Convert.ToBase64String(frontBytes);
                             string imageField =
                                 !string.IsNullOrEmpty(config.imageBase64FieldName)
@@ -302,19 +303,21 @@ namespace TJGenerators.Generators
                                 int slot = validIndices[k];
                                 if (slot == 0)
                                     continue;
-                                string viewType = slot switch
+                                string viewType;
+                                switch (slot)
                                 {
-                                    1 => "left",
-                                    2 => "back",
-                                    3 => "right",
-                                    _ => null,
-                                };
+                                    case 1: viewType = "left"; break;
+                                    case 2: viewType = "back"; break;
+                                    case 3: viewType = "right"; break;
+                                    default: viewType = null; break;
+                                }
                                 if (viewType == null)
                                     continue;
                                 string path = validPaths[k];
                                 if (string.IsNullOrEmpty(path) || !File.Exists(path))
                                     continue;
                                 byte[] img = File.ReadAllBytes(path);
+                                img = CompressImageIfNeeded(img, path);
                                 string b64 = Convert.ToBase64String(img);
                                 mvArray.Add(
                                     new JObject { ["viewType"] = viewType, ["viewImage"] = b64 }
@@ -323,37 +326,6 @@ namespace TJGenerators.Generators
 
                             if (mvArray.Count > 0)
                                 root["multiViewImages"] = mvArray;
-                        }
-                    }
-                    else if (
-                        config.multiViewFieldNames != null
-                        && (
-                            !string.IsNullOrEmpty(config.multiViewFieldNames.front)
-                            || !string.IsNullOrEmpty(config.multiViewFieldNames.left)
-                            || !string.IsNullOrEmpty(config.multiViewFieldNames.back)
-                            || !string.IsNullOrEmpty(config.multiViewFieldNames.right)
-                        )
-                    )
-                    {
-                        string[] fieldNames = new[]
-                        {
-                            config.multiViewFieldNames.front,
-                            config.multiViewFieldNames.left,
-                            config.multiViewFieldNames.back,
-                            config.multiViewFieldNames.right,
-                        };
-
-                        for (int i = 0; i < validIndices.Count; i++)
-                        {
-                            int originalIndex = validIndices[i];
-                            string fieldName = fieldNames[originalIndex];
-
-                            if (!string.IsNullOrEmpty(fieldName))
-                            {
-                                byte[] imageData = File.ReadAllBytes(validPaths[i]);
-                                string base64 = Convert.ToBase64String(imageData);
-                                root[fieldName] = base64;
-                            }
                         }
                     }
                     else if (config.imageBase64AsArray)
@@ -366,6 +338,7 @@ namespace TJGenerators.Generators
                         foreach (var path in validPaths)
                         {
                             byte[] imageData = File.ReadAllBytes(path);
+                            imageData = CompressImageIfNeeded(imageData, path);
                             string base64 = Convert.ToBase64String(imageData);
 
                             if (config.imageBase64WithPrefix)
@@ -388,6 +361,7 @@ namespace TJGenerators.Generators
                         for (int i = 0; i < validPaths.Count; i++)
                         {
                             byte[] imageData = File.ReadAllBytes(validPaths[i]);
+                            imageData = CompressImageIfNeeded(imageData, validPaths[i]);
                             string base64 = Convert.ToBase64String(imageData);
 
                             if (config.imageBase64WithPrefix)
@@ -438,6 +412,84 @@ namespace TJGenerators.Generators
             return json;
         }
 
+        private const int MaxImageBytes = 10 * 1024 * 1024; // 10 MB
+        private const int MaxImageDim = 2048; // 压缩目标边长上限
+
+        /// <summary>
+        /// 若 rawBytes 超过 10MB，将图片缩放到 MaxImageDim 以内并以 JPG 85 质量重编码。
+        /// 返回压缩后的字节（原始字节若未超限则原样返回）。
+        /// </summary>
+        internal static byte[] CompressImageIfNeeded(byte[] rawBytes, string filePath)
+        {
+            if (rawBytes.Length <= MaxImageBytes)
+                return rawBytes;
+
+            var tex = new Texture2D(2, 2);
+            if (!TryLoadImageForCompress(tex, rawBytes))
+            {
+                UnityEngine.Object.DestroyImmediate(tex);
+                Debug.LogWarning(
+                    $"[TJGenerators] 参考图 {Path.GetFileName(filePath)} 超过 10MB 但无法解码，已跳过压缩。"
+                );
+                return rawBytes;
+            }
+
+            float scale = Mathf.Min((float)MaxImageDim / tex.width, (float)MaxImageDim / tex.height);
+            int w = scale < 1f ? Mathf.Max(1, (int)(tex.width * scale)) : tex.width;
+            int h = scale < 1f ? Mathf.Max(1, (int)(tex.height * scale)) : tex.height;
+
+            var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32);
+            Graphics.Blit(tex, rt);
+            var prev = RenderTexture.active;
+            RenderTexture.active = rt;
+            var scaled = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            scaled.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+            scaled.Apply();
+            RenderTexture.active = prev;
+            RenderTexture.ReleaseTemporary(rt);
+            UnityEngine.Object.DestroyImmediate(tex);
+
+            byte[] result = scaled.EncodeToJPG(85);
+            UnityEngine.Object.DestroyImmediate(scaled);
+
+            Debug.LogWarning(
+                $"[TJGenerators] 参考图 {Path.GetFileName(filePath)} "
+                    + $"原大小 {rawBytes.Length / 1024f / 1024f:F1}MB 超过 10MB，"
+                    + $"已自动缩放至 {w}×{h} 并压缩。"
+            );
+            return result;
+        }
+
+        /// <summary>
+        /// Unity 2019/2020：非法数据时 LoadImage 仍可能返回 true，并填入 8×8 "?" 占位图。
+        /// 先做 PNG/JPEG 头校验，再排除该占位尺寸。
+        /// </summary>
+        private static bool TryLoadImageForCompress(Texture2D tex, byte[] rawBytes)
+        {
+            if (!HasSupportedImageHeader(rawBytes))
+                return false;
+            if (!tex.LoadImage(rawBytes))
+                return false;
+            // 超限文件解码成 8×8 几乎一定是失败占位图，而非真实参考图
+            if (tex.width == 8 && tex.height == 8)
+                return false;
+            return tex.width > 0 && tex.height > 0;
+        }
+
+        private static bool HasSupportedImageHeader(byte[] data)
+        {
+            if (data == null || data.Length < 3)
+                return false;
+            // JPEG
+            if (data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF)
+                return true;
+            // PNG
+            if (data.Length >= 4
+                && data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47)
+                return true;
+            return false;
+        }
+
         private static bool IsSpecialViewStyle(string styleId)
         {
             if (string.IsNullOrEmpty(styleId))
@@ -447,13 +499,13 @@ namespace TJGenerators.Generators
 
         private static string GetStyleEnglishName(string styleId)
         {
-            return styleId switch
+            switch (styleId)
             {
-                "isometric" => "isometric view",
-                "top_down" => "top down view",
-                "side_scroller" => "side scroller view",
-                _ => styleId,
-            };
+                case "isometric":     return "isometric view";
+                case "top_down":      return "top down view";
+                case "side_scroller": return "side scroller view";
+                default:              return styleId;
+            }
         }
     }
 }

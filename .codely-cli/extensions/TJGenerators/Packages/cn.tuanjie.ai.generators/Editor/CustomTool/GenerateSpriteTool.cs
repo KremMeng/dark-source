@@ -24,12 +24,6 @@ namespace UnityTcp.Editor.Tools
     public static class SpriteTaskTracker
     {
 #if UNITY_EDITOR
-        private static readonly Dictionary<string, SpriteTaskInfo> _activeTasks = new Dictionary<string, SpriteTaskInfo>();
-        private static int _taskIdCounter = 0;
-
-        private const string SessionKeyIds = "TJGen_Sprite_Ids";
-        private const string SessionKeyFmt = "TJGen_Sprite_{0}";
-
         [Serializable]
         private class PersistedTask
         {
@@ -50,7 +44,7 @@ namespace UnityTcp.Editor.Tools
             public string backendTaskId;
         }
 
-        public class SpriteTaskInfo
+        public class SpriteTaskInfo : IGenerationTaskInfo
         {
             public string TaskId { get; set; }
             public string GeneratorId { get; set; }
@@ -69,164 +63,125 @@ namespace UnityTcp.Editor.Tools
             public string BackendTaskId { get; set; }
         }
 
-        internal static void SaveToSession(SpriteTaskInfo info)
+        private static readonly GenerationTaskTrackerStore<SpriteTaskInfo, PersistedTask> Store =
+            new GenerationTaskTrackerStore<SpriteTaskInfo, PersistedTask>(
+                "TJGen_Sprite", BuildPersisted, FromPersisted);
+
+        private static PersistedTask BuildPersisted(SpriteTaskInfo info) => new PersistedTask
         {
-            var p = new PersistedTask
-            {
-                taskId          = info.TaskId,
-                generatorId     = info.GeneratorId,
-                prompt          = info.Prompt ?? "",
-                imagePath       = info.ImagePath ?? "",
-                typeId          = info.TypeId ?? "",
-                styleId         = info.StyleId ?? "",
-                status          = info.Status,
-                progress        = info.Progress,
-                spritePath      = info.SpritePath ?? "",
-                errorMessage    = info.ErrorMessage ?? "",
-                startTimeTicks  = info.StartTime.Ticks,
-                endTimeTicks    = info.EndTime?.Ticks ?? 0,
-                previewUrl      = info.PreviewUrl ?? "",
-                placeholderPath = info.PlaceholderPath ?? "",
-                backendTaskId   = info.BackendTaskId ?? ""
-            };
-            SessionState.SetString(string.Format(SessionKeyFmt, info.TaskId), JsonUtility.ToJson(p));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!ids.Contains(info.TaskId))
-                SessionState.SetString(SessionKeyIds, string.IsNullOrEmpty(ids) ? info.TaskId : ids + "|" + info.TaskId);
-        }
+            taskId          = info.TaskId,
+            generatorId     = info.GeneratorId,
+            prompt          = info.Prompt ?? "",
+            imagePath       = info.ImagePath ?? "",
+            typeId          = info.TypeId ?? "",
+            styleId         = info.StyleId ?? "",
+            status          = info.Status,
+            progress        = info.Progress,
+            spritePath      = info.SpritePath ?? "",
+            errorMessage    = info.ErrorMessage ?? "",
+            startTimeTicks  = info.StartTime.Ticks,
+            endTimeTicks    = info.EndTime?.Ticks ?? 0,
+            previewUrl      = info.PreviewUrl ?? "",
+            placeholderPath = info.PlaceholderPath ?? "",
+            backendTaskId   = info.BackendTaskId ?? ""
+        };
 
-        private static SpriteTaskInfo TryRestoreFromSession(string taskId)
+        private static SpriteTaskInfo FromPersisted(PersistedTask p) => new SpriteTaskInfo
         {
-            string json = SessionState.GetString(string.Format(SessionKeyFmt, taskId), "");
-            if (string.IsNullOrEmpty(json)) return null;
-            PersistedTask p;
-            try { p = JsonUtility.FromJson<PersistedTask>(json); }
-            catch { return null; }
+            TaskId          = p.taskId,
+            GeneratorId     = p.generatorId,
+            Prompt          = p.prompt,
+            ImagePath       = p.imagePath,
+            TypeId          = p.typeId,
+            StyleId         = p.styleId,
+            Status          = p.status,
+            Progress        = p.progress,
+            SpritePath      = p.spritePath,
+            ErrorMessage    = p.errorMessage,
+            PreviewUrl      = p.previewUrl,
+            StartTime       = new DateTime(p.startTimeTicks),
+            EndTime         = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
+            PlaceholderPath = p.placeholderPath,
+            BackendTaskId   = p.backendTaskId
+        };
 
-            var info = new SpriteTaskInfo
-            {
-                TaskId          = p.taskId,
-                GeneratorId     = p.generatorId,
-                Prompt          = p.prompt,
-                ImagePath       = p.imagePath,
-                TypeId          = p.typeId,
-                StyleId         = p.styleId,
-                Status          = p.status,
-                Progress        = p.progress,
-                SpritePath      = p.spritePath,
-                ErrorMessage    = p.errorMessage,
-                PreviewUrl      = p.previewUrl,
-                StartTime       = new DateTime(p.startTimeTicks),
-                EndTime         = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
-                PlaceholderPath = p.placeholderPath,
-                BackendTaskId   = p.backendTaskId
-            };
-
-            // 这些类型无 domain reload 恢复 pipeline，一律标记为 interrupted
-            if (info.Status == "generating" || info.Status == "initializing")
-            {
-                info.Status       = "interrupted";
-                info.ErrorMessage = "Generation was interrupted (domain reload). Please re-generate.";
-                info.EndTime      = DateTime.Now;
-                SaveToSession(info);
-            }
-
-            _activeTasks[taskId] = info;
-            return info;
-        }
+        internal static void ApplyTaskUpdate(SpriteTaskInfo task, Action<SpriteTaskInfo> mutate) =>
+            Store.ApplyTaskUpdate(task, mutate);
 
         public static string CreateTask(string generatorId, string prompt, string imagePath = null, string typeId = null, string styleId = null, string placeholderPath = null, string backendTaskId = null)
         {
-            string taskId = $"sprite_{++_taskIdCounter}_{DateTime.Now.Ticks}";
-
+            string taskId = Store.AllocateTaskId("sprite");
             var task = new SpriteTaskInfo
             {
-                TaskId = taskId,
-                GeneratorId = generatorId,
-                Prompt = prompt ?? "",
-                ImagePath = imagePath ?? "",
-                TypeId = typeId ?? "",
-                StyleId = styleId ?? "",
-                Status = "generating",
-                StartTime = DateTime.Now,
+                TaskId          = taskId,
+                GeneratorId     = generatorId,
+                Prompt          = prompt ?? "",
+                ImagePath       = imagePath ?? "",
+                TypeId          = typeId ?? "",
+                StyleId         = styleId ?? "",
+                Status          = "generating",
+                StartTime       = DateTime.Now,
                 PlaceholderPath = placeholderPath,
-                BackendTaskId = backendTaskId
+                BackendTaskId   = backendTaskId
             };
-            _activeTasks[taskId] = task;
-            SaveToSession(task);
-
+            Store.RegisterTask(taskId, task);
             return taskId;
         }
 
         public static void MarkTaskCompleted(string taskId, string spritePath, string previewUrl = null)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status = "completed";
-                task.Progress = 100;
-                task.SpritePath = spritePath;
-                task.PreviewUrl = previewUrl;
-                task.EndTime = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status     = "completed";
+                t.Progress   = 100;
+                t.SpritePath = spritePath;
+                t.PreviewUrl = previewUrl;
+                t.EndTime    = DateTime.Now;
+            });
         }
 
         public static void MarkTaskFailed(string taskId, string errorMessage)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status = "failed";
-                task.ErrorMessage = errorMessage;
-                task.EndTime = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status       = "failed";
+                t.ErrorMessage = errorMessage;
+                t.EndTime      = DateTime.Now;
+            });
         }
 
-        public static SpriteTaskInfo GetTask(string taskId)
-        {
-            if (_activeTasks.TryGetValue(taskId, out var task)) return task;
-            return TryRestoreFromSession(taskId);
-        }
+        public static SpriteTaskInfo GetTask(string taskId) => Store.GetTask(taskId);
 
-        public static List<SpriteTaskInfo> GetAllTasks()
+        public static List<SpriteTaskInfo> GetAllTasks() => Store.GetAllTasks();
+
+        public static SpriteTaskInfo GetTaskByBackendId(string backendTaskId) =>
+            Store.GetTaskByBackendId(backendTaskId);
+
+        public static SpriteTaskInfo CreateRecoveredTask(
+            string backendTaskId, string prompt, string placeholderPath, long timestampMs, string generatorId = null)
         {
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!string.IsNullOrEmpty(ids))
+            return Store.CreateRecoveredTask(backendTaskId, () => new SpriteTaskInfo
             {
-                foreach (var id in ids.Split('|'))
-                {
-                    if (!string.IsNullOrEmpty(id) && !_activeTasks.ContainsKey(id))
-                        TryRestoreFromSession(id);
-                }
-            }
-            return new List<SpriteTaskInfo>(_activeTasks.Values);
+                TaskId          = $"recovered_{backendTaskId}",
+                BackendTaskId   = backendTaskId,
+                GeneratorId     = generatorId ?? "",
+                Prompt          = prompt ?? "",
+                PlaceholderPath = placeholderPath ?? "",
+                Status          = "recovering",
+                Progress        = 0,
+                StartTime       = timestampMs > 0
+                                    ? DateTimeOffset.FromUnixTimeMilliseconds(timestampMs).LocalDateTime
+                                    : DateTime.Now
+            });
         }
 
-        public static void RemoveTask(string taskId)
-        {
-            _activeTasks.Remove(taskId);
-            SessionState.EraseString(string.Format(SessionKeyFmt, taskId));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            var list = new List<string>(ids.Split('|'));
-            list.Remove(taskId);
-            SessionState.SetString(SessionKeyIds, string.Join("|", list));
-        }
+        public static void RemoveTask(string taskId) => Store.RemoveTask(taskId);
 
-        public static void CleanupCompletedTasks()
-        {
-            var toRemove = new List<string>();
-            foreach (var kvp in _activeTasks)
-            {
-                if ((kvp.Value.Status == "completed" || kvp.Value.Status == "failed") &&
-                    kvp.Value.EndTime.HasValue &&
-                    (DateTime.Now - kvp.Value.EndTime.Value).TotalMinutes > 60)
-                {
-                    toRemove.Add(kvp.Key);
-                }
-            }
-            foreach (var id in toRemove)
-                _activeTasks.Remove(id);
-        }
+        public static void CleanupCompletedTasks() => Store.CleanupCompletedTasks();
 #endif
     }
 
@@ -246,7 +201,7 @@ namespace UnityTcp.Editor.Tools
             "is_segmentation (bool, auto-remove background, default true), output_path (optional save path), " +
             "imageSize (frontier-game-design only, 'square_hd'/'square'/'portrait_4_3'/'portrait_16_9'/'landscape_4_3'/'landscape_16_9', default 'square_hd'), " +
             "outputFormat (frontier-game-design only, 'png'/'jpeg', default 'png'). " +
-            "IMPORTANT: Generation takes 1-3 minutes. Wait at least 5 seconds before the first query_sprite_status call, " +
+            "IMPORTANT: Generation takes 1-3 minutes. Wait at least 5 seconds before the first query_local_task call, " +
             "then poll every 10-15 seconds. A placeholder_path is returned immediately — you can assign it to a SpriteRenderer right away.")]
         public static object GenerateSprite(JObject parameters)
         {
@@ -262,6 +217,7 @@ namespace UnityTcp.Editor.Tools
                 string styleId = parameters["style_id"]?.ToString();
                 string outputPath = parameters["output_path"]?.ToString();
                 string sessionId = parameters["session_id"]?.ToString() ?? "";
+                GenerationRequestOrigin.SetWorkspaceName(parameters["workspace_name"]?.ToString());
 
                 if (string.IsNullOrEmpty(prompt) && string.IsNullOrEmpty(imagePath))
                 {
@@ -326,7 +282,7 @@ namespace UnityTcp.Editor.Tools
                 ApplySpriteParameters(generator, parameters);
 
                 // 阶段1：同步提交任务到后端，立即获取 backendTaskId 或失败原因
-                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator);
+                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator, sessionId);
                 if (!submitResult.Success)
                 {
                     TJLog.LogError($"[GenerateSpriteTool] 任务提交失败 [{submitResult.ErrorCode}]: {submitResult.Message}");
@@ -377,7 +333,7 @@ namespace UnityTcp.Editor.Tools
                 string historyAssetGuid = CustomToolHistoryBindings.HistoryGuidFromPlaceholderAssetPath(placeholderPath);
 
                 // 阶段2：异步轮询（跳过提交）
-                var pipeline = new GenerationPipeline(host, ConfigType.Sprite);
+                var pipeline = new GenerationPipeline(host, ConfigType.Sprite, GenerationRequestOrigin.Agent, sessionId, "generate_sprite");
                 EditorCoroutineUtility.StartCoroutineOwnerless(
                     pipeline.StartFromSubmittedTask(generator, historyAssetGuid, submitResult.BackendTaskId));
 
@@ -389,12 +345,12 @@ namespace UnityTcp.Editor.Tools
                     { "submission_success", true },
                     { "message",
                         "Sprite generation started. " +
-                        "STEP 1 (do now): Apply placeholder_path to a SpriteRenderer (or use `place_assets_in_scene` skill). " +
-                        "STEP 2 (critical): END THIS RESPONSE TURN immediately. " +
-                        "STEP 3 (automatic): A <bg_task_done> notification will appear in your next turn (~90s) " +
+                        "STEP 1 (do now): Call activate_skill(\"unity-place-assets-in-scene\"), then use exec_editor_script as instructed to apply placeholder_path to a SpriteRenderer. " +
+                        "STEP 2 (critical): Keep this worker active until the task is terminal and its assets are verified. " +
+                        "STEP 3: A <bg_task_done> notification may arrive (~90s) " +
                         "containing ALL generation results (image_path, preview_url, timing, etc.). " +
-                        "*** POLLING IS STRICTLY FORBIDDEN — do NOT call query_sprite_status repeatedly. " +
-                        "Only call query_sprite_status ONCE as a last-resort fallback if no notification arrives. ***" },
+                        "Wait up to 30 seconds in the current worker, then call query_local_task once; repeat only while pending. " +
+                        "Do not busy-poll query_local_task, submit again, or report success while pending." },
                     { "task_id",            taskId },
                     { "backend_task_id",    submitResult.BackendTaskId },
                     { "status",             "submitted" },
@@ -429,11 +385,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("query_sprite_status",
-            "Query the status of a sprite generation task. Use ONLY as a one-time fallback if no <bg_task_done> notification arrives. " +
-            "When completed, returns 'sprite_path' with the Sprite asset path in the project. " +
-            "Status values: 'generating', 'completed', 'failed'. " +
-            "WARNING: Do NOT call this tool repeatedly. Polling is forbidden.")]
         public static object QuerySpriteStatus(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -510,7 +461,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("list_sprite_tasks", "List all active and recent sprite generation tasks")]
         public static object ListSpriteTasks(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -612,16 +562,18 @@ namespace UnityTcp.Editor.Tools
             string absolutePath = PathUtils.ToAbsoluteAssetPath(placeholderPath);
             File.WriteAllBytes(absolutePath, pngBytes);
             PathUtils.ImportAssetAfterDiskWrite(placeholderPath);
+            GeneratedTextureImportUtils.ConfigureImportedTexture(
+                placeholderPath, TextureImporterType.Sprite, alphaIsTransparency: true);
 
             return placeholderPath;
         }
 
-        private static VisualSelectorOptionConfig FindTypeOption(GeneratorConfig config, string typeId)
+        private static SelectorOptionConfig FindTypeOption(GeneratorConfig config, string typeId)
         {
             return config.typeSelector?.options?.FirstOrDefault(o => o.id == typeId);
         }
 
-        private static VisualSelectorOptionConfig FindStyleOption(GeneratorConfig config, string styleId)
+        private static SelectorOptionConfig FindStyleOption(GeneratorConfig config, string styleId)
         {
             return config.styleSelector?.options?.FirstOrDefault(o => o.id == styleId);
         }
@@ -651,10 +603,167 @@ namespace UnityTcp.Editor.Tools
 
 #if UNITY_EDITOR
     /// <summary>
+    /// Automatically resumes interrupted generate_sprite tasks after domain reload.
+    /// </summary>
+    [InitializeOnLoad]
+    public static class SpriteDomainReloadRecovery
+    {
+        static SpriteDomainReloadRecovery()
+        {
+            CustomToolDomainReloadRecovery.Schedule(ResumeInterruptedTasks);
+        }
+
+        private static void ResumeInterruptedTasks()
+        {
+            CustomToolDomainReloadRecovery.Resume(
+                "GenerateSpriteTool",
+                ConfigType.Sprite,
+                t => t.toolName == "generate_sprite",
+                () => SpriteTaskTracker.GetAllTasks(),
+                (interrupted, _, generator) =>
+                {
+                    var trackerTask = SpriteTaskTracker.GetTaskByBackendId(interrupted.backendTaskId);
+                    if (trackerTask != null)
+                    {
+                        CustomToolDomainReloadRecovery.MarkTrackerRecoveringIfNeeded(trackerTask.Status, () =>
+                        {
+                            SpriteTaskTracker.ApplyTaskUpdate(trackerTask, t => t.Status = "recovering");
+                        });
+                    }
+                    else
+                    {
+                        string placeholderPath = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+                        trackerTask = SpriteTaskTracker.CreateRecoveredTask(
+                            interrupted.backendTaskId, interrupted.prompt, placeholderPath, interrupted.timestamp,
+                            interrupted.modelVersion);
+                    }
+
+                    string placeholderPathForHost = trackerTask.PlaceholderPath ?? "";
+                    if (string.IsNullOrEmpty(placeholderPathForHost))
+                        placeholderPathForHost = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+
+                    var host = new SpriteRecoveryHost(
+                        placeholderPathForHost, interrupted.backendTaskId, interrupted.sessionId, generator);
+                    CustomToolDomainReloadRecovery.StartPolling(
+                        "GenerateSpriteTool", host, ConfigType.Sprite,
+                        interrupted.sessionId, "generate_sprite", generator, interrupted.backendTaskId);
+                });
+        }
+    }
+
+    /// <summary>
+    /// Headless pipeline host for resuming sprite tasks after domain reload.
+    /// </summary>
+    internal class SpriteRecoveryHost : HeadlessPipelineHostBase, IMediaAssetPipelineHost
+    {
+        private readonly string _placeholderPath;
+        private readonly TJGeneratorsAssetReference _placeholderRef;
+        private readonly string _backendTaskId;
+        private readonly string _sessionId;
+        private readonly ModelGeneratorBase _generator;
+
+        public SpriteRecoveryHost(string placeholderPath, string backendTaskId, string sessionId, ModelGeneratorBase generator)
+        {
+            _placeholderPath = placeholderPath ?? "";
+            _placeholderRef = string.IsNullOrEmpty(_placeholderPath)
+                ? null
+                : TJGeneratorsAssetReference.FromPath(_placeholderPath);
+            _backendTaskId = backendTaskId;
+            _sessionId = sessionId ?? "";
+            _generator = generator;
+        }
+
+        protected override string DialogLogTag => "SpriteRecovery";
+
+        public override TJGeneratorsAssetReference GetTargetAsset() => _placeholderRef;
+
+        public override void Repaint()
+        {
+            if (_generator == null) return;
+            var trackerTask = SpriteTaskTracker.GetTaskByBackendId(_backendTaskId);
+            if (trackerTask == null || !TJGeneratorsTaskRecovery.IsRecoverableTrackerStatus(trackerTask.Status)) return;
+
+            int progress = _generator.CurrentProgress;
+            if (progress <= trackerTask.Progress) return;
+
+            SpriteTaskTracker.ApplyTaskUpdate(trackerTask, t =>
+            {
+                t.Status = "generating";
+                t.Progress = progress;
+            });
+        }
+
+        public override void ShowDialog(string title, string message)
+        {
+            base.ShowDialog(title, message);
+
+            if (ErrorDialogUtils.IsErrorDialog(title))
+            {
+                var trackerTask = SpriteTaskTracker.GetTaskByBackendId(_backendTaskId);
+                if (trackerTask != null)
+                {
+                    var friendlyError = ErrorDialogUtils.ConvertToUserFriendlyError(title, message);
+                    SpriteTaskTracker.MarkTaskFailed(trackerTask.TaskId, friendlyError.TechnicalMessage);
+                    GenerationNotifier.NotifyFailed(
+                        "generate_sprite",
+                        trackerTask.TaskId,
+                        _backendTaskId,
+                        friendlyError.TechnicalMessage,
+                        new JObject
+                        {
+                            ["session_id"] = _sessionId,
+                            ["generator_id"] = trackerTask.GeneratorId ?? "",
+                            ["prompt"] = trackerTask.Prompt ?? ""
+                        });
+                }
+            }
+        }
+
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator) =>
+            _type == PipelineMediaType.Texture ? _placeholderPath : null;
+
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
+        {
+            if (_type != PipelineMediaType.Texture) return;
+
+            TJLog.Log($"[GenerateSpriteTool] Recovered sprite saved: {savePath}");
+
+            GeneratedTextureImportUtils.ConfigureImportedTexture(
+                savePath, TextureImporterType.Sprite, alphaIsTransparency: true);
+
+            TJGeneratorsGenerationLabel.EnableLabel(TJGeneratorsAssetReference.FromPath(savePath));
+            TJGeneratorsGenerationLabel.EnableSessionLabel(TJGeneratorsAssetReference.FromPath(savePath), _sessionId);
+
+            var trackerTask = SpriteTaskTracker.GetTaskByBackendId(_backendTaskId);
+            if (trackerTask == null) return;
+
+            string previewUrl = generator?.CurrentPreviewUrl;
+            SpriteTaskTracker.MarkTaskCompleted(trackerTask.TaskId, savePath, previewUrl);
+            var t = SpriteTaskTracker.GetTask(trackerTask.TaskId);
+            GenerationNotifier.NotifyCompleted(
+                "generate_sprite",
+                trackerTask.TaskId,
+                _backendTaskId,
+                new JObject
+                {
+                    ["session_id"] = _sessionId,
+                    ["generator_id"] = t?.GeneratorId ?? "",
+                    ["prompt"] = t?.Prompt ?? "",
+                    ["image_path"] = savePath ?? "",
+                    ["preview_url"] = previewUrl ?? "",
+                    ["progress"] = 100,
+                    ["start_time"] = t?.StartTime.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                    ["end_time"] = t?.EndTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                    ["duration_seconds"] = (t != null && t.EndTime.HasValue) ? (int)(t.EndTime.Value - t.StartTime).TotalSeconds : 0
+                });
+        }
+    }
+
+    /// <summary>
     /// IGenerationPipelineHost implementation for headless sprite generation via custom tools.
     /// Handles texture saving with Sprite import settings and task lifecycle callbacks.
     /// </summary>
-    internal class SpritePipelineHost : IGenerationPipelineHost
+    internal class SpritePipelineHost : HeadlessPipelineHostBase, IMediaAssetPipelineHost
     {
         private readonly string _placeholderPath;
         private readonly TJGeneratorsAssetReference _placeholderRef;
@@ -671,53 +780,39 @@ namespace UnityTcp.Editor.Tools
             _onFailed = onFailed;
         }
 
-        public TJGeneratorsAssetReference GetTargetAsset() => _placeholderRef;
+        protected override string DialogLogTag => "GenerateSpriteTool";
+        protected override Action<string> DialogFailedCallback => errorMessage => _onFailed?.Invoke(errorMessage);
+
+        public override TJGeneratorsAssetReference GetTargetAsset() => _placeholderRef;
 
         public void StartEditorCoroutine(IEnumerator coroutine)
         {
             EditorCoroutineUtility.StartCoroutineOwnerless(coroutine);
         }
 
-        public void RefreshHistory() { }
-        public void ShowPreviewModel(string assetPath) { }
-        public void RefreshUserInfo() { }
-        public void Repaint() { }
-        public void StartGeneration(ModelGeneratorBase generator) { }
-
-        public void ShowDialog(string title, string message)
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator)
         {
-            ErrorDialogUtils.ShowErrorDialog(title, message, (errorMessage) => _onFailed?.Invoke(errorMessage), "GenerateSpriteTool");
-        }
+            if (_type != PipelineMediaType.Texture) return null;
 
-        public string GetTextureSavePath(ModelGeneratorBase generator)
-        {
             // Return the placeholder path directly — pipeline overwrites the file bytes in-place.
             // Do NOT delete the placeholder: deleting would assign a new GUID on reimport,
             // breaking any SpriteRenderer references set up before generation completed.
             return _placeholderPath;
         }
 
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator)
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
         {
+            if (_type != PipelineMediaType.Texture) return;
+
             TJLog.Log($"[GenerateSpriteTool] Sprite saved: {savePath}");
 
-            // Import as Sprite
-            var importer = AssetImporter.GetAtPath(savePath) as TextureImporter;
-            if (importer != null)
-            {
-                importer.textureType = TextureImporterType.Sprite;
-                importer.SaveAndReimport();
-            }
+            GeneratedTextureImportUtils.ConfigureImportedTexture(
+                savePath, TextureImporterType.Sprite, alphaIsTransparency: true);
 
             TJGeneratorsGenerationLabel.EnableLabel(TJGeneratorsAssetReference.FromPath(savePath));
             TJGeneratorsGenerationLabel.EnableSessionLabel(TJGeneratorsAssetReference.FromPath(savePath), _sessionId);
             _onCompleted?.Invoke(savePath, generator.CurrentPreviewUrl);
         }
-
-        public string GetAudioSavePath(ModelGeneratorBase generator) => null;
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
-        public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
     }
 #endif
 }

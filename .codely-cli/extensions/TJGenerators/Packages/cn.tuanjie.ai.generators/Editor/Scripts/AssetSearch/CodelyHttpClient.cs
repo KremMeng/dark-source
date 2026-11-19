@@ -24,29 +24,33 @@ namespace TJGenerators.AssetSearch
         /// </summary>
         public static string PostJsonSync(string url, string jsonBody, string token, int timeoutSeconds = 20)
         {
-            using var req = new HttpRequestMessage(HttpMethod.Post, url);
-            req.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-            if (!string.IsNullOrEmpty(token))
-                req.Headers.TryAddWithoutValidation("Authorization", $"Bearer {token}");
-            req.Headers.TryAddWithoutValidation("Accept", "application/json");
+            using (var req = new HttpRequestMessage(HttpMethod.Post, url))
+            {
+                req.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                if (!string.IsNullOrEmpty(token))
+                    req.Headers.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                req.Headers.TryAddWithoutValidation("Accept", "application/json");
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-            HttpResponseMessage response;
-            try
-            {
-                response = _client.SendAsync(req, cts.Token).Result;
-            }
-            catch (AggregateException ae) when (ae.InnerException is TaskCanceledException)
-            {
-                throw new HttpRequestException($"HTTP request timed out after {timeoutSeconds}s: {url}");
-            }
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds)))
+                {
+                    HttpResponseMessage response;
+                    try
+                    {
+                        response = _client.SendAsync(req, cts.Token).Result;
+                    }
+                    catch (AggregateException ae) when (ae.InnerException is TaskCanceledException)
+                    {
+                        throw new HttpRequestException($"HTTP request timed out after {timeoutSeconds}s: {url}");
+                    }
 
-            using (response)
-            {
-                string body = response.Content.ReadAsStringAsync().Result;
-                if (!response.IsSuccessStatusCode)
-                    throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {body}");
-                return body;
+                    using (response)
+                    {
+                        string body = response.Content.ReadAsStringAsync().Result;
+                        if (!response.IsSuccessStatusCode)
+                            throw new HttpRequestException($"HTTP {(int)response.StatusCode}: {body}");
+                        return body;
+                    }
+                }
             }
         }
     }

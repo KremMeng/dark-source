@@ -42,6 +42,10 @@ namespace TJGenerators.Generators
                 switch (param.type)
                 {
                     case "int":
+                        // int 值为 0 时视为"未填写"，跳过写入（与 default 类型的空字符串一致），
+                        // 避免向后端发送 seed=0 这类"固定种子 0"的非预期行为
+                        if (Convert.ToInt32(value) == 0)
+                            break;
                         SetNestedValue(root, fieldName, Convert.ToInt32(value));
                         break;
                     case "float":
@@ -52,6 +56,10 @@ namespace TJGenerators.Generators
                         break;
                     case "dropdown":
                         string strVal = value?.ToString() ?? "";
+                        // 空字符串视为"未填写"，跳过写入，
+                        // 避免向后端发送 textureAlignment="" 这类 omitempty 字段导致 400
+                        if (string.IsNullOrEmpty(strVal))
+                            break;
                         if (param.valueType == "string")
                             SetNestedValue(root, fieldName, strVal);
                         else if (int.TryParse(strVal, out int intVal))

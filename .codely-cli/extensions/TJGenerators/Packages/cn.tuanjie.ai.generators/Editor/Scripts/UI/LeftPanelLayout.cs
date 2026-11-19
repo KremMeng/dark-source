@@ -9,10 +9,6 @@ namespace TJGenerators.UI
     /// </summary>
     public static class LeftPanelLayout
     {
-        public const float ActionButtonHeight = LeftPanelBottomDock.ActionButtonHeight;
-
-        public static float GetActionAreaHeight() => LeftPanelBottomDock.GetActionAreaHeight();
-
         public static float GetScrollViewHeight(float windowHeight) =>
             LeftPanelBottomDock.GetScrollViewHeight(windowHeight);
 

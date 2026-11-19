@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -18,18 +19,9 @@ using Unity.EditorCoroutines.Editor;
 
 namespace UnityTcp.Editor.Tools
 {
-    /// <summary>
-    /// Tracks active terrain heightmap generation tasks.
-    /// </summary>
     public static class TerrainTaskTracker
     {
 #if UNITY_EDITOR
-        private static readonly Dictionary<string, TerrainTaskInfo> _activeTasks = new Dictionary<string, TerrainTaskInfo>();
-        private static int _taskIdCounter = 0;
-
-        private const string SessionKeyIds = "TJGen_Terrain_Ids";
-        private const string SessionKeyFmt = "TJGen_Terrain_{0}";
-
         [Serializable]
         private class PersistedTask
         {
@@ -49,7 +41,7 @@ namespace UnityTcp.Editor.Tools
             public string backendTaskId;
         }
 
-        public class TerrainTaskInfo
+        public class TerrainTaskInfo : IGenerationTaskInfo
         {
             public string TaskId { get; set; }
             public string Prompt { get; set; }
@@ -67,74 +59,52 @@ namespace UnityTcp.Editor.Tools
             public string BackendTaskId { get; set; }
         }
 
-        internal static void SaveToSession(TerrainTaskInfo info)
+        private static readonly GenerationTaskTrackerStore<TerrainTaskInfo, PersistedTask> Store =
+            new GenerationTaskTrackerStore<TerrainTaskInfo, PersistedTask>(
+                "TJGen_Terrain", BuildPersisted, FromPersisted);
+
+        private static PersistedTask BuildPersisted(TerrainTaskInfo info) => new PersistedTask
         {
-            var p = new PersistedTask
-            {
-                taskId          = info.TaskId,
-                prompt          = info.Prompt ?? "",
-                imagePath       = info.ImagePath ?? "",
-                status          = info.Status,
-                progress        = info.Progress,
-                heightmapPath   = info.HeightmapPath ?? "",
-                errorMessage    = info.ErrorMessage ?? "",
-                startTimeTicks  = info.StartTime.Ticks,
-                endTimeTicks    = info.EndTime?.Ticks ?? 0,
-                previewUrl      = info.PreviewUrl ?? "",
-                placeholderPath = info.PlaceholderPath ?? "",
-                terrainDataPath = info.TerrainDataPath ?? "",
-                terrainGoName   = info.TerrainGoName ?? "",
-                backendTaskId   = info.BackendTaskId ?? ""
-            };
-            SessionState.SetString(string.Format(SessionKeyFmt, info.TaskId), JsonUtility.ToJson(p));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!ids.Contains(info.TaskId))
-                SessionState.SetString(SessionKeyIds, string.IsNullOrEmpty(ids) ? info.TaskId : ids + "|" + info.TaskId);
-        }
+            taskId          = info.TaskId,
+            prompt          = info.Prompt ?? "",
+            imagePath       = info.ImagePath ?? "",
+            status          = info.Status,
+            progress        = info.Progress,
+            heightmapPath   = info.HeightmapPath ?? "",
+            errorMessage    = info.ErrorMessage ?? "",
+            startTimeTicks  = info.StartTime.Ticks,
+            endTimeTicks    = info.EndTime?.Ticks ?? 0,
+            previewUrl      = info.PreviewUrl ?? "",
+            placeholderPath = info.PlaceholderPath ?? "",
+            terrainDataPath = info.TerrainDataPath ?? "",
+            terrainGoName   = info.TerrainGoName ?? "",
+            backendTaskId   = info.BackendTaskId ?? ""
+        };
 
-        private static TerrainTaskInfo TryRestoreFromSession(string taskId)
+        private static TerrainTaskInfo FromPersisted(PersistedTask p) => new TerrainTaskInfo
         {
-            string json = SessionState.GetString(string.Format(SessionKeyFmt, taskId), "");
-            if (string.IsNullOrEmpty(json)) return null;
-            PersistedTask p;
-            try { p = JsonUtility.FromJson<PersistedTask>(json); }
-            catch { return null; }
+            TaskId          = p.taskId,
+            Prompt          = p.prompt,
+            ImagePath       = p.imagePath,
+            Status          = p.status,
+            Progress        = p.progress,
+            HeightmapPath   = p.heightmapPath,
+            ErrorMessage    = p.errorMessage,
+            PreviewUrl      = p.previewUrl,
+            StartTime       = new DateTime(p.startTimeTicks),
+            EndTime         = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
+            PlaceholderPath = p.placeholderPath,
+            TerrainDataPath = p.terrainDataPath,
+            TerrainGoName   = p.terrainGoName,
+            BackendTaskId   = p.backendTaskId
+        };
 
-            var info = new TerrainTaskInfo
-            {
-                TaskId          = p.taskId,
-                Prompt          = p.prompt,
-                ImagePath       = p.imagePath,
-                Status          = p.status,
-                Progress        = p.progress,
-                HeightmapPath   = p.heightmapPath,
-                ErrorMessage    = p.errorMessage,
-                PreviewUrl      = p.previewUrl,
-                StartTime       = new DateTime(p.startTimeTicks),
-                EndTime         = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
-                PlaceholderPath = p.placeholderPath,
-                TerrainDataPath = p.terrainDataPath,
-                TerrainGoName   = p.terrainGoName,
-                BackendTaskId   = p.backendTaskId
-            };
-
-            // pipeline 无法在 domain reload 后恢复，一律标记为中断
-            if (info.Status == "generating" || info.Status == "initializing")
-            {
-                info.Status       = "interrupted";
-                info.ErrorMessage = "Generation was interrupted (domain reload). Please re-generate.";
-                info.EndTime      = DateTime.Now;
-                SaveToSession(info);
-            }
-
-            _activeTasks[taskId] = info;
-            return info;
-        }
+        internal static void ApplyTaskUpdate(TerrainTaskInfo task, Action<TerrainTaskInfo> mutate) =>
+            Store.ApplyTaskUpdate(task, mutate);
 
         public static string CreateTask(string prompt, string imagePath = null, string placeholderPath = null, string backendTaskId = null)
         {
-            string taskId = $"terrain_{++_taskIdCounter}_{DateTime.Now.Ticks}";
-
+            string taskId = Store.AllocateTaskId("terrain");
             var task = new TerrainTaskInfo
             {
                 TaskId          = taskId,
@@ -145,120 +115,78 @@ namespace UnityTcp.Editor.Tools
                 PlaceholderPath = placeholderPath,
                 BackendTaskId   = backendTaskId
             };
-            _activeTasks[taskId] = task;
-            SaveToSession(task);
-
+            Store.RegisterTask(taskId, task);
             return taskId;
         }
 
         public static void MarkTaskCompleted(string taskId, string heightmapPath, string previewUrl = null)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status       = "completed";
-                task.Progress     = 100;
-                task.HeightmapPath = heightmapPath;
-                task.PreviewUrl   = previewUrl;
-                task.EndTime      = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status        = "completed";
+                t.Progress      = 100;
+                t.HeightmapPath = heightmapPath;
+                t.PreviewUrl    = previewUrl;
+                t.EndTime       = DateTime.Now;
+            });
         }
 
         public static void MarkTaskFailed(string taskId, string errorMessage)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status       = "failed";
-                task.ErrorMessage = errorMessage;
-                task.EndTime      = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status       = "failed";
+                t.ErrorMessage = errorMessage;
+                t.EndTime      = DateTime.Now;
+            });
         }
 
         public static void MarkTaskApplied(string taskId, string terrainDataPath, string terrainGoName)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status         = "applied";
-                task.TerrainDataPath = terrainDataPath;
-                task.TerrainGoName  = terrainGoName;
-                task.EndTime        = task.EndTime ?? DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status          = "applied";
+                t.TerrainDataPath = terrainDataPath;
+                t.TerrainGoName   = terrainGoName;
+                t.EndTime         = t.EndTime ?? DateTime.Now;
+            });
         }
 
-        public static TerrainTaskInfo GetTask(string taskId)
-        {
-            if (_activeTasks.TryGetValue(taskId, out var task)) return task;
-            return TryRestoreFromSession(taskId);
-        }
+        public static TerrainTaskInfo GetTask(string taskId) => Store.GetTask(taskId);
 
-        public static List<TerrainTaskInfo> GetAllTasks()
+        public static List<TerrainTaskInfo> GetAllTasks() => Store.GetAllTasks();
+
+        public static TerrainTaskInfo GetTaskByBackendId(string backendTaskId) =>
+            Store.GetTaskByBackendId(backendTaskId);
+
+        public static TerrainTaskInfo CreateRecoveredTask(
+            string backendTaskId, string prompt, string placeholderPath, long timestampMs, string imagePath = null)
         {
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!string.IsNullOrEmpty(ids))
+            return Store.CreateRecoveredTask(backendTaskId, () => new TerrainTaskInfo
             {
-                foreach (var id in ids.Split('|'))
-                {
-                    if (!string.IsNullOrEmpty(id) && !_activeTasks.ContainsKey(id))
-                        TryRestoreFromSession(id);
-                }
-            }
-            return new List<TerrainTaskInfo>(_activeTasks.Values);
+                TaskId          = $"recovered_{backendTaskId}",
+                BackendTaskId   = backendTaskId,
+                Prompt          = prompt ?? "",
+                ImagePath       = imagePath ?? "",
+                PlaceholderPath = placeholderPath ?? "",
+                Status          = "recovering",
+                Progress        = 0,
+                StartTime       = timestampMs > 0
+                                    ? DateTimeOffset.FromUnixTimeMilliseconds(timestampMs).LocalDateTime
+                                    : DateTime.Now
+            });
         }
 
-        public static void RemoveTask(string taskId)
-        {
-            _activeTasks.Remove(taskId);
-            SessionState.EraseString(string.Format(SessionKeyFmt, taskId));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            var list = new List<string>(ids.Split('|'));
-            list.Remove(taskId);
-            SessionState.SetString(SessionKeyIds, string.Join("|", list));
-        }
+        public static void RemoveTask(string taskId) => Store.RemoveTask(taskId);
 #endif
     }
 
-    /// <summary>
-    /// 线程安全的主线程任务分发器。
-    /// Task.Run 中不能直接调用 EditorApplication.delayCall += （委托不是线程安全的），
-    /// 改用并发队列 + EditorApplication.update 在主线程消费。
-    /// </summary>
-    internal static class EditorMainThreadDispatcher
-    {
-#if UNITY_EDITOR
-        private static readonly System.Collections.Concurrent.ConcurrentQueue<Action> _queue
-            = new System.Collections.Concurrent.ConcurrentQueue<Action>();
-        private static bool _registered;
-
-        /// <summary>在主线程的下一个 editor update 中执行 action。线程安全。</summary>
-        public static void Dispatch(Action action)
-        {
-            _queue.Enqueue(action);
-            EnsureRegistered();
-        }
-
-        private static void EnsureRegistered()
-        {
-            if (_registered) return;
-            _registered = true;
-            EditorApplication.update += Pump;
-        }
-
-        private static void Pump()
-        {
-            while (_queue.TryDequeue(out var action))
-            {
-                try { action(); }
-                catch (Exception e) { TJLog.LogError($"[EditorMainThreadDispatcher] {e}"); }
-            }
-        }
-#endif
-    }
-
-    /// <summary>
-    /// 跟踪 apply_terrain_heightmap 的异步后处理任务（后台线程执行耗时滤波）。
-    /// </summary>
     public static class TerrainApplyTaskTracker
     {
 #if UNITY_EDITOR
@@ -316,12 +244,14 @@ namespace UnityTcp.Editor.Tools
             _tasks.TryGetValue(id, out var t);
             return t;
         }
+
+        public static List<ApplyTaskInfo> GetAllTasks() => new List<ApplyTaskInfo>(_tasks.Values);
 #endif
     }
 
     /// <summary>
     /// CustomTools for generating Unity Terrain heightmaps via the Frontier AI model.
-    /// Workflow: generate_terrain (async) → query_terrain_status → apply_terrain_heightmap (async) → query_terrain_apply_status.
+    /// Workflow: generate_terrain (async) → query_local_task → apply_terrain_heightmap (async) → query_local_task.
     /// </summary>
     public static class GenerateTerrainTool
     {
@@ -336,7 +266,7 @@ namespace UnityTcp.Editor.Tools
             "resolution ('1K'/'2K'/'4K', default '2K'; terrain heightmaps are always square), " +
             "output_path (optional save path). " +
             "IMPORTANT: Generation takes 30-90 seconds. Wait at least 5 seconds before the first " +
-            "query_terrain_status call, then poll every 10-15 seconds.")]
+            "query_local_task call, then poll every 10-15 seconds.")]
         public static object GenerateTerrain(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -349,6 +279,7 @@ namespace UnityTcp.Editor.Tools
                 string resolution = parameters["resolution"]?.ToString() ?? "2K";
                 string outputPath = parameters["output_path"]?.ToString();
                 string sessionId  = parameters["session_id"]?.ToString() ?? "";
+                GenerationRequestOrigin.SetWorkspaceName(parameters["workspace_name"]?.ToString());
                 // aspect_ratio is always "1:1" for terrain heightmaps (square)
                 const string aspectRatio = "1:1";
 
@@ -404,7 +335,7 @@ namespace UnityTcp.Editor.Tools
                 generator.SetParameter("outputFormat", "png");
 
                 // 同步提交任务
-                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator);
+                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator, sessionId);
                 if (!submitResult.Success)
                 {
                     TJLog.LogError($"[GenerateTerrainTool] 任务提交失败 [{submitResult.ErrorCode}]: {submitResult.Message}");
@@ -453,7 +384,7 @@ namespace UnityTcp.Editor.Tools
                             new JObject { ["session_id"] = sessionId, ["prompt"] = prompt ?? "" });
                     }
                 );
-                var pipeline = new GenerationPipeline(host, ConfigType.Image);
+                var pipeline = new GenerationPipeline(host, ConfigType.Image, GenerationRequestOrigin.Agent, sessionId, "generate_terrain");
                 string historyAssetGuid = CustomToolHistoryBindings.HistoryGuidFromPlaceholderAssetPath(placeholderPath);
                 EditorCoroutineUtility.StartCoroutineOwnerless(
                     pipeline.StartFromSubmittedTask(generator, historyAssetGuid, submitResult.BackendTaskId));
@@ -469,11 +400,11 @@ namespace UnityTcp.Editor.Tools
                     { "message",
                         "Terrain heightmap generation started. " +
                         "STEP 1 (do now): Note the placeholder_path. " +
-                        "STEP 2 (critical): END THIS RESPONSE TURN immediately. " +
-                        "STEP 3 (automatic): A <bg_task_done> notification will appear in your next turn (~60s) " +
+                        "STEP 2 (critical): Keep this worker active until the task is terminal and its assets are verified. " +
+                        "STEP 3: A <bg_task_done> notification may arrive (~60s) " +
                         "containing ALL results (heightmap_path, preview_url, timing, etc.). " +
                         "When completed, call apply_terrain_heightmap with the heightmap_path. " +
-                        "*** POLLING IS STRICTLY FORBIDDEN — only call query_terrain_status ONCE as a last-resort fallback. ***" },
+                        "Wait up to 30 seconds in the current worker, then call query_local_task; repeat only while pending. Verify the real heightmap before applying it; do not resubmit or finish this worker on submission." },
                     { "task_id",            taskId },
                     { "backend_task_id",    submitResult.BackendTaskId },
                     { "status",             "submitted" },
@@ -507,7 +438,7 @@ namespace UnityTcp.Editor.Tools
             "Start async post-processing of a heightmap PNG and place a Unity Terrain in the scene. " +
             "IMPORTANT: This is ASYNC — returns apply_task_id immediately (< 1s). " +
             "Post-processing (bilateral filter + thermal erosion) runs in background (~10-60s). " +
-            "Poll query_terrain_apply_status with apply_task_id to check completion. " +
+            "Poll query_local_task with apply_task_id to check completion. " +
             "Parameters: heightmap_path (required), " +
             "task_id (optional but strongly recommended — prevents duplicate terrain creation; pass the task_id from generate_terrain), " +
             "session_id (optional, string — associates generated assets with a session for tracking), " +
@@ -542,12 +473,13 @@ namespace UnityTcp.Editor.Tools
                     return new Dictionary<string, object>
                     {
                         { "success", false },
-                        { "message", $"Heightmap file not found: {heightmapPath}. Make sure query_terrain_status returns status='completed' before calling apply." }
+                        { "message", $"Heightmap file not found: {heightmapPath}. Make sure query_local_task returns status='completed' before calling apply." }
                     };
                 }
 
                 string taskId        = parameters["task_id"]?.ToString() ?? "";
                 string sessionId     = parameters["session_id"]?.ToString() ?? "";
+                GenerationRequestOrigin.SetWorkspaceName(parameters["workspace_name"]?.ToString());
                 string terrainGoName = parameters["terrain_go_name"]?.ToString() ?? "TJGenerators Terrain";
 
                 // 重入防护：generate_terrain task 已 applied → 直接返回结果
@@ -591,7 +523,6 @@ namespace UnityTcp.Editor.Tools
                         remapOutputMax           = GetFloat(parameters, "remap_output_max", 0.98f),
                     };
 
-                // ── 主线程步骤1：生成 processed 路径并复制原图 ────────────────
                 string processedAssetPath = TerrainCreationUtils.GenerateProcessedHeightmapAssetPath(originalPath);
                 if (string.IsNullOrEmpty(processedAssetPath))
                 {
@@ -615,7 +546,6 @@ namespace UnityTcp.Editor.Tools
                     };
                 }
 
-                // ── 主线程步骤2：解码 PNG → float[]（快速，< 100 ms） ─────────
                 if (!TerrainHeightmapPostProcessor.TryExtractPixelData(
                         absProcessed, out float[] luminance, out int imgW, out int imgH, out string extractErr))
                 {
@@ -626,12 +556,9 @@ namespace UnityTcp.Editor.Tools
                     };
                 }
 
-                // ── 注册 apply task ──────────────────────────────────────────
                 string applyTaskId = TerrainApplyTaskTracker.CreateTask(heightmapPath);
                 TJLog.Log($"[GenerateTerrainTool] apply_terrain_heightmap started async: applyTaskId={applyTaskId}, processed={processedAssetPath}");
 
-                // ── 后台线程：执行耗时滤波（10-60s） ─────────────────────────
-                // 捕获所有需要的值（不能跨线程引用 Unity 对象）
                 string capturedApplyTaskId     = applyTaskId;
                 string capturedProcessedAsset  = processedAssetPath;
                 string capturedAbsProcessed    = absProcessed;
@@ -640,21 +567,18 @@ namespace UnityTcp.Editor.Tools
                 string capturedTaskId          = taskId;
                 string capturedHeightmapPath   = heightmapPath;
 
-                // 2K 图双边滤波约 60-180s，设 300s 超时自动标记失败
                 const int timeoutSeconds = 300;
 
                 Task.Run(() =>
                 {
                     try
                     {
-                        // 超时检查：开始时记录时间，完成后检查是否超时
                         var filterStart = DateTime.Now;
                         TerrainHeightmapPostProcessor.ApplyFilters(luminance, imgW, imgH, opts);
                         double filterSeconds = (DateTime.Now - filterStart).TotalSeconds;
-                        TJLog.Log($"[GenerateTerrainTool] ApplyFilters done in {filterSeconds:F1}s, dispatching to main thread");
+                        TJLog.Log($"[GenerateTerrainTool] ApplyFilters done in {filterSeconds:F1}s");
 
-                        // ── 通过线程安全队列回到主线程 ──────────────────────────
-                        EditorMainThreadDispatcher.Dispatch(() =>
+                        TerrainApplyMainThreadDispatcher.Dispatch(() =>
                         {
                             try
                             {
@@ -685,7 +609,6 @@ namespace UnityTcp.Editor.Tools
                                     return;
                                 }
 
-                                // label
                                 var terrainRef   = TJGeneratorsAssetReference.FromPath(terrainDataPath);
                                 var processedRef = TJGeneratorsAssetReference.FromPath(capturedProcessedAsset);
                                 TJGeneratorsGenerationLabel.EnableLabel(terrainRef);
@@ -693,7 +616,6 @@ namespace UnityTcp.Editor.Tools
                                 TJGeneratorsGenerationLabel.EnableLabel(processedRef);
                                 TJGeneratorsGenerationLabel.EnableSessionLabel(processedRef, capturedSessionId);
 
-                                // 标记两个 tracker
                                 TerrainApplyTaskTracker.MarkCompleted(capturedApplyTaskId, terrainDataPath, goName);
                                 GenerationNotifier.NotifyCompleted("apply_terrain_heightmap", capturedApplyTaskId, "",
                                     new JObject
@@ -721,7 +643,7 @@ namespace UnityTcp.Editor.Tools
                     catch (Exception ex)
                     {
                         string bgErrMsg = "Background filtering failed: " + ex.Message;
-                        EditorMainThreadDispatcher.Dispatch(() =>
+                        TerrainApplyMainThreadDispatcher.Dispatch(() =>
                         {
                             TerrainApplyTaskTracker.MarkFailed(capturedApplyTaskId, bgErrMsg);
                             GenerationNotifier.NotifyFailed("apply_terrain_heightmap", capturedApplyTaskId, "", bgErrMsg,
@@ -740,7 +662,7 @@ namespace UnityTcp.Editor.Tools
                         $"Post-processing started in background. " +
                         "A <bg_task_done> notification will arrive automatically when terrain is ready (~60-180s). " +
                         "Do NOT retry apply_terrain_heightmap. " +
-                        "*** POLLING IS STRICTLY FORBIDDEN — only call query_terrain_apply_status ONCE as a last-resort fallback. ***" },
+                        "Wait up to 30 seconds in the current worker, then call query_local_task with apply_task_id; repeat only while pending. Verify Terrain and TerrainData before reporting success; do not reapply while pending." },
                     { "estimated_seconds",        90 },
                     { "notification_mode",        "bg_task_done" },
                     { "max_wait_before_retry_seconds", timeoutSeconds }
@@ -764,13 +686,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("query_terrain_apply_status",
-            "Query the status of an apply_terrain_heightmap background task. Use ONLY as a one-time fallback if no <bg_task_done> notification arrives. " +
-            "Pass the apply_task_id returned by apply_terrain_heightmap. " +
-            "Status: 'processing' (background filtering running), " +
-            "'completed' (terrain is in the scene — workflow done, do not call apply again), " +
-            "'failed' (see error field). " +
-            "WARNING: Do NOT call this tool repeatedly. Polling is forbidden.")]
         public static object QueryTerrainApplyStatus(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -851,11 +766,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("query_terrain_status",
-            "Query the status of a terrain heightmap generation task. Use ONLY as a one-time fallback if no <bg_task_done> notification arrives. " +
-            "When completed, heightmap_path contains the PNG ready for apply_terrain_heightmap. " +
-            "Status values: 'generating', 'completed', 'failed', 'interrupted'. " +
-            "WARNING: Do NOT call this tool repeatedly. Polling is forbidden.")]
         public static object QueryTerrainStatus(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -904,7 +814,7 @@ namespace UnityTcp.Editor.Tools
                     result["duration_seconds"] = (int)(task.EndTime.Value - task.StartTime).TotalSeconds;
                 }
 
-                if (task.Status == "generating")
+                if (task.Status == "generating" || task.Status == "recovering")
                 {
                     if (!string.IsNullOrEmpty(task.PlaceholderPath))
                         result["placeholder_path"] = task.PlaceholderPath;
@@ -940,7 +850,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("list_terrain_tasks", "List all active and recent terrain heightmap generation tasks.")]
         public static object ListTerrainTasks(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -1052,15 +961,128 @@ namespace UnityTcp.Editor.Tools
 
         private static int GetInt(JObject p, string key, int defaultValue)
             => p[key] != null ? p[key].ToObject<int>() : defaultValue;
+
+        internal static void ApplyTerrainRecoveryGeneratorSettings(
+            DynamicGenerator generator,
+            GeneratorConfig config,
+            InterruptedTaskData interrupted = null,
+            TerrainTaskTracker.TerrainTaskInfo trackerTask = null)
+        {
+            if (generator == null) return;
+
+            if (interrupted != null || trackerTask != null)
+            {
+                string prompt = !string.IsNullOrEmpty(trackerTask?.Prompt) ? trackerTask.Prompt : interrupted?.prompt;
+                string imagePath = !string.IsNullOrEmpty(trackerTask?.ImagePath) ? trackerTask.ImagePath : interrupted?.imagePath;
+
+                if (!string.IsNullOrEmpty(prompt))
+                    generator.SetTextPrompt(prompt);
+                if (!string.IsNullOrEmpty(imagePath))
+                    generator.SetImagePath(imagePath);
+            }
+
+            var templateConfig = config?.promptTemplateSelector?.options
+                ?.Find(t => string.Equals(t.id, "unity_terrain_heightmap", StringComparison.OrdinalIgnoreCase));
+            if (templateConfig != null)
+                generator.SetPromptTemplateSelection(templateConfig);
+
+            generator.SetParameter("resolution", "2K");
+            generator.SetParameter("aspectRatio", "1:1");
+            generator.SetParameter("outputFormat", "png");
+        }
 #endif
     }
 
 #if UNITY_EDITOR
     /// <summary>
+    /// Automatically resumes interrupted generate_terrain tasks after domain reload.
+    /// </summary>
+    [InitializeOnLoad]
+    public static class TerrainDomainReloadRecovery
+    {
+        static TerrainDomainReloadRecovery()
+        {
+            CustomToolDomainReloadRecovery.Schedule(ResumeInterruptedTasks);
+        }
+
+        private static void ResumeInterruptedTasks()
+        {
+            CustomToolDomainReloadRecovery.Resume(
+                "GenerateTerrainTool",
+                ConfigType.Image,
+                t => t.toolName == "generate_terrain",
+                () => TerrainTaskTracker.GetAllTasks(),
+                (interrupted, config, generator) =>
+                {
+                    var trackerTask = TerrainTaskTracker.GetTaskByBackendId(interrupted.backendTaskId);
+                    if (trackerTask != null)
+                    {
+                        CustomToolDomainReloadRecovery.MarkTrackerRecoveringIfNeeded(trackerTask.Status, () =>
+                        {
+                            TerrainTaskTracker.ApplyTaskUpdate(trackerTask, t => t.Status = "recovering");
+                        });
+                    }
+                    else
+                    {
+                        string placeholderPath = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+                        trackerTask = TerrainTaskTracker.CreateRecoveredTask(
+                            interrupted.backendTaskId, interrupted.prompt, placeholderPath, interrupted.timestamp,
+                            interrupted.imagePath);
+                    }
+
+                    string placeholderPathForHost = trackerTask.PlaceholderPath ?? "";
+                    if (string.IsNullOrEmpty(placeholderPathForHost))
+                        placeholderPathForHost = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+
+                    GenerateTerrainTool.ApplyTerrainRecoveryGeneratorSettings(generator, config, interrupted, trackerTask);
+
+                    string sessionId = interrupted.sessionId ?? "";
+                    string capturedBackendTaskId = interrupted.backendTaskId;
+                    string taskId = trackerTask.TaskId;
+
+                    var host = new TerrainPipelineHost(
+                        placeholderPathForHost,
+                        sessionId,
+                        (heightmapPath, previewUrl) =>
+                        {
+                            TerrainTaskTracker.MarkTaskCompleted(taskId, heightmapPath, previewUrl);
+                            var t = TerrainTaskTracker.GetTask(taskId);
+                            GenerationNotifier.NotifyCompleted("generate_terrain", taskId, capturedBackendTaskId,
+                                new JObject
+                                {
+                                    ["session_id"]       = sessionId,
+                                    ["prompt"]           = t?.Prompt ?? interrupted.prompt ?? "",
+                                    ["heightmap_path"]   = heightmapPath ?? "",
+                                    ["preview_url"]      = previewUrl ?? "",
+                                    ["progress"]         = 100,
+                                    ["start_time"]       = t?.StartTime.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                                    ["end_time"]         = t?.EndTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                                    ["duration_seconds"] = (t != null && t.EndTime.HasValue) ? (int)(t.EndTime.Value - t.StartTime).TotalSeconds : 0
+                                });
+                        },
+                        errorMsg =>
+                        {
+                            TerrainTaskTracker.MarkTaskFailed(taskId, errorMsg);
+                            GenerationNotifier.NotifyFailed("generate_terrain", taskId, capturedBackendTaskId, errorMsg,
+                                new JObject
+                                {
+                                    ["session_id"] = sessionId,
+                                    ["prompt"]     = trackerTask.Prompt ?? interrupted.prompt ?? ""
+                                });
+                        });
+
+                    CustomToolDomainReloadRecovery.StartPolling(
+                        "GenerateTerrainTool", host, ConfigType.Image,
+                        sessionId, "generate_terrain", generator, interrupted.backendTaskId);
+                });
+        }
+    }
+
+    /// <summary>
     /// IGenerationPipelineHost implementation for headless terrain heightmap generation via custom tools.
     /// Keeps TextureImporterType.Default (not Sprite) — heightmaps are raw grayscale data.
     /// </summary>
-    internal class TerrainPipelineHost : IGenerationPipelineHost
+    internal class TerrainPipelineHost : HeadlessPipelineHostBase, IMediaAssetPipelineHost
     {
         private readonly string _placeholderPath;
         private readonly TJGeneratorsAssetReference _placeholderRef;
@@ -1077,32 +1099,24 @@ namespace UnityTcp.Editor.Tools
             _onFailed        = onFailed;
         }
 
-        public TJGeneratorsAssetReference GetTargetAsset() => _placeholderRef;
+        protected override string DialogLogTag => "GenerateTerrainTool";
+        protected override Action<string> DialogFailedCallback => errorMessage => _onFailed?.Invoke(errorMessage);
+
+        public override TJGeneratorsAssetReference GetTargetAsset() => _placeholderRef;
 
         public void StartEditorCoroutine(IEnumerator coroutine)
         {
             EditorCoroutineUtility.StartCoroutineOwnerless(coroutine);
         }
 
-        public void RefreshHistory() { }
-        public void ShowPreviewModel(string assetPath) { }
-        public void RefreshUserInfo() { }
-        public void Repaint() { }
-        public void StartGeneration(ModelGeneratorBase generator) { }
-
-        public void ShowDialog(string title, string message)
-        {
-            ErrorDialogUtils.ShowErrorDialog(title, message, (errorMessage) => _onFailed?.Invoke(errorMessage), "GenerateTerrainTool");
-        }
-
-        public string GetTextureSavePath(ModelGeneratorBase generator)
-        {
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator) =>
             // 返回 placeholder 路径，pipeline 直接覆盖文件内容，保持 GUID 不变
-            return _placeholderPath;
-        }
+            _type == PipelineMediaType.Texture ? _placeholderPath : null;
 
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator)
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
         {
+            if (_type != PipelineMediaType.Texture) return;
+
             TJLog.Log($"[GenerateTerrainTool] Heightmap saved: {savePath}");
 
             // 保持 TextureImporterType.Default（高度图不是 Sprite）
@@ -1110,11 +1124,36 @@ namespace UnityTcp.Editor.Tools
             TJGeneratorsGenerationLabel.EnableSessionLabel(TJGeneratorsAssetReference.FromPath(savePath), _sessionId);
             _onCompleted?.Invoke(savePath, generator.CurrentPreviewUrl);
         }
+    }
 
-        public string GetAudioSavePath(ModelGeneratorBase generator) => null;
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
-        public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
+    [InitializeOnLoad]
+    internal static class TerrainApplyMainThreadDispatcher
+    {
+        private static readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();
+        private static bool _registered;
+
+        public static void Dispatch(Action action)
+        {
+            if (action == null) return;
+            _queue.Enqueue(action);
+            EnsureRegistered();
+        }
+
+        private static void EnsureRegistered()
+        {
+            if (_registered) return;
+            _registered = true;
+            EditorApplication.update += Pump;
+        }
+
+        private static void Pump()
+        {
+            while (_queue.TryDequeue(out var action))
+            {
+                try { action(); }
+                catch (Exception e) { TJLog.LogError($"[TerrainApplyMainThreadDispatcher] {e}"); }
+            }
+        }
     }
 #endif
 }

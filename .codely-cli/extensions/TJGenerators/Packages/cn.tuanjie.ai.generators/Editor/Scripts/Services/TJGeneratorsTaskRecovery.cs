@@ -22,10 +22,28 @@ namespace TJGenerators
         public string sessionId;
         public string targetAssetGuid;
         public string status;
+        public string toolName;
 
         public int faceLimit;
         public bool texture;
         public bool pbr;
+
+        /// <summary>UI / CustomTool「添加动作」：主模型完成后走 UniRig + HunyuanMotion。</summary>
+        public bool addMotion;
+        /// <summary>混元 Motion 的 inputText；仅 addMotion 为 true 时有意义。</summary>
+        public string motionDescription;
+
+        /// <summary>Sprite sequence: animation_type (idle / frontRun / backRun).</summary>
+        public string animationType;
+        /// <summary>Sprite sequence: AnimationClip fps; 0 = unset.</summary>
+        public int fps;
+        /// <summary>Sprite sequence: whether loop was explicitly set on submit.</summary>
+        public bool loopSpecified;
+        /// <summary>Sprite sequence: AnimationClip loop (meaningful when loopSpecified).</summary>
+        public bool loop;
+
+        /// <summary>Image layering: requested layer count; 0 = unset.</summary>
+        public int numLayers;
     }
 
     public static class TJGeneratorsTaskRecovery
@@ -34,8 +52,29 @@ namespace TJGenerators
 
         public static readonly string SessionId = Guid.NewGuid().ToString();
 
+        private static readonly long SessionStartUnixMs = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
         private static List<InterruptedTaskData> s_Tasks;
         private static readonly HashSet<string> s_Recovering = new HashSet<string>();
+
+#if TJGENERATORS_DEBUG
+        /// <summary>
+        /// 本地轮询中止代数：每次 RequestAbortAllLocalPolling 递增。
+        /// 进行中的 PollTaskStatus 在循环里比对捕获的代数，不一致则停止继续请求。
+        /// </summary>
+        private static int s_localPollAbortEpoch;
+#endif
+
+        private static readonly HashSet<string> RecoverableTrackerStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "initializing",
+            "generating",
+            "running",
+            "processing",
+            "pending",
+            "interrupted",
+            "recovering"
+        };
 
         static TJGeneratorsTaskRecovery() => Load();
 
@@ -107,7 +146,13 @@ namespace TJGenerators
         }
 
         /// <returns>true 表示成功移除；false 表示任务不存在（已被其他协程移除）</returns>
-        public static bool RemoveInterruptedTask(string backendTaskId)
+        /// <param name="clearRecovering">
+        /// When false, keeps the in-memory recovering flag so LoadFromSession does not treat the
+        /// task as permanently interrupted during the RemoveInterruptedTask → MarkCompleted window
+        /// (download still in progress). Caller must ClearRecovering when the host callback finishes,
+        /// or rely on a later RemoveInterruptedTask(clearRecovering: true).
+        /// </param>
+        public static bool RemoveInterruptedTask(string backendTaskId, bool clearRecovering = true)
         {
             if (s_Tasks == null) return false;
 
@@ -118,7 +163,8 @@ namespace TJGenerators
                 TJLog.Log($"[TJGeneratorsTaskRecovery] 移除中断任务: {backendTaskId}");
             }
 
-            s_Recovering.Remove(backendTaskId);
+            if (clearRecovering)
+                s_Recovering.Remove(backendTaskId);
             return removed > 0;
         }
 
@@ -140,6 +186,63 @@ namespace TJGenerators
         public static bool IsRecovering(string backendTaskId) => s_Recovering.Contains(backendTaskId);
 
         public static void MarkAsRecovering(string backendTaskId) => s_Recovering.Add(backendTaskId);
+
+        public static void ClearRecovering(string backendTaskId) => s_Recovering.Remove(backendTaskId);
+
+#if TJGENERATORS_DEBUG
+        /// <summary>
+        /// 清空本地中断/轮询恢复任务列表（InterruptedTasks.json）及 in-memory recovering 标记，
+        /// 并递增本地轮询中止代数，使已启动的 PollTaskStatus 在下一轮循环停止继续请求。
+        /// 不会向后端发送取消请求。仅 DEBUG 构建可用。
+        /// </summary>
+        /// <returns>清除前记录的任务数量。</returns>
+        public static int ClearAllInterruptedTasks()
+        {
+            int count = s_Tasks?.Count ?? 0;
+            s_Tasks = new List<InterruptedTaskData>();
+            s_Recovering.Clear();
+            RequestAbortAllLocalPolling();
+            Save();
+            TJLog.Log($"[TJGeneratorsTaskRecovery] 已清空全部中断/轮询任务记录（共 {count} 条）");
+            return count;
+        }
+
+        /// <summary>
+        /// 请求停止所有本地轮询协程（不碰 InterruptedTasks 列表本身）。仅 DEBUG 构建可用。
+        /// </summary>
+        public static void RequestAbortAllLocalPolling()
+        {
+            unchecked { s_localPollAbortEpoch++; }
+            TJLog.Log($"[TJGeneratorsTaskRecovery] 已请求中止本地轮询（epoch={s_localPollAbortEpoch}）");
+        }
+
+        /// <summary>供 PollTaskStatus 在启动时捕获，之后用 <see cref="WasLocalPollAborted"/> 检测。</summary>
+        public static int GetLocalPollAbortEpoch() => s_localPollAbortEpoch;
+
+        /// <summary>若自 <paramref name="capturedEpoch"/> 起已请求过本地中止，返回 true。</summary>
+        public static bool WasLocalPollAborted(int capturedEpoch) =>
+            capturedEpoch != s_localPollAbortEpoch;
+#endif
+
+        /// <summary>
+        /// True if the backend task is still tracked for recovery: either persisted in
+        /// InterruptedTasks.json, or still marked recovering in-memory (e.g. download in progress
+        /// after the persisted record was removed to claim exclusive completion).
+        /// </summary>
+        public static bool HasActiveRecovery(string backendTaskId)
+        {
+            if (string.IsNullOrEmpty(backendTaskId)) return false;
+            if (IsRecovering(backendTaskId)) return true;
+            return s_Tasks != null && s_Tasks.Exists(t => t.backendTaskId == backendTaskId);
+        }
+
+        /// <summary>
+        /// Whether a CustomTool tracker task should be resumed as recovering after domain reload.
+        /// </summary>
+        public static bool IsRecoverableTrackerStatus(string status)
+        {
+            return !string.IsNullOrEmpty(status) && RecoverableTrackerStatuses.Contains(status);
+        }
 
         // ── Window recovery entry point ────────────────────────────────────
 
@@ -168,9 +271,21 @@ namespace TJGenerators
                     // history 中已有 isGenerating 占位符，说明是同 session 内 domain reload 导致的中断，直接恢复无需弹窗
                     var interruptedTasks = GetAllInterruptedTasksForAsset(assetGuid);
                     if (interruptedTasks.Count > 0)
+                    {
                         RecoverAfterDomainReload(interruptedTasks, assetGuid, resumeTask, setHistory, onRepaint);
+                    }
                     else
-                        CleanupOrphanedPlaceholders(generatingItems, assetGuid, setHistory, onRepaint);
+                    {
+                        var orphansFromPreviousSession = generatingItems.FindAll(
+                            h => h.timestamp < SessionStartUnixMs);
+                        if (orphansFromPreviousSession.Count > 0)
+                            CleanupOrphanedPlaceholders(orphansFromPreviousSession, assetGuid, setHistory, onRepaint);
+                        else
+                        {
+                            setHistory(history);
+                            onRepaint?.Invoke();
+                        }
+                    }
                 }
                 else
                 {
@@ -192,10 +307,15 @@ namespace TJGenerators
             TJLog.Log($"[TJGeneratorsTaskRecovery] 检测到 {tasks.Count} 个中断的任务，重新恢复轮询...");
             foreach (var task in tasks)
             {
-                // HTTP 提交阶段中断：后端可能未收到请求，backendTaskId 无效，无法轮询，直接清理
                 if (task.status == "submitting")
                 {
-                    TJLog.Log($"[TJGeneratorsTaskRecovery] 任务 {task.localTaskId} 在提交阶段被中断，清理占位符");
+                    if (task.sessionId == SessionId)
+                    {
+                        TJLog.Log($"[TJGeneratorsTaskRecovery] 任务 {task.localTaskId} 仍在当前 session 提交中，跳过清理。");
+                        continue;
+                    }
+
+                    TJLog.Log($"[TJGeneratorsTaskRecovery] 任务 {task.localTaskId} 在提交阶段被中断（跨 domain reload），清理占位符");
                     RemoveInterruptedTask(task.backendTaskId);
                     if (!string.IsNullOrEmpty(task.localTaskId))
                         TJGeneratorsHistoryManager.RemovePlaceholder(task.localTaskId);

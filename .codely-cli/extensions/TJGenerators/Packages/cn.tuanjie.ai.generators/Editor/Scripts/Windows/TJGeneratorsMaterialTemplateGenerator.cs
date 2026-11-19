@@ -94,8 +94,15 @@ namespace TJGenerators
                 GUILayout.Space(5);
             }
 
+            bool playBlocked = TJGeneratorsPlayModeGuard.IsActive;
+            if (playBlocked)
+            {
+                EditorGUILayout.HelpBox(TJGeneratorsPlayModeGuard.ShortHint, MessageType.Warning);
+                GUILayout.Space(5);
+            }
+
             // 生成按钮
-            EditorGUI.BeginDisabledGroup(isGenerating);
+            EditorGUI.BeginDisabledGroup(isGenerating || playBlocked);
             if (GUILayout.Button(TJGeneratorsL10n.L("生成所有缺失的模板"), GUILayout.Height(30)))
             {
                 StartGenerateAll();
@@ -153,7 +160,7 @@ namespace TJGenerators
             GUILayout.EndVertical();
 
             // 单独生成按钮
-            EditorGUI.BeginDisabledGroup(isGenerating);
+            EditorGUI.BeginDisabledGroup(isGenerating || TJGeneratorsPlayModeGuard.IsActive);
             if (GUILayout.Button(exists ? TJGeneratorsL10n.L("重新生成") : TJGeneratorsL10n.L("生成"), GUILayout.Width(80)))
             {
                 StartGenerateSingle(template);
@@ -226,7 +233,7 @@ namespace TJGenerators
                 {
                     failCount++;
                     string error = currentGenerateError
-                        ?? (templateErrors.TryGetValue(template.id, out string templateError) ? templateError : "未知错误");
+                        ?? (templateErrors.TryGetValue(template.id, out string templateError) ? templateError : TJGeneratorsL10n.L("未知错误"));
                     TJLog.LogWarning($"[MaterialTemplate] [{i + 1}/{templatesToGenerate.Count}] ✗ 失败: {template.name} - {error}");
                 }
 
@@ -254,10 +261,18 @@ namespace TJGenerators
 
         private IEnumerator GenerateSingleTemplate(MaterialTemplateOptionConfig template)
         {
+            if (TJGeneratorsPlayModeGuard.IsActive)
+            {
+                currentGenerateError = TJGeneratorsPlayModeGuard.Message;
+                templateErrors[template.id] = currentGenerateError;
+                TJLog.LogError($"[MaterialTemplate] {template.id}: {TJGeneratorsPlayModeGuard.Message}");
+                yield break;
+            }
+
             string prompt = template.prompt;
             if (string.IsNullOrEmpty(prompt))
             {
-                currentGenerateError = "提示词为空";
+                currentGenerateError = TJGeneratorsL10n.L("提示词为空");
                 templateErrors[template.id] = currentGenerateError;
                 TJLog.LogError($"[MaterialTemplate] {template.id}: 提示词为空");
                 yield break;
@@ -267,7 +282,7 @@ namespace TJGenerators
             string authToken = UnityConnectSession.instance.GetAccessToken();
             if (string.IsNullOrEmpty(authToken))
             {
-                currentGenerateError = "无法获取认证令牌，请确保已登录 Unity";
+                currentGenerateError = TJGeneratorsL10n.L("无法获取认证令牌，请确保已登录 Unity");
                 templateErrors[template.id] = currentGenerateError;
                 TJLog.LogError($"[MaterialTemplate] {template.id}: 无法获取认证令牌");
                 yield break;
@@ -317,6 +332,7 @@ namespace TJGenerators
                     request.downloadHandler = new DownloadHandlerBuffer();
                     request.SetRequestHeader("Content-Type", "application/json");
                     request.SetRequestHeader("Authorization", $"Bearer {authToken}");
+                    request.SetRequestHeader("orgId", UnityConnectSession.instance.GetOrgId());
                     request.SetRequestHeader("source", "codely");
                     request.SetRequestHeader(GenerationRequestOrigin.HeaderName, GenerationRequestOrigin.Ui);
                     var pkgVer = GenerationRequestOrigin.GetPackageVersion();
@@ -328,7 +344,7 @@ namespace TJGenerators
 
                     lastResponseCode = (int)request.responseCode;
 
-                    if (request.result == UnityWebRequest.Result.Success)
+                    if (UnityWebRequestCompat.IsSuccess(request))
                     {
                         string responseText = request.downloadHandler.text;
                         TJLog.Log($"[MaterialTemplate] {template.id}: 创建任务响应: {responseText}");
@@ -367,7 +383,7 @@ namespace TJGenerators
                                 }
                                 else
                                 {
-                                    lastError = "响应中无 task_id 且非同步完成状态";
+                                    lastError = TJGeneratorsL10n.L("响应中无 task_id 且非同步完成状态");
                                     TJLog.LogWarning($"[MaterialTemplate] {template.id}: 响应中无 task_id 且非同步完成状态");
                                     needRetry = true;
                                 }
@@ -375,7 +391,7 @@ namespace TJGenerators
                         }
                         catch (Exception e)
                         {
-                            lastError = $"解析响应失败: {e.Message}";
+                            lastError = string.Format(TJGeneratorsL10n.L("解析响应失败: {0}"), e.Message);
                             TJLog.LogError($"[MaterialTemplate] {template.id}: 解析响应失败: {e.Message}");
                             needRetry = true;
                         }
@@ -383,23 +399,23 @@ namespace TJGenerators
                     else
                     {
                         string responseText = request.downloadHandler?.text ?? "";
-                        lastError = request.error ?? "未知错误";
+                        lastError = request.error ?? TJGeneratorsL10n.L("未知错误");
 
                         if (lastResponseCode == 429)
                         {
-                            lastError = $"请求过于频繁 (429)";
+                            lastError = TJGeneratorsL10n.L("请求过于频繁 (429)");
                             TJLog.LogWarning($"[MaterialTemplate] {template.id}: 429 Too Many Requests - 将自动重试");
                             needRetry = true;
                         }
                         else if (lastResponseCode == 500)
                         {
-                            lastError = $"服务器错误 (500): {responseText}";
+                            lastError = string.Format(TJGeneratorsL10n.L("服务器错误 (500): {0}"), responseText);
                             TJLog.LogError($"[MaterialTemplate] {template.id}: 500 Server Error - {responseText}");
                             needRetry = true;
                         }
                         else
                         {
-                            lastError = $"请求失败 ({lastResponseCode}): {lastError}";
+                            lastError = string.Format(TJGeneratorsL10n.L("请求失败 ({0}): {1}"), lastResponseCode, lastError);
                             TJLog.LogError($"[MaterialTemplate] {template.id}: 请求失败 ({lastResponseCode}): {lastError}");
                             needRetry = true;
                         }
@@ -428,7 +444,7 @@ namespace TJGenerators
             // 异步模式：轮询任务状态
             if (string.IsNullOrEmpty(taskId))
             {
-                currentGenerateError = "无法获取任务ID";
+                currentGenerateError = TJGeneratorsL10n.L("无法获取任务ID");
                 templateErrors[template.id] = currentGenerateError;
                 yield break;
             }
@@ -452,7 +468,7 @@ namespace TJGenerators
 
                     yield return pollRequest.SendWebRequest();
 
-                    if (pollRequest.result == UnityWebRequest.Result.Success)
+                    if (UnityWebRequestCompat.IsSuccess(pollRequest))
                     {
                         try
                         {
@@ -480,7 +496,7 @@ namespace TJGenerators
                                 }
                                 else if (status == "failed" || status == "error")
                                 {
-                                    currentGenerateError = response.error ?? response.message ?? "生成失败";
+                                    currentGenerateError = response.error ?? response.message ?? TJGeneratorsL10n.L("生成失败");
                                     TJLog.LogError($"[MaterialTemplate] {template.id}: 任务失败 - {currentGenerateError}");
                                     break;
                                 }
@@ -502,7 +518,7 @@ namespace TJGenerators
 
             if (string.IsNullOrEmpty(imageUrl))
             {
-                currentGenerateError = currentGenerateError ?? "生成超时";
+                currentGenerateError = currentGenerateError ?? TJGeneratorsL10n.L("生成超时");
                 templateErrors[template.id] = currentGenerateError;
                 yield break;
             }
@@ -519,7 +535,7 @@ namespace TJGenerators
             {
                 yield return request.SendWebRequest();
 
-                if (request.result == UnityWebRequest.Result.Success)
+                if (UnityWebRequestCompat.IsSuccess(request))
                 {
                     Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
                     if (texture != null)
@@ -547,7 +563,7 @@ namespace TJGenerators
                         }
                         catch (Exception e)
                         {
-                            currentGenerateError = $"保存图片失败: {e.Message}";
+                            currentGenerateError = string.Format(TJGeneratorsL10n.L("保存图片失败: {0}"), e.Message);
                             templateErrors[templateId] = currentGenerateError;
                             TJLog.LogError($"[MaterialTemplate] {templateId}: {currentGenerateError}");
                         }
@@ -558,14 +574,14 @@ namespace TJGenerators
                     }
                     else
                     {
-                        currentGenerateError = "下载的纹理为空";
+                        currentGenerateError = TJGeneratorsL10n.L("下载的纹理为空");
                         templateErrors[templateId] = currentGenerateError;
                         TJLog.LogError($"[MaterialTemplate] {templateId}: 下载的纹理为空");
                     }
                 }
                 else
                 {
-                    currentGenerateError = $"下载失败: {request.error}";
+                    currentGenerateError = string.Format(TJGeneratorsL10n.L("下载失败: {0}"), request.error);
                     templateErrors[templateId] = currentGenerateError;
                     TJLog.LogError($"[MaterialTemplate] {templateId}: 下载失败: {request.error}");
                 }
@@ -669,12 +685,6 @@ namespace TJGenerators
         public string task_id;
         public string status;
         public string message;
-    }
-
-    [Serializable]
-    public class MaterialTemplateTaskResponseWrapper
-    {
-        public MaterialTemplateTaskResponse data;
     }
 
     /// <summary>

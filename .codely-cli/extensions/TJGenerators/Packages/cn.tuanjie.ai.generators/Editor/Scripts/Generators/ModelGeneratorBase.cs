@@ -60,7 +60,7 @@ namespace TJGenerators.Generators
 
         /// <summary>
         /// 当前任务的有效预览 URL（含 fallback 计算结果）。
-        /// 由 GenerationPipeline 在调用 OnTextureSaved / OnAudioSaved 之前写入，
+        /// 由 GenerationPipeline 在调用 OnAssetSaved 之前写入，
         /// 供 host 回调传递给各 TaskTracker。任务完成后由 CompleteGeneration 清空。
         /// </summary>
         public string CurrentPreviewUrl { get; set; }
@@ -122,27 +122,6 @@ namespace TJGenerators.Generators
         public virtual string GetRenderedImageUrl(TJTaskStatusResponse response) => null;
         
         /// <summary>
-        /// 从任务状态响应中提取动画模型URL（用于带动画的模型）
-        /// </summary>
-        /// <param name="response">任务状态响应</param>
-        /// <returns>动画模型URL，如果没有则返回null</returns>
-        public virtual string GetAnimationUrl(TJTaskStatusResponse response) => null;
-        
-        /// <summary>
-        /// 从任务状态响应中提取行走动画URL
-        /// </summary>
-        /// <param name="response">任务状态响应</param>
-        /// <returns>行走动画URL，如果没有则返回null</returns>
-        public virtual string GetWalkingAnimationUrl(TJTaskStatusResponse response) => null;
-        
-        /// <summary>
-        /// 从任务状态响应中提取奔跑动画URL
-        /// </summary>
-        /// <param name="response">任务状态响应</param>
-        /// <returns>奔跑动画URL，如果没有则返回null</returns>
-        public virtual string GetRunningAnimationUrl(TJTaskStatusResponse response) => null;
-        
-        /// <summary>
         /// 获取生成的模型文件名
         /// </summary>
         /// <returns>文件名（包含扩展名）</returns>
@@ -151,10 +130,10 @@ namespace TJGenerators.Generators
         // ========== 输出类型 ==========
         
         /// <summary>
-        /// 获取输出类型："model"(3D模型), "texture"(普通贴图), "cubemap"(天空盒), "sprite"(精灵图)
+        /// 获取输出类型，见 <see cref="TJGenerators.Config.GenerationOutputTypes"/>。
         /// 该值同时用于 GenerationPipeline 内部分流和外部（如 TJGeneratorsGenerationService）确定 configType。
         /// </summary>
-        public virtual string GetOutputType() => "model";
+        public virtual string GetOutputType() => TJGenerators.Config.GenerationOutputTypes.Model;
 
         // ========== 后处理与流水线配置 ==========
 
@@ -175,13 +154,8 @@ namespace TJGenerators.Generators
         /// </summary>
         public virtual string GetMotionDescription() => "";
 
-        /// <summary>
-        /// 源模型 URL（用于 OBJ 减面等基于已有模型的操作）。
-        /// </summary>
-        public virtual string GetSourceModelUrl() => null;
-        
         // ========== 任务恢复 ==========
-        
+
         /// <summary>
         /// 创建中断任务数据（用于任务恢复）
         /// </summary>
@@ -260,16 +234,16 @@ namespace TJGenerators.Generators
             }
             else
             {
-                ButtonText = status switch
+                switch (status)
                 {
-                    "pending" => TJGeneratorsL10n.L("等待中..."),
-                    "processing" => TJGeneratorsL10n.L("处理中..."),
-                    "running" => TJGeneratorsL10n.L("生成中..."),
-                    "completed" => TJGeneratorsL10n.L("已完成"),
-                    "failed" => TJGeneratorsL10n.L("失败"),
-                    "error" => TJGeneratorsL10n.L("错误"),
-                    _ => TJGeneratorsL10n.L("处理中...")
-                };
+                    case "pending":    ButtonText = TJGeneratorsL10n.L("等待中..."); break;
+                    case "processing": ButtonText = TJGeneratorsL10n.L("处理中..."); break;
+                    case "running":    ButtonText = TJGeneratorsL10n.L("生成中..."); break;
+                    case "completed":  ButtonText = TJGeneratorsL10n.L("已完成"); break;
+                    case "failed":     ButtonText = TJGeneratorsL10n.L("失败"); break;
+                    case "error":      ButtonText = TJGeneratorsL10n.L("错误"); break;
+                    default:           ButtonText = TJGeneratorsL10n.L("处理中..."); break;
+                }
             }
         }
     }

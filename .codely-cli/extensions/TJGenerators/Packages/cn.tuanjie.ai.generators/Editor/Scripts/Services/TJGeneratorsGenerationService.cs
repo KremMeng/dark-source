@@ -1,10 +1,7 @@
 #if UNITY_EDITOR
 using System;
-using System.Collections;
 using System.IO;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using Unity.UniAsset.Manager.Editor.InternalBridge;
 using TJGenerators.Generators;
 using TJGenerators.Pipeline;
@@ -158,7 +155,7 @@ namespace TJGenerators
 
     public static class TJGeneratorsGenerationService
     {
-        public static TJGeneratorsTaskHandle Generate(ModelGeneratorBase generator, TJGeneratorsGenerationContext context = null)
+        public static TJGeneratorsTaskHandle Generate(ModelGeneratorBase generator, TJGeneratorsGenerationContext context = null, string sessionId = "")
         {
             if (generator == null)
                 throw new ArgumentNullException(nameof(generator));
@@ -168,16 +165,17 @@ namespace TJGenerators
             var targetAsset = ResolveTargetAsset(resolvedContext, generator.GetOutputType());
             var host = new HeadlessGenerationHost(targetAsset);
             var outputType = generator.GetOutputType() ?? "";
-            var configType = outputType switch
+            ConfigType configType;
+            switch (outputType)
             {
-                "sprite" => ConfigType.Sprite,
-                "sprite_sequence" => ConfigType.SpriteSequence,
-                "material" => ConfigType.Material,
-                "audio" => ConfigType.Music,
-                "model" => ConfigType.Generator,
-                _ => ConfigType.Skybox
-            };
-            var pipeline = new GenerationPipeline(host, configType);
+                case GenerationOutputTypes.Sprite:          configType = ConfigType.Sprite; break;
+                case GenerationOutputTypes.SpriteSequence:  configType = ConfigType.SpriteSequence; break;
+                case GenerationOutputTypes.Material:        configType = ConfigType.Material; break;
+                case GenerationOutputTypes.Audio:           configType = ConfigType.Music; break;
+                case GenerationOutputTypes.Model:           configType = ConfigType.Generator; break;
+                default:                                    configType = ConfigType.Skybox; break;
+            }
+            var pipeline = new GenerationPipeline(host, configType, GenerationRequestOrigin.Agent, sessionId);
             var assetGuid = targetAsset?.guid ?? "";
 
             EditorCoroutineUtility.StartCoroutineOwnerless(pipeline.StartGeneration(generator, assetGuid, taskHandle));
@@ -186,12 +184,12 @@ namespace TJGenerators
 
         public static TJGeneratorsTaskHandle Generate(ModelGeneratorBase generator, string targetAssetPath)
         {
-            return Generate(generator, TJGeneratorsGenerationContext.ForAssetPath(targetAssetPath));
+            return Generate(generator, TJGeneratorsGenerationContext.ForAssetPath(targetAssetPath), "");
         }
 
         public static TJGeneratorsTaskHandle GenerateForGuid(ModelGeneratorBase generator, string targetAssetGuid)
         {
-            return Generate(generator, TJGeneratorsGenerationContext.ForAssetGuid(targetAssetGuid));
+            return Generate(generator, TJGeneratorsGenerationContext.ForAssetGuid(targetAssetGuid), "");
         }
 
         /// <summary>
@@ -201,7 +199,9 @@ namespace TJGenerators
         public static TJGeneratorsTaskHandle GenerateFromSubmittedTask(
             ModelGeneratorBase generator,
             TJGeneratorsGenerationContext context,
-            string backendTaskId)
+            string backendTaskId,
+            string sessionId = "",
+            string toolName = "")
         {
             if (generator == null)
                 throw new ArgumentNullException(nameof(generator));
@@ -213,16 +213,17 @@ namespace TJGenerators
             var targetAsset = ResolveTargetAsset(resolvedContext, generator.GetOutputType());
             var host        = new HeadlessGenerationHost(targetAsset);
             var outputType  = generator.GetOutputType() ?? "";
-            var configType  = outputType switch
+            ConfigType configType;
+            switch (outputType)
             {
-                "sprite"          => ConfigType.Sprite,
-                "sprite_sequence" => ConfigType.SpriteSequence,
-                "material"        => ConfigType.Material,
-                "audio"           => ConfigType.Music,
-                "model"           => ConfigType.Generator,
-                _                 => ConfigType.Skybox
-            };
-            var pipeline  = new GenerationPipeline(host, configType);
+                case GenerationOutputTypes.Sprite:          configType = ConfigType.Sprite; break;
+                case GenerationOutputTypes.SpriteSequence:  configType = ConfigType.SpriteSequence; break;
+                case GenerationOutputTypes.Material:        configType = ConfigType.Material; break;
+                case GenerationOutputTypes.Audio:           configType = ConfigType.Music; break;
+                case GenerationOutputTypes.Model:           configType = ConfigType.Generator; break;
+                default:                                    configType = ConfigType.Skybox; break;
+            }
+            var pipeline  = new GenerationPipeline(host, configType, GenerationRequestOrigin.Agent, sessionId, toolName ?? "");
             var assetGuid = targetAsset?.guid ?? "";
 
             EditorCoroutineUtility.StartCoroutineOwnerless(
@@ -232,11 +233,22 @@ namespace TJGenerators
 
         /// <summary>
         /// 同步提交生成任务到后端（约 1-3 秒），立即返回 backendTaskId 或失败原因。
-        /// 使用 HttpClient 阻塞式请求，不依赖 Unity player loop，编辑器会短暂冻结。
+        /// 使用与 <see cref="GenerationPipeline"/> 相同的 UnityWebRequest 路径（阻塞等待），
+        /// 避免 Unity Mono 下 HttpClient 的 Illegal byte sequence 缺陷；编辑器会短暂冻结。
         /// 所有 CustomTool 应调用此方法替代 pipeline.StartGeneration() 的提交阶段。
         /// </summary>
-        public static TJGeneratorsSubmitResult SubmitTaskSync(ModelGeneratorBase generator)
+        public static TJGeneratorsSubmitResult SubmitTaskSync(ModelGeneratorBase generator, string sessionId = "")
         {
+            if (TJGeneratorsPlayModeGuard.IsActive)
+            {
+                return new TJGeneratorsSubmitResult
+                {
+                    Success = false,
+                    ErrorCode = "PLAY_MODE",
+                    Message = TJGeneratorsPlayModeGuard.Message + "\n\nPlease exit Play Mode manually, then retry."
+                };
+            }
+
             // 1. 鉴权检查
             string token = UnityConnectSession.instance.GetAccessToken();
             if (string.IsNullOrEmpty(token))
@@ -254,42 +266,36 @@ namespace TJGenerators
                 };
             string url = ConfigManager.GetApiBaseUrl() + endpoint;
 
-            // 3. 构建请求体 & 同步发送
+            // 3. 构建请求体 & 同步发送（与 GenerationPipeline / ProductionBackendTransport 同路径）
             var requestData = generator.BuildRequestData();
             try
             {
-                using var client = new HttpClient();
-                client.Timeout = TimeSpan.FromSeconds(30);
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-                client.DefaultRequestHeaders.Add("source", "codely");
-                // SubmitTaskSync 仅由 custom tool 调用，固定标记为 agent 来源
-                client.DefaultRequestHeaders.Add(GenerationRequestOrigin.HeaderName, GenerationRequestOrigin.Agent);
-
-                HttpResponseMessage response;
+                GenerationBackendSyncSubmit.HttpResult http;
                 if (requestData is MultipartRequestData multipart)
                 {
-                    using var form = new MultipartFormDataContent();
-                    if (multipart.AdditionalFields != null)
-                        foreach (var kv in multipart.AdditionalFields)
-                            form.Add(new StringContent(kv.Value), kv.Key);
-                    if (!string.IsNullOrEmpty(multipart.FilePath) && File.Exists(multipart.FilePath))
-                    {
-                        var bytes = File.ReadAllBytes(multipart.FilePath);
-                        form.Add(new ByteArrayContent(bytes), multipart.FileFieldName,
-                            multipart.FileName ?? Path.GetFileName(multipart.FilePath));
-                    }
-                    response = client.PostAsync(url, form).Result;
+                    http = GenerationBackendSyncSubmit.PostMultipart(
+                        url, multipart, GenerationRequestOrigin.Agent, sessionId);
                 }
                 else
                 {
                     string jsonData = requestData is DynamicRequestData d
                         ? d.JsonContent : JsonUtility.ToJson(requestData);
-                    response = client.PostAsync(url,
-                        new StringContent(jsonData, Encoding.UTF8, "application/json")).Result;
+                    // Encoding.UTF8.GetBytes 不含 BOM，与 pipeline CreateTask 一致
+                    byte[] postData = Encoding.UTF8.GetBytes(jsonData ?? "");
+                    http = GenerationBackendSyncSubmit.PostJson(
+                        url, postData, GenerationRequestOrigin.Agent, sessionId);
                 }
 
-                string body = response.Content.ReadAsStringAsync().Result;
-                if (response.IsSuccessStatusCode)
+                if (http.TimedOut)
+                {
+                    return new TJGeneratorsSubmitResult {
+                        Success = false, ErrorCode = "NETWORK_ERROR",
+                        Message = string.Format(TJGeneratorsL10n.L("网络请求失败: {0}"), http.Error)
+                    };
+                }
+
+                string body = http.Body ?? "";
+                if (http.IsSuccess)
                 {
                     var resp = JsonUtility.FromJson<TJTaskResponse>(body);
                     if (resp != null && !string.IsNullOrEmpty(resp.taskId))
@@ -299,27 +305,36 @@ namespace TJGenerators
                         Message = string.Format(TJGeneratorsL10n.L("服务器响应格式异常: {0}"), body)
                     };
                 }
-                return (int)response.StatusCode switch {
-                    403 => new TJGeneratorsSubmitResult { Success = false, ErrorCode = "AUTH_REQUIRED",
-                        Message = TJGeneratorsL10n.L("登录权限检查失败，请确认编辑器左上角或者Hub内已登录") },
-                    401 => new TJGeneratorsSubmitResult { Success = false, ErrorCode = "AUTH_REQUIRED",
-                        Message = TJGeneratorsL10n.L("认证失败，请重新登录Unity账号") },
-                    422 => new TJGeneratorsSubmitResult { Success = false, ErrorCode = "INVALID_PARAMS",
-                        Message = string.Format(TJGeneratorsL10n.L("请求参数错误: {0}"), body) },
-                    429 => new TJGeneratorsSubmitResult { Success = false, ErrorCode = "RATE_LIMITED",
-                        Message = TJGeneratorsL10n.L("请求频率过高，请稍后重试") },
-                    _   => new TJGeneratorsSubmitResult { Success = false, ErrorCode = "SERVER_ERROR",
-                        Message = string.Format(TJGeneratorsL10n.L("提交失败 (HTTP {0}): {1}"), (int)response.StatusCode, body) }
-                };
-            }
-            catch (AggregateException ae) when (
-                ae.InnerException is HttpRequestException ||
-                ae.InnerException is TaskCanceledException)
-            {
-                return new TJGeneratorsSubmitResult {
-                    Success = false, ErrorCode = "NETWORK_ERROR",
-                    Message = string.Format(TJGeneratorsL10n.L("网络请求失败: {0}"), ae.InnerException.Message)
-                };
+
+                // responseCode==0：传输层/网络错误（非 HTTP 状态）
+                if (http.ResponseCode == 0)
+                {
+                    return new TJGeneratorsSubmitResult {
+                        Success = false, ErrorCode = "NETWORK_ERROR",
+                        Message = string.Format(TJGeneratorsL10n.L("网络请求失败: {0}"),
+                            string.IsNullOrEmpty(http.Error) ? body : http.Error)
+                    };
+                }
+
+                switch ((int)http.ResponseCode)
+                {
+                    case 403:
+                        return new TJGeneratorsSubmitResult { Success = false, ErrorCode = "AUTH_REQUIRED",
+                            Message = TJGeneratorsL10n.L("登录权限检查失败，请确认编辑器左上角或者Hub内已登录") };
+                    case 401:
+                        return new TJGeneratorsSubmitResult { Success = false, ErrorCode = "AUTH_REQUIRED",
+                            Message = TJGeneratorsL10n.L("认证失败，请重新登录Unity账号") };
+                    case 422:
+                        return new TJGeneratorsSubmitResult { Success = false, ErrorCode = "INVALID_PARAMS",
+                            Message = string.Format(TJGeneratorsL10n.L("请求参数错误: {0}"), body) };
+                    case 429:
+                        return new TJGeneratorsSubmitResult { Success = false, ErrorCode = "RATE_LIMITED",
+                            Message = TJGeneratorsL10n.L("请求频率过高，请稍后重试") };
+                    default:
+                        return new TJGeneratorsSubmitResult { Success = false, ErrorCode = "SERVER_ERROR",
+                            Message = string.Format(TJGeneratorsL10n.L("提交失败 (HTTP {0}): {1}"),
+                                (int)http.ResponseCode, body) };
+                }
             }
             catch (Exception e)
             {
@@ -345,15 +360,15 @@ namespace TJGenerators
             // 根据输出类型创建不同的目标资产
             switch (outputType)
             {
-                case "material":
+                case GenerationOutputTypes.Material:
                     var materialPath = CreateMaterialAsset("Assets/TJGenerators/New Material.mat");
                     return string.IsNullOrEmpty(materialPath) ? context.TargetAsset : TJGeneratorsAssetReference.FromPath(materialPath);
 
-                case "sprite":
+                case GenerationOutputTypes.Sprite:
                     var spritePath = CreateSpriteAsset("Assets/TJGenerators/New Sprite.png");
                     return string.IsNullOrEmpty(spritePath) ? context.TargetAsset : TJGeneratorsAssetReference.FromPath(spritePath);
 
-                case "sprite_sequence":
+                case GenerationOutputTypes.SpriteSequence:
                     var clipPath = CreateAnimationClipAsset("Assets/TJGenerators/New Sprite Sequence.anim");
                     return string.IsNullOrEmpty(clipPath) ? context.TargetAsset : TJGeneratorsAssetReference.FromPath(clipPath);
 
@@ -464,7 +479,7 @@ namespace TJGenerators
             return path;
         }
 
-        private sealed class HeadlessGenerationHost : IGenerationPipelineHost
+        private sealed class HeadlessGenerationHost : HeadlessPipelineHostBase, IMediaAssetPipelineHost
         {
             private readonly TJGeneratorsAssetReference _targetAsset;
 
@@ -473,41 +488,17 @@ namespace TJGenerators
                 _targetAsset = targetAsset;
             }
 
-            public TJGeneratorsAssetReference GetTargetAsset()
+            protected override string DialogLogTag => "TJGenerators";
+
+            public override TJGeneratorsAssetReference GetTargetAsset()
             {
                 return _targetAsset;
             }
 
-            public void RefreshHistory()
+            public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator)
             {
-            }
+                if (_type != PipelineMediaType.Audio) return null;
 
-            public void ShowPreviewModel(string assetPath)
-            {
-            }
-
-            public void RefreshUserInfo()
-            {
-            }
-
-            public void Repaint()
-            {
-            }
-
-            public void StartGeneration(ModelGeneratorBase generator)
-            {
-                // Headless 模式无 UI，不触发窗口内生成
-            }
-
-            public void ShowDialog(string title, string message)
-            {
-                ErrorDialogUtils.ShowErrorDialog(title, message, "TJGenerators");
-            }
-
-            public string GetTextureSavePath(ModelGeneratorBase generator) => null;
-            public void OnTextureSaved(string savePath, ModelGeneratorBase generator) { }
-            public string GetAudioSavePath(ModelGeneratorBase generator)
-            {
                 // Create unique path in History folder for audio files
                 if (!UnityEditor.AssetDatabase.IsValidFolder("Assets/TJGenerators"))
                     UnityEditor.AssetDatabase.CreateFolder("Assets", "TJGenerators");
@@ -521,10 +512,8 @@ namespace TJGenerators
                 return TJGenerators.Utils.TJGeneratorsAudioAssetPathUtility.GenerateUniqueAudioPath(
                     "Assets/TJGenerators/History/" + uniqueName);
             }
-            public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
 
-            public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-            public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
+            public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator) { }
         }
     }
 }

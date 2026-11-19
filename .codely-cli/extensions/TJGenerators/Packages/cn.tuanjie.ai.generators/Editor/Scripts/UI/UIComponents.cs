@@ -107,7 +107,8 @@ namespace TJGenerators.UI
             const int frameSourceBorder = 36;
             const float frameReferenceHeight = 72f;
 
-            frameTexture ??= CommonStyles.TargetSelectorRectTexture;
+            if (frameTexture == null)
+                frameTexture = CommonStyles.TargetSelectorRectTexture;
             if (frameTexture != null)
             {
                 DrawNineSliceBackground(
@@ -1025,20 +1026,14 @@ namespace TJGenerators.UI
         }
 
         /// <summary>
-        /// 在指定矩形内绘制带消耗点数的生成按钮。
+        /// 在指定矩形内绘制生成按钮。
         /// </summary>
-        /// <param name="showCost">为 false 时仅显示标题，不绘制点数图标与数值。</param>
-        public static bool DrawGenerateButtonWithCostAt(
+        public static bool DrawGenerateButtonAt(
             Rect buttonRect,
             string text,
-            int cost,
             bool enabled,
-            bool isBusy = false,
-            bool showCost = true)
+            bool isBusy = false)
         {
-            const float costIconSize = 14f;
-            const float contentGap = 6f;
-
             ResolveGenerateButtonVisuals(enabled, isBusy, out GUIStyle buttonStyle, out GUIStyle labelStyle, out bool isDisabled);
 
             GUI.enabled = enabled;
@@ -1049,68 +1044,18 @@ namespace TJGenerators.UI
             string title = string.IsNullOrEmpty(text) ? TJGeneratorsL10n.L("生成模型") : text;
             Vector2 titleSize = labelStyle.CalcSize(new GUIContent(title));
             float midY = buttonRect.center.y;
-
-            if (!showCost)
-            {
-                float labelX = buttonRect.x + Mathf.Max(0f, (buttonRect.width - titleSize.x) * 0.5f);
-                GUI.Label(new Rect(labelX, midY - titleSize.y * 0.5f, titleSize.x, titleSize.y), title, labelStyle);
-                return clicked;
-            }
-
-            string costText = Mathf.Max(0, cost).ToString();
-            Vector2 costSize = labelStyle.CalcSize(new GUIContent(costText));
-
-            float contentWidth = titleSize.x + contentGap + costIconSize + contentGap + costSize.x;
-            float x = buttonRect.x + Mathf.Max(0f, (buttonRect.width - contentWidth) * 0.5f);
-
-            Rect CenterLabel(float left, Vector2 size) =>
-                new Rect(left, midY - size.y * 0.5f, size.x, size.y);
-
-            Rect CenterSquare(float left, float size) =>
-                new Rect(left, midY - size * 0.5f, size, size);
-
-            GUI.Label(CenterLabel(x, titleSize), title, labelStyle);
-            x += titleSize.x + contentGap;
-
-            Rect iconRect = CenterSquare(x, costIconSize);
-            Texture2D costIcon = CommonStyles.CostIconTexture;
-            Color previousColor = GUI.color;
-            if (isDisabled)
-                GUI.color = new Color(1f, 1f, 1f, 0.25f);
-            if (costIcon != null)
-                GUI.DrawTexture(iconRect, costIcon, ScaleMode.ScaleToFit, true);
-            else
-                EditorGUI.DrawRect(iconRect, Color.white);
-            GUI.color = previousColor;
-            x += costIconSize + contentGap;
-
-            GUI.Label(CenterLabel(x, costSize), costText, labelStyle);
+            float labelX = buttonRect.x + Mathf.Max(0f, (buttonRect.width - titleSize.x) * 0.5f);
+            GUI.Label(new Rect(labelX, midY - titleSize.y * 0.5f, titleSize.x, titleSize.y), title, labelStyle);
             return clicked;
         }
 
         /// <summary>
-        /// 绘制带消耗点数的生成按钮。
+        /// 绘制生成按钮。
         /// </summary>
-        public static bool DrawGenerateButtonWithCost(
+        public static bool DrawGenerateButton(
             string text,
-            int cost,
             bool enabled,
             bool isBusy = false,
-            params GUILayoutOption[] options)
-        {
-            return DrawGenerateButtonWithCost(text, cost, enabled, isBusy, showCost: true, options);
-        }
-
-        /// <summary>
-        /// 绘制生成按钮，可选是否显示消耗点数。
-        /// </summary>
-        /// <param name="showCost">为 false 时仅显示标题，不绘制点数图标与数值。</param>
-        public static bool DrawGenerateButtonWithCost(
-            string text,
-            int cost,
-            bool enabled,
-            bool isBusy,
-            bool showCost,
             params GUILayoutOption[] options)
         {
             ResolveGenerateButtonVisuals(enabled, isBusy, out GUIStyle btnStyle, out _, out _);
@@ -1120,49 +1065,45 @@ namespace TJGenerators.UI
                 btnStyle,
                 options != null && options.Length > 0 ? options : new[] { GUILayout.ExpandWidth(true), GUILayout.Height(LeftPanelBottomDock.ActionButtonHeight) });
             GUI.enabled = true;
-            return DrawGenerateButtonWithCostAt(buttonRect, text, cost, enabled, isBusy, showCost);
+            return DrawGenerateButtonAt(buttonRect, text, enabled, isBusy);
         }
 
         /// <summary>
-        /// 在指定矩形内按新 UI 生成按钮底图绘制，支持自定义图标尺寸与图文间距。
+        /// 在指定矩形内绘制带前置图标的绿色主操作按钮（生成、搜索等）。
         /// </summary>
-        public static bool DrawGenerateButtonWithIconLayoutAt(
+        public static bool DrawGenerateButtonWithIconAt(
             Rect buttonRect,
             string text,
             Texture2D icon,
             bool enabled,
-            float iconSize,
-            float iconTextGap,
+            float iconSize = 16f,
+            float iconTextGap = 6f,
             bool isBusy = false)
         {
-            ResolveGenerateButtonVisuals(enabled, isBusy, out GUIStyle btnStyle, out GUIStyle labelStyle, out bool isDisabled);
+            ResolveGenerateButtonVisuals(enabled, isBusy, out GUIStyle buttonStyle, out GUIStyle labelStyle, out bool isDisabled);
 
             GUI.enabled = enabled;
             bool clicked = enabled && GUI.Button(buttonRect, GUIContent.none, GUIStyle.none);
             GUI.enabled = true;
-            DrawGenerateButtonNineSliceBackground(buttonRect, btnStyle, enabled, isDisabled);
+            DrawGenerateButtonNineSliceBackground(buttonRect, buttonStyle, enabled, isDisabled);
 
             string safeText = string.IsNullOrEmpty(text) ? TJGeneratorsL10n.L("生成") : text;
-            float textWidth = labelStyle.CalcSize(new GUIContent(safeText)).x;
+            Vector2 textSize = labelStyle.CalcSize(new GUIContent(safeText));
             float safeIconSize = Mathf.Max(0f, iconSize);
-            float safeGap = safeIconSize > 0f ? Mathf.Max(0f, iconTextGap) : 0f;
-            float groupWidth = safeIconSize > 0f ? safeIconSize + safeGap + textWidth : textWidth;
-            float startX = buttonRect.x + Mathf.Max(0f, (buttonRect.width - groupWidth) * 0.5f);
-            float centerY = buttonRect.center.y;
+            bool hasIcon = safeIconSize > 0f && icon != null;
+            float iconStride = hasIcon ? safeIconSize + Mathf.Max(0f, iconTextGap) : 0f;
+            float x = buttonRect.x + Mathf.Max(0f, (buttonRect.width - iconStride - textSize.x) * 0.5f);
+            float midY = buttonRect.center.y;
 
-            if (safeIconSize > 0f && icon != null)
+            if (hasIcon)
             {
-                Rect iconRect = new Rect(startX, centerY - safeIconSize * 0.5f, safeIconSize, safeIconSize);
-                Color previousColor = GUI.color;
-                if (isDisabled)
-                    GUI.color = new Color(1f, 1f, 1f, 0.25f);
-                GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
-                GUI.color = previousColor;
-                startX += safeIconSize + safeGap;
+                GUI.color = isDisabled ? new Color(1f, 1f, 1f, 0.25f) : GUI.color;
+                GUI.DrawTexture(new Rect(x, midY - safeIconSize * 0.5f, safeIconSize, safeIconSize), icon, ScaleMode.ScaleToFit, true);
+                GUI.color = Color.white;
+                x += iconStride;
             }
 
-            Rect textRect = new Rect(startX, centerY - 12f, textWidth + 2f, 24f);
-            GUI.Label(textRect, safeText, labelStyle);
+            GUI.Label(new Rect(x, midY - textSize.y * 0.5f, textSize.x, textSize.y), safeText, labelStyle);
             return clicked;
         }
 
@@ -1413,17 +1354,15 @@ namespace TJGenerators.UI
             Action onGenerate,
             Action drawExtraBetweenButtonAndProgress = null,
             Action repaint = null,
-            int generationCost = 0,
             string idleButtonLabel = null)
         {
-            bool canClick = !isGenerating && canGenerate;
+            bool playBlocked = TJGeneratorsPlayModeGuard.IsActive;
+            bool canClick = !isGenerating && canGenerate && !playBlocked;
             string idle = string.IsNullOrEmpty(idleButtonLabel) ? TJGeneratorsL10n.L("生成") : idleButtonLabel;
             string buttonText = isGenerating ? TJGeneratorsL10n.L("生成中...") : idle;
-            int safeCost = Mathf.Max(0, generationCost);
-            bool clicked = DrawGenerateButtonWithCostAt(
+            bool clicked = DrawGenerateButtonAt(
                 layout.buttonRect,
                 buttonText,
-                safeCost,
                 canClick,
                 isGenerating);
 
@@ -1584,7 +1523,7 @@ namespace TJGenerators.UI
         /// </summary>
         public static Rect GetDefaultMainWindowRect(float width, float height, float stackOffset, int wrapCount = 20)
         {
-            Rect mainRect = EditorGUIUtility.GetMainWindowPosition();
+            Rect mainRect = EditorGUIUtilityCompat.GetMainWindowPosition();
 
             width = Mathf.Min(width, mainRect.width);
             height = Mathf.Min(height, mainRect.height);

@@ -19,7 +19,7 @@ namespace TJGenerators
         {
             var icon = EditorGUIUtility.ObjectContent(null, typeof(Cubemap))?.image as Texture2D;
             var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
-            doCreate.action = (instanceId, path, resourceFile) =>
+            doCreate.action = (path, resourceFile) =>
             {
                 path = AssetDatabase.GenerateUniqueAssetPath(path);
                 path = TJGeneratorsSkyboxWindow.CreateBlankSkybox(path);
@@ -37,14 +37,39 @@ namespace TJGenerators
                 TJGeneratorsSkyboxWindow.OpenForAsset(path);
             };
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultName, icon, null);
+            StartNameEditingIfProjectWindowExists(doCreate, defaultName, icon, null);
+        }
+
+        internal static void CreateWorldAssetWithCallback(string defaultName)
+        {
+            var icon = EditorGUIUtility.ObjectContent(null, typeof(Texture2D))?.image as Texture2D;
+            var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
+            doCreate.action = (path, resourceFile) =>
+            {
+                path = AssetDatabase.GenerateUniqueAssetPath(path);
+                path = TJGeneratorsWorldWindow.CreateBlankWorldPreview(path);
+                if (string.IsNullOrEmpty(path))
+                    return;
+
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                if (texture != null)
+                {
+                    Selection.activeObject = texture;
+                    EditorGUIUtility.PingObject(texture);
+                }
+
+                EditorApplication.delayCall += () => TJGeneratorsWorldWindow.OpenForAsset(path);
+            };
+
+            StartNameEditingIfProjectWindowExists(doCreate, defaultName, icon, null);
         }
 
         internal static void CreateSpriteAssetWithCallback(string defaultName)
         {
             var icon = EditorGUIUtility.ObjectContent(null, typeof(Texture2D))?.image as Texture2D;
             var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
-            doCreate.action = (instanceId, path, resourceFile) =>
+            doCreate.action = (path, resourceFile) =>
             {
                 path = AssetDatabase.GenerateUniqueAssetPath(path);
                 path = TJGeneratorsSpriteWindow.CreateBlankSprite(path);
@@ -62,10 +87,10 @@ namespace TJGenerators
                 EditorApplication.delayCall += () => TJGeneratorsSpriteWindow.OpenForAsset(path);
             };
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultName, icon, null);
+            StartNameEditingIfProjectWindowExists(doCreate, defaultName, icon, null);
         }
 
-        internal static void CreateImageAssetWithCallback(string defaultName, bool openAsFrontierSequence = false)
+        internal static void CreateImageAssetWithCallback(string defaultName, bool openAsSpriteSheetSequence = false)
         {
             string folder = PathUtils.GetProjectBrowserInsertionFolderAssetPath();
             if (string.IsNullOrWhiteSpace(defaultName))
@@ -80,12 +105,18 @@ namespace TJGenerators
 
             var icon = EditorGUIUtility.ObjectContent(null, typeof(Texture2D))?.image as Texture2D;
             var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
-            doCreate.action = (instanceId, path, resourceFile) =>
+            doCreate.action = (path, resourceFile) =>
             {
                 path = TJGeneratorsImageAssetPathUtility.GenerateUniqueImagePath(path);
                 path = TJGeneratorsImageWindow.CreateBlankImage(path);
                 if (string.IsNullOrEmpty(path))
                     return;
+
+                if (openAsSpriteSheetSequence)
+                {
+                    var spriteSheetAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
+                    TJGeneratorsGenerationLabel.EnableSpriteSheetLabel(spriteSheetAsset);
+                }
 
                 AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
                 var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
@@ -97,21 +128,21 @@ namespace TJGenerators
 
                 EditorApplication.delayCall += () =>
                 {
-                    if (openAsFrontierSequence)
-                        TJGeneratorsImageWindow.OpenForAssetAsFrontierSequence(path);
+                    if (openAsSpriteSheetSequence)
+                        TJGeneratorsSpriteSheetSequenceWindow.OpenForAsset(path);
                     else
                         TJGeneratorsImageWindow.OpenForAsset(path);
                 };
             };
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultNameForDialog, icon, null);
+            StartNameEditingIfProjectWindowExists(doCreate, defaultNameForDialog, icon, null);
         }
 
         internal static void CreateMaterialAssetWithCallback(string defaultName)
         {
             var icon = EditorGUIUtility.ObjectContent(null, typeof(Material))?.image as Texture2D;
             var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
-            doCreate.action = (instanceId, path, resourceFile) =>
+            doCreate.action = (path, resourceFile) =>
             {
                 path = AssetDatabase.GenerateUniqueAssetPath(path);
 
@@ -128,10 +159,10 @@ namespace TJGenerators
                     EditorGUIUtility.PingObject(loadedMaterial);
                 }
 
-                EditorApplication.delayCall += () => TJGeneratorsSpriteWindow.OpenForMaterialAsset(path);
+                EditorApplication.delayCall += () => TJGeneratorsMaterialWindow.OpenForMaterialAsset(path);
             };
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultName, icon, null);
+            StartNameEditingIfProjectWindowExists(doCreate, defaultName, icon, null);
         }
 
         internal static void CreateVideoAssetWithCallback(string defaultName)
@@ -148,7 +179,7 @@ namespace TJGenerators
 
             var icon = EditorGUIUtility.ObjectContent(null, typeof(VideoClip))?.image as Texture2D;
             var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
-            doCreate.action = (instanceId, path, resourceFile) =>
+            doCreate.action = (path, resourceFile) =>
             {
                 path = AssetDatabase.GenerateUniqueAssetPath(path);
                 path = TJGeneratorsVideoUtils.CreateBlankVideoClip(path);
@@ -167,7 +198,7 @@ namespace TJGenerators
                 EditorApplication.delayCall += () => TJGeneratorsVideoWindow.OpenForAsset(path);
             };
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultNameForDialog, icon, null);
+            StartNameEditingIfProjectWindowExists(doCreate, defaultNameForDialog, icon, null);
         }
 
         internal static void CreateAudioClipAssetWithCallback(string defaultName)
@@ -183,7 +214,7 @@ namespace TJGenerators
 
             var icon = EditorGUIUtility.ObjectContent(null, typeof(UnityEngine.AudioClip))?.image as Texture2D;
             var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
-            doCreate.action = (instanceId, path, resourceFile) =>
+            doCreate.action = (path, resourceFile) =>
             {
                 path = TJGeneratorsAudioAssetPathUtility.GenerateUniquePlaceholderWavPath(path);
                 path = TJGeneratorsAudioUtils.CreateBlankAudioClip(path);
@@ -199,43 +230,7 @@ namespace TJGenerators
                 EditorApplication.delayCall += () => TJGeneratorsMusicWindow.OpenForAsset(path);
             };
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultNameForDialog, icon, null);
-        }
-
-        internal static void CreateAnimationClipAssetWithCallback(string defaultName)
-        {
-            string folder = PathUtils.GetProjectBrowserInsertionFolderAssetPath();
-            if (string.IsNullOrWhiteSpace(defaultName))
-                defaultName = "New Sprite Sequence.anim";
-            string fileName = Path.GetFileName(defaultName.Trim().Replace('\\', '/'));
-            if (string.IsNullOrEmpty(fileName))
-                fileName = "New Sprite Sequence.anim";
-
-            string defaultNameForDialog = Path.GetFileName(
-                AssetDatabase.GenerateUniqueAssetPath($"{folder}/{fileName}")
-            );
-
-            var icon = EditorGUIUtility.ObjectContent(null, typeof(AnimationClip))?.image as Texture2D;
-            var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
-            doCreate.action = (instanceId, path, resourceFile) =>
-            {
-                path = AssetDatabase.GenerateUniqueAssetPath(path);
-
-                var clip = new AnimationClip();
-                AssetDatabase.CreateAsset(clip, path);
-                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-
-                var loaded = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
-                if (loaded != null)
-                {
-                    Selection.activeObject = loaded;
-                    EditorGUIUtility.PingObject(loaded);
-                }
-
-                EditorApplication.delayCall += () => TJGeneratorsSpriteSequenceWindow.OpenForAsset(path);
-            };
-
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultNameForDialog, icon, null);
+            StartNameEditingIfProjectWindowExists(doCreate, defaultNameForDialog, icon, null);
         }
 
         internal static void CreatePrefabAssetWithCallback(string defaultName, bool enableLabel, GameObject sceneParentForInstance)
@@ -243,12 +238,12 @@ namespace TJGenerators
             var icon = EditorGUIUtility.ObjectContent(null, typeof(GameObject))?.image as Texture2D;
             var doCreate = ScriptableObject.CreateInstance<DoCreateTJGeneratorsAsset>();
             var capturedParent = sceneParentForInstance;
-            doCreate.action = (instanceId, path, resourceFile) =>
+            doCreate.action = (path, resourceFile) =>
             {
                 HandlePrefabCreation(path, enableLabel, capturedParent);
             };
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, doCreate, defaultName, icon, null);
+            StartNameEditingIfProjectWindowExists(doCreate, defaultName, icon, null);
         }
 
         private static void HandlePrefabCreation(string path, bool enableLabel, GameObject sceneParentForInstance)
@@ -317,19 +312,41 @@ namespace TJGenerators
 
             return path;
         }
+
+        private static void StartNameEditingIfProjectWindowExists(
+            DoCreateTJGeneratorsAsset endAction,
+            string pathName,
+            Texture2D icon,
+            string resourceFile)
+        {
+#if UNITY_6000_5_OR_NEWER
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(default, endAction, pathName, icon, resourceFile);
+#else
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, endAction, pathName, icon, resourceFile);
+#endif
+        }
     }
 
     /// <summary>
     /// 用于 ProjectWindowUtil 的资产创建回调
     /// </summary>
-    internal class DoCreateTJGeneratorsAsset : EndNameEditAction
+    internal class DoCreateTJGeneratorsAsset
+#if UNITY_6000_5_OR_NEWER
+        : AssetCreationEndAction
+#else
+        : EndNameEditAction
+#endif
     {
-        public delegate void ActionHandler(int instanceId, string pathName, string resourceFile);
+        public delegate void ActionHandler(string pathName, string resourceFile);
         public ActionHandler action { get; set; }
 
+#if UNITY_6000_5_OR_NEWER
+        public override void Action(EntityId entityId, string pathName, string resourceFile)
+#else
         public override void Action(int instanceId, string pathName, string resourceFile)
+#endif
         {
-            action?.Invoke(instanceId, pathName, resourceFile);
+            action?.Invoke(pathName, resourceFile);
         }
     }
 }

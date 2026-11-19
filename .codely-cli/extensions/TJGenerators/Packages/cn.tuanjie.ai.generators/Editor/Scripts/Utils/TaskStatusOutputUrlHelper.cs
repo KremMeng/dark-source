@@ -10,6 +10,7 @@ namespace TJGenerators.Utils
     /// <summary>
     /// 从任务状态响应中解析图片下载 URL（fal 生图、SeeDream 等）。
     /// 兼容 JsonUtility 反序列化不完整及 imageUrls / image_urls / images[].url 等多种结构。
+    /// 返回的 URL 均经 <see cref="PathUtils.NormalizeUrlArray"/> / <see cref="PathUtils.NormalizeRemoteUrl"/> 规范化反斜杠。
     /// </summary>
     public static class TaskStatusOutputUrlHelper
     {
@@ -65,14 +66,14 @@ namespace TJGenerators.Utils
             var data = response.output.data;
 
             if (data.imageUrls != null && data.imageUrls.Length > 0)
-                return data.imageUrls;
+                return PathUtils.NormalizeUrlArray(data.imageUrls);
 
             if (data.result?.image_urls != null && data.result.image_urls.Length > 0)
-                return data.result.image_urls;
+                return PathUtils.NormalizeUrlArray(data.result.image_urls);
 
             if (data.result != null)
             {
-                string fromResultUrls = PathUtils.GetString(data.result, "imageUrls");
+                string fromResultUrls = PathUtils.GetUrlString(data.result, "imageUrls");
                 if (!string.IsNullOrEmpty(fromResultUrls))
                     return new[] { fromResultUrls };
 
@@ -96,7 +97,7 @@ namespace TJGenerators.Utils
                 if (fromData != null && fromData.Length > 0)
                     return fromData;
 
-                string single = PathUtils.GetString(data, path);
+                string single = PathUtils.GetUrlString(data, path);
                 if (!string.IsNullOrEmpty(single))
                     return new[] { single };
             }
@@ -125,14 +126,14 @@ namespace TJGenerators.Utils
                 return null;
 
             if (raw is string s && !string.IsNullOrEmpty(s))
-                return new[] { s };
+                return PathUtils.NormalizeUrlArray(new[] { s });
 
             if (raw is Array arr && arr.Length > 0)
             {
                 var urls = new string[arr.Length];
                 for (int i = 0; i < arr.Length; i++)
                     urls[i] = arr.GetValue(i)?.ToString();
-                return urls;
+                return PathUtils.NormalizeUrlArray(urls);
             }
 
             return null;
@@ -167,7 +168,7 @@ namespace TJGenerators.Utils
             {
                 string s = token.ToString();
                 if (!string.IsNullOrEmpty(s))
-                    urls.Add(s);
+                    urls.Add(PathUtils.NormalizeRemoteUrl(s));
                 return;
             }
 
@@ -179,7 +180,7 @@ namespace TJGenerators.Utils
                         ? arr[i].ToString()
                         : arr[i]?["url"]?.ToString();
                     if (!string.IsNullOrEmpty(s))
-                        urls.Add(s);
+                        urls.Add(PathUtils.NormalizeRemoteUrl(s));
                 }
             }
         }
@@ -193,7 +194,7 @@ namespace TJGenerators.Utils
             {
                 string u = images[i]?["url"]?.ToString();
                 if (!string.IsNullOrEmpty(u))
-                    urls.Add(u);
+                    urls.Add(PathUtils.NormalizeRemoteUrl(u));
             }
         }
     }

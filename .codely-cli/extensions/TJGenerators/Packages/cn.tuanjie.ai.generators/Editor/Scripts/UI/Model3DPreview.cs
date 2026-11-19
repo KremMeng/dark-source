@@ -11,12 +11,14 @@ namespace TJGenerators.UI
     /// </summary>
     public class Model3DPreview : IDisposable
     {
-        private static readonly Quaternion DefaultRotation = Quaternion.Euler(25f, -135f, 0f);
+        private const float DefaultYaw = -135f;
+        private const float DefaultPitch = 25f;
 
         private PreviewRenderUtility _previewRenderUtility;
         private GameObject _previewInstance;
         private string _currentModelPath;
-        private Quaternion _rotation = DefaultRotation;
+        private float _yaw = DefaultYaw;
+        private float _pitch = DefaultPitch;
         private float _zoom = 1f;
         private static Material _fallbackMaterial;
 
@@ -49,7 +51,8 @@ namespace TJGenerators.UI
                     _previewInstance = _previewRenderUtility.InstantiatePrefabInScene(asset);
                     TryFixPinkMaterials(_previewInstance);
                     _currentModelPath = modelPath;
-                    _rotation = DefaultRotation;
+                    _yaw = DefaultYaw;
+                    _pitch = DefaultPitch;
                     _zoom = 1f;
                 }
             }
@@ -64,7 +67,8 @@ namespace TJGenerators.UI
 
             HandleInput(previewRect, repaintCallback);
 
-            _previewInstance.transform.rotation = _rotation * Quaternion.Euler(modelRotationEuler);
+            // 模型只应用配置朝向；交互旋转改为相机绕模型轨道运动，避免转到背面后俯仰方向反转
+            _previewInstance.transform.rotation = Quaternion.Euler(modelRotationEuler);
 
             var bounds = new Bounds(Vector3.zero, Vector3.zero);
             var renderers = _previewInstance.GetComponentsInChildren<Renderer>();
@@ -86,7 +90,8 @@ namespace TJGenerators.UI
 
             float boundsSize = bounds.size.magnitude;
             float distance = boundsSize * 2f / _zoom;
-            _previewRenderUtility.camera.transform.position = bounds.center + Vector3.back * distance + Vector3.up * distance * 0.3f;
+            Vector3 cameraOffset = Quaternion.Euler(_pitch, _yaw, 0f) * new Vector3(0f, 0f, -distance);
+            _previewRenderUtility.camera.transform.position = bounds.center + cameraOffset;
             _previewRenderUtility.camera.transform.LookAt(bounds.center);
             _previewRenderUtility.camera.nearClipPlane = 0.001f;
             _previewRenderUtility.camera.farClipPlane = distance * 10f;
@@ -131,14 +136,10 @@ namespace TJGenerators.UI
             {
                 if (e.type == EventType.MouseDrag && e.button == 0)
                 {
-                    float rotationSpeed = 0.5f;
-                    float deltaX = -e.delta.x * rotationSpeed;
-                    float deltaY = -e.delta.y * rotationSpeed;
-
-                    Quaternion yawRotation = Quaternion.AngleAxis(deltaX, Vector3.up);
-                    Quaternion pitchRotation = Quaternion.AngleAxis(deltaY, _rotation * Vector3.right);
-
-                    _rotation = yawRotation * pitchRotation * _rotation;
+                    float rotationSpeed = 0.4f;
+                    _yaw += e.delta.x * rotationSpeed;
+                    _pitch += e.delta.y * rotationSpeed;
+                    _pitch = Mathf.Clamp(_pitch, -89f, 89f);
 
                     e.Use();
                     repaintCallback?.Invoke();
@@ -146,7 +147,8 @@ namespace TJGenerators.UI
 
                 if (e.type == EventType.MouseDown && e.button == 0 && e.clickCount == 2)
                 {
-                    _rotation = DefaultRotation;
+                    _yaw = DefaultYaw;
+                    _pitch = DefaultPitch;
                     _zoom = 1f;
                     e.Use();
                     repaintCallback?.Invoke();

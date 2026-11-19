@@ -21,7 +21,6 @@ namespace TJGenerators.UI
         private const string GreenBtnNormal4xPath = "Button/green_btn_normal_4x.png";
         private const string GreenBtnHover4xPath = "Button/green_btn_hover_4x.png";
         private const string GreenBtnPressed4xPath = "Button/green_btn_pressed_4x.png";
-        private const string CostIconPath = "Icons/cost_icon.png";
         private const string BlackBtnNormal4xPath = "Button/black_btn_normal_4x.png";
         private const string GreyBtnDisablePath = "Button/grey_btn_disable.png";
         private const string GreenButtonPath = "GreenButton.png";
@@ -102,6 +101,8 @@ namespace TJGenerators.UI
         public static readonly string PlusSymbol = "+";
         /// <summary>行之间的垂直间距（像素）</summary>
         public static float LineSpacing => 20f;
+        /// <summary>统一间距节奏 1x </summary>
+        public static float Space1 => 4f;
         /// <summary>统一间距节奏 2x </summary>
         public static float Space2 => 8f;
         /// <summary>统一间距节奏 4x </summary>
@@ -162,87 +163,6 @@ namespace TJGenerators.UI
         private static GUIStyle _historyPanelStyleHorizontal;
         private static GUIStyle _historyPanelStyleVertical;
         private static GUIStyle _windowContentStyle;
-        private static float s_lastPixelsPerPoint = -1f;
-
-        /// <summary>
-        /// 系统 DPI（<see cref="EditorGUIUtility.pixelsPerPoint"/>）变化时丢弃缓存的 GUIStyle。
-        /// </summary>
-        public static void HandleBackingScaleChange()
-        {
-            float ppp = Mathf.Max(1f, EditorGUIUtility.pixelsPerPoint);
-            if (s_lastPixelsPerPoint > 0f && Mathf.Approximately(s_lastPixelsPerPoint, ppp))
-                return;
-
-            s_lastPixelsPerPoint = ppp;
-            ClearBuiltGuiStyles();
-        }
-
-        /// <summary>丢弃缓存的 GUIStyle，下次访问时重建。</summary>
-        private static void ClearBuiltGuiStyles()
-        {
-            _historyPanelStyleHorizontal = null;
-            _historyPanelStyleVertical = null;
-            _windowContentStyle = null;
-            _textStyle = null;
-            _headerStyle = null;
-            _modelNameStyle = null;
-            _contentStyle = null;
-            _linkStyle = null;
-            _greenButtonStyle = null;
-            _buttonStyle = null;
-            _textFieldStyle = null;
-            _searchTextFieldStyle = null;
-            _placeholderStyle = null;
-            _imageUploadAreaStyle = null;
-            _bottomStatusBarCreditsStyle = null;
-            _separatorStyle = null;
-            _gapLineStyle = null;
-            _statusStyle = null;
-            _historyTileStyle = null;
-            _historyTileSelectedStyle = null;
-            _historyLabelStyle = null;
-            _generateButtonSolidStyle = null;
-            _generateButtonBusyStyle = null;
-            _generateButtonDisabledStyle = null;
-            _generateButtonLabelStyle = null;
-            _generateButtonLabelDisabledStyle = null;
-            _centeredGreyMiniLabelStyleSmall = null;
-            _centeredGreyLabelStyle = null;
-            _smallGreyCenterLabelStyle = null;
-            _smallGreyLeftLabelStyle = null;
-            _SmallGreenLeftLabelStyle = null;
-            _smallGreyLabelStyle = null;
-            _hintLabelStyle = null;
-            _clearButtonStyle = null;
-            _plusStyle = null;
-            _helpBoxStyle = null;
-            _miniRedLabelStyle = null;
-            _pinIconStyle = null;
-            _sectionTitleStyle = null;
-            _targetPrefabHeaderStyle = null;
-            _targetPrefabNameStyle = null;
-            _targetObjectButtonLabelStyle = null;
-            _checkboxBoxStyle = null;
-            _checkboxRowLabelStyle = null;
-            _modelSelectButtonStyle = null;
-            _modelSelectNameStyle = null;
-            _uploadFrameNormalStyle = null;
-            _uploadFrameHoverStyle = null;
-            _uploadFrameUploadedStyle = null;
-            _uploadTitleStyle = null;
-            _uploadHintStyle = null;
-            _uploadNoImageStyle = null;
-            _uploadAIGenLinkStyle = null;
-            _promptInputNormalStyle = null;
-            _promptInputTextStyle = null;
-            _promptInputPlaceholderStyle = null;
-            _dropDownTriggerStyle = null;
-            _dropDownPanelStyle = null;
-            _dropDownRowTextStyle = null;
-            _advancedFoldoutTitleStyle = null;
-            _advancedInputTextStyle = null;
-            _profileEmailStyle = null;
-        }
 
         /// <summary>
         /// 独立窗口内容容器样式（带四周内边距）
@@ -343,7 +263,6 @@ namespace TJGenerators.UI
         private static GUIStyle _searchTextFieldStyle;
         private static GUIStyle _placeholderStyle;
         private static GUIStyle _imageUploadAreaStyle;
-        private static GUIStyle _bottomStatusBarCreditsStyle;
         private static GUIStyle _separatorStyle;
         private static GUIStyle _gapLineStyle;
         private static GUIStyle _statusStyle;
@@ -394,7 +313,6 @@ namespace TJGenerators.UI
         private static Texture2D _greenBtnPressed4xTexture;
         private static Texture2D _greenBtnNormal4xTexture;
         private static Texture2D _greenBtnHover4xTexture;
-        private static Texture2D _costIconTexture;
         private static Texture2D _blackBtnNormal4xTexture;
         private static Texture2D _greyBtnDisableTexture;
         private static Texture2D _greenButtonTexture;
@@ -427,7 +345,6 @@ namespace TJGenerators.UI
             _greenBtnNormal4xTexture = LoadEditorTexture(GreenBtnNormal4xPath);
             _greenBtnHover4xTexture = LoadEditorTexture(GreenBtnHover4xPath);
             _greenBtnPressed4xTexture = LoadEditorTexture(GreenBtnPressed4xPath);
-            _costIconTexture = LoadEditorTexture(CostIconPath);
             _blackBtnNormal4xTexture = LoadEditorTexture(BlackBtnNormal4xPath);
             _greyBtnDisableTexture = LoadEditorTexture(GreyBtnDisablePath);
             _greenButtonTexture = LoadEditorTexture(GreenButtonPath);
@@ -477,11 +394,9 @@ namespace TJGenerators.UI
 
         private static void EnsureStyles()
         {
-            HandleBackingScaleChange();
             EnsureTextures();
             if (_buttonStyle != null)
                 return;
-            ClearBuiltGuiStyles();
 
             _textStyle = new GUIStyle
             {
@@ -629,16 +544,6 @@ namespace TJGenerators.UI
                 alignment = TextAnchor.MiddleLeft,
                 padding = new RectOffset(Mathf.Max(0, Mathf.RoundToInt(10f)), Mathf.Max(0, Mathf.RoundToInt(10f)), 0, 0),
                 normal = { textColor = ThemeGreenColor, background = _greenButtonTexture },
-            };
-
-            _bottomStatusBarCreditsStyle = new GUIStyle(_textStyle)
-            {
-                font = _sourceHanSansMediumFont != null ? _sourceHanSansMediumFont : _sourceHanSansRegularFont,
-                fontSize = 12,
-                fontStyle = FontStyle.Normal,
-                alignment = TextAnchor.MiddleRight,
-                clipping = TextClipping.Clip,
-                normal = { textColor = new Color(1f, 1f, 1f, 0.45f) },
             };
 
             _separatorStyle = new GUIStyle
@@ -1138,12 +1043,6 @@ namespace TJGenerators.UI
             get { EnsureTextures(); return _previewImageDefaultTexture; }
         }
 
-        /// <summary>主窗口底部状态栏右侧「点数」文案样式（与邮箱同色、右对齐）</summary>
-        public static GUIStyle BottomStatusBarCreditsStyle
-        {
-            get { EnsureStyles(); return _bottomStatusBarCreditsStyle; }
-        }
-
         public static GUIStyle SeparatorStyle
         {
             get { EnsureStyles(); return _separatorStyle; }
@@ -1365,19 +1264,9 @@ namespace TJGenerators.UI
             get { EnsureStyles(); return _dropDownPanelStyle; }
         }
 
-        public static Texture2D CostIconTexture
-        {
-            get { EnsureTextures(); return _costIconTexture; }
-        }
-
         public static Texture2D BlackBtnNormal4xTexture
         {
             get { EnsureTextures(); return _blackBtnNormal4xTexture; }
-        }
-
-        public static Texture2D GreyBtnDisableTexture
-        {
-            get { EnsureTextures(); return _greyBtnDisableTexture; }
         }
 
         public static Texture2D SearchIcon4xTexture

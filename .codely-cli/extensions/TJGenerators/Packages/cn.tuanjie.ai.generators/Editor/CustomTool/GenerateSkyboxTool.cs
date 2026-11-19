@@ -23,12 +23,6 @@ namespace UnityTcp.Editor.Tools
     public static class SkyboxTaskTracker
     {
 #if UNITY_EDITOR
-        private static readonly Dictionary<string, SkyboxTaskInfo> _activeTasks = new Dictionary<string, SkyboxTaskInfo>();
-        private static int _taskIdCounter = 0;
-
-        private const string SessionKeyIds = "TJGen_Skybox_Ids";
-        private const string SessionKeyFmt = "TJGen_Skybox_{0}";
-
         [Serializable]
         private class PersistedTask
         {
@@ -48,7 +42,7 @@ namespace UnityTcp.Editor.Tools
             public string backendTaskId;
         }
 
-        public class SkyboxTaskInfo
+        public class SkyboxTaskInfo : IGenerationTaskInfo
         {
             public string TaskId { get; set; }
             public string GeneratorId { get; set; }
@@ -66,167 +60,134 @@ namespace UnityTcp.Editor.Tools
             public string BackendTaskId { get; set; }
         }
 
-        internal static void SaveToSession(SkyboxTaskInfo info)
+        private static readonly GenerationTaskTrackerStore<SkyboxTaskInfo, PersistedTask> Store =
+            new GenerationTaskTrackerStore<SkyboxTaskInfo, PersistedTask>(
+                "TJGen_Skybox", BuildPersisted, FromPersisted);
+
+        private static PersistedTask BuildPersisted(SkyboxTaskInfo info) => new PersistedTask
         {
-            var p = new PersistedTask
-            {
-                taskId                  = info.TaskId,
-                generatorId             = info.GeneratorId,
-                prompt                  = info.Prompt ?? "",
-                imagePath               = info.ImagePath ?? "",
-                status                  = info.Status,
-                progress                = info.Progress,
-                texturePath             = info.TexturePath ?? "",
-                errorMessage            = info.ErrorMessage ?? "",
-                startTimeTicks          = info.StartTime.Ticks,
-                endTimeTicks            = info.EndTime?.Ticks ?? 0,
-                previewUrl              = info.PreviewUrl ?? "",
-                placeholderPath         = info.PlaceholderPath ?? "",
-                placeholderMaterialPath = info.PlaceholderMaterialPath ?? "",
-                backendTaskId           = info.BackendTaskId ?? ""
-            };
-            SessionState.SetString(string.Format(SessionKeyFmt, info.TaskId), JsonUtility.ToJson(p));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!ids.Contains(info.TaskId))
-                SessionState.SetString(SessionKeyIds, string.IsNullOrEmpty(ids) ? info.TaskId : ids + "|" + info.TaskId);
-        }
+            taskId                  = info.TaskId,
+            generatorId             = info.GeneratorId,
+            prompt                  = info.Prompt ?? "",
+            imagePath               = info.ImagePath ?? "",
+            status                  = info.Status,
+            progress                = info.Progress,
+            texturePath             = info.TexturePath ?? "",
+            errorMessage            = info.ErrorMessage ?? "",
+            startTimeTicks          = info.StartTime.Ticks,
+            endTimeTicks            = info.EndTime?.Ticks ?? 0,
+            previewUrl              = info.PreviewUrl ?? "",
+            placeholderPath         = info.PlaceholderPath ?? "",
+            placeholderMaterialPath = info.PlaceholderMaterialPath ?? "",
+            backendTaskId           = info.BackendTaskId ?? ""
+        };
 
-        private static SkyboxTaskInfo TryRestoreFromSession(string taskId)
+        private static SkyboxTaskInfo FromPersisted(PersistedTask p) => new SkyboxTaskInfo
         {
-            string json = SessionState.GetString(string.Format(SessionKeyFmt, taskId), "");
-            if (string.IsNullOrEmpty(json)) return null;
-            PersistedTask p;
-            try { p = JsonUtility.FromJson<PersistedTask>(json); }
-            catch { return null; }
+            TaskId                  = p.taskId,
+            GeneratorId             = p.generatorId,
+            Prompt                  = p.prompt,
+            ImagePath               = p.imagePath,
+            Status                  = p.status,
+            Progress                = p.progress,
+            TexturePath             = p.texturePath,
+            ErrorMessage            = p.errorMessage,
+            PreviewUrl              = p.previewUrl,
+            StartTime               = new DateTime(p.startTimeTicks),
+            EndTime                 = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
+            PlaceholderPath         = p.placeholderPath,
+            PlaceholderMaterialPath = p.placeholderMaterialPath,
+            BackendTaskId           = p.backendTaskId
+        };
 
-            var info = new SkyboxTaskInfo
-            {
-                TaskId                  = p.taskId,
-                GeneratorId             = p.generatorId,
-                Prompt                  = p.prompt,
-                ImagePath               = p.imagePath,
-                Status                  = p.status,
-                Progress                = p.progress,
-                TexturePath             = p.texturePath,
-                ErrorMessage            = p.errorMessage,
-                PreviewUrl              = p.previewUrl,
-                StartTime               = new DateTime(p.startTimeTicks),
-                EndTime                 = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
-                PlaceholderPath         = p.placeholderPath,
-                PlaceholderMaterialPath = p.placeholderMaterialPath,
-                BackendTaskId           = p.backendTaskId
-            };
-
-            // 这些类型无 domain reload 恢复 pipeline，一律标记为 interrupted
-            if (info.Status == "generating" || info.Status == "initializing")
-            {
-                info.Status       = "interrupted";
-                info.ErrorMessage = "Generation was interrupted (domain reload). Please re-generate.";
-                info.EndTime      = DateTime.Now;
-                SaveToSession(info);
-            }
-
-            _activeTasks[taskId] = info;
-            return info;
-        }
+        internal static void ApplyTaskUpdate(SkyboxTaskInfo task, Action<SkyboxTaskInfo> mutate) =>
+            Store.ApplyTaskUpdate(task, mutate);
 
         public static string CreateTask(string generatorId, string prompt, string imagePath, string placeholderPath, string backendTaskId = null)
         {
-            string taskId = $"skybox_{++_taskIdCounter}_{DateTime.Now.Ticks}";
-
+            string taskId = Store.AllocateTaskId("skybox");
             var taskInfo = new SkyboxTaskInfo
             {
-                TaskId = taskId,
-                GeneratorId = generatorId,
-                Prompt = prompt ?? "",
-                ImagePath = imagePath ?? "",
-                Status = "generating",
-                StartTime = DateTime.Now,
-                PlaceholderPath = placeholderPath,
+                TaskId                  = taskId,
+                GeneratorId             = generatorId,
+                Prompt                  = prompt ?? "",
+                ImagePath               = imagePath ?? "",
+                Status                  = "generating",
+                StartTime               = DateTime.Now,
+                PlaceholderPath         = placeholderPath,
                 PlaceholderMaterialPath = DeriveMaterialPath(placeholderPath),
-                BackendTaskId = backendTaskId
+                BackendTaskId           = backendTaskId
             };
-
-            _activeTasks[taskId] = taskInfo;
-            SaveToSession(taskInfo);
+            Store.RegisterTask(taskId, taskInfo);
             return taskId;
         }
 
         public static void MarkCompleted(string taskId, string texturePath, string previewUrl = null)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status = "completed";
-                task.Progress = 100;
-                task.TexturePath = texturePath;
-                task.PreviewUrl = previewUrl;
-                task.EndTime = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status      = "completed";
+                t.Progress    = 100;
+                t.TexturePath = texturePath;
+                t.PreviewUrl  = previewUrl;
+                t.EndTime     = DateTime.Now;
+            });
         }
 
         public static void MarkFailed(string taskId, string errorMessage)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status = "failed";
-                task.ErrorMessage = errorMessage;
-                task.EndTime = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status       = "failed";
+                t.ErrorMessage = errorMessage;
+                t.EndTime      = DateTime.Now;
+            });
         }
 
-        public static SkyboxTaskInfo GetTask(string taskId)
-        {
-            if (_activeTasks.TryGetValue(taskId, out var task)) return task;
-            return TryRestoreFromSession(taskId);
-        }
+        public static SkyboxTaskInfo GetTask(string taskId) => Store.GetTask(taskId);
 
-        public static List<SkyboxTaskInfo> GetAllTasks()
+        public static List<SkyboxTaskInfo> GetAllTasks() => Store.GetAllTasks();
+
+        public static SkyboxTaskInfo GetTaskByBackendId(string backendTaskId) =>
+            Store.GetTaskByBackendId(backendTaskId);
+
+        public static SkyboxTaskInfo CreateRecoveredTask(
+            string backendTaskId, string prompt, string placeholderPath, long timestampMs, string generatorId = null, string imagePath = null)
         {
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!string.IsNullOrEmpty(ids))
+            return Store.CreateRecoveredTask(backendTaskId, () => new SkyboxTaskInfo
             {
-                foreach (var id in ids.Split('|'))
-                {
-                    if (!string.IsNullOrEmpty(id) && !_activeTasks.ContainsKey(id))
-                        TryRestoreFromSession(id);
-                }
-            }
-            return new List<SkyboxTaskInfo>(_activeTasks.Values);
+                TaskId                  = $"recovered_{backendTaskId}",
+                BackendTaskId           = backendTaskId,
+                GeneratorId             = generatorId ?? "",
+                Prompt                  = prompt ?? "",
+                ImagePath               = imagePath ?? "",
+                PlaceholderPath         = placeholderPath ?? "",
+                PlaceholderMaterialPath = DeriveMaterialPath(placeholderPath ?? ""),
+                Status                  = "recovering",
+                Progress                = 0,
+                StartTime               = timestampMs > 0
+                                            ? DateTimeOffset.FromUnixTimeMilliseconds(timestampMs).LocalDateTime
+                                            : DateTime.Now
+            });
         }
 
-        public static void RemoveTask(string taskId)
-        {
-            _activeTasks.Remove(taskId);
-            SessionState.EraseString(string.Format(SessionKeyFmt, taskId));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            var list = new List<string>(ids.Split('|'));
-            list.Remove(taskId);
-            SessionState.SetString(SessionKeyIds, string.Join("|", list));
-        }
+        public static void RemoveTask(string taskId) => Store.RemoveTask(taskId);
 
-        public static void CleanupCompletedTasks()
-        {
-            var toRemove = new List<string>();
-            foreach (var kvp in _activeTasks)
-            {
-                if ((kvp.Value.Status == "completed" || kvp.Value.Status == "failed") &&
-                    kvp.Value.EndTime.HasValue &&
-                    (DateTime.Now - kvp.Value.EndTime.Value).TotalMinutes > 60)
-                {
-                    toRemove.Add(kvp.Key);
-                }
-            }
-            foreach (var id in toRemove)
-                _activeTasks.Remove(id);
-        }
+        public static void CleanupCompletedTasks() => Store.CleanupCompletedTasks();
 
         public static string DeriveMaterialPath(string placeholderPath)
         {
-            return Path.Combine(
-                Path.GetDirectoryName(placeholderPath),
-                Path.GetFileNameWithoutExtension(placeholderPath) + "_material.mat");
+            if (string.IsNullOrEmpty(placeholderPath))
+                return "";
+
+            string dir = Path.GetDirectoryName(placeholderPath)?.Replace('\\', '/');
+            if (string.IsNullOrEmpty(dir))
+                dir = "Assets";
+            return $"{dir}/{Path.GetFileNameWithoutExtension(placeholderPath)}_material.mat";
         }
 #endif
     }
@@ -238,21 +199,6 @@ namespace UnityTcp.Editor.Tools
     /// </summary>
     public static class GenerateSkyboxTool
     {
-        [ExecuteCustomTool.CustomTool("generate_skybox",
-            "Generate a skybox (Cubemap) from a text prompt or reference image using AI. " +
-            "The output is a PNG imported as a Cubemap texture saved to Assets/TJGenerators/History/. " +
-            "Parameters: generator_id (optional, default 'rodin-skybox'), prompt (text description), " +
-            "image_path (reference image path, optional), output_path (optional asset save path). " +
-            "IMPORTANT ASYNC WORKFLOW: " +
-            "(1) Call this tool to start the generation task. Returns task_id and placeholder assets immediately. " +
-            "(2) Apply placeholder assets to the scene using the `place_assets_in_scene` skill. " +
-            "(3) END YOUR CURRENT RESPONSE TURN immediately after step 2. " +
-            "    *** POLLING IS STRICTLY FORBIDDEN. NEVER call `query_skybox_status` in a loop or repeatedly. *** " +
-            "    Only call `query_skybox_status` ONCE as a last-resort fallback if no notification arrives after the estimated wait time. " +
-            "(4) A <bg_task_done> notification will arrive automatically in your next turn when generation finishes. " +
-            "    The notification payload contains ALL the same fields as `query_skybox_status` (texture_path, material_path, preview_url, generator_id, prompt, start_time, end_time, duration_seconds, etc.). " +
-            "    If you receive the notification, the task is done — do NOT call `query_skybox_status` under any circumstances. " +
-            "    Note: automatic notification requires a compatible CLI client version; if no notification arrives, call `query_skybox_status` ONCE only.")]
         public static object GenerateSkybox(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -265,6 +211,7 @@ namespace UnityTcp.Editor.Tools
                 string imagePath = parameters["image_path"]?.ToString();
                 string outputPath = parameters["output_path"]?.ToString();
                 string sessionId = parameters["session_id"]?.ToString() ?? "";
+                GenerationRequestOrigin.SetWorkspaceName(parameters["workspace_name"]?.ToString());
 
                 if (string.IsNullOrEmpty(prompt) && string.IsNullOrEmpty(imagePath))
                 {
@@ -273,6 +220,21 @@ namespace UnityTcp.Editor.Tools
                         { "success", false },
                         { "message", "Either 'prompt' or 'image_path' must be provided" }
                     };
+                }
+
+                // Validate/normalize output_path before submit so bad paths never leave orphan backend tasks.
+                string normalizedOutputPath = null;
+                if (!string.IsNullOrEmpty(outputPath))
+                {
+                    if (!PathUtils.TryNormalizeOutputAssetPath(outputPath, out normalizedOutputPath, out string pathError))
+                    {
+                        return new Dictionary<string, object>
+                        {
+                            { "success", false },
+                            { "error_code", "INVALID_PARAMS" },
+                            { "message", pathError }
+                        };
+                    }
                 }
 
                 // Load skybox generator config
@@ -299,7 +261,7 @@ namespace UnityTcp.Editor.Tools
                 ApplySkyboxParameters(generator, generatorId, parameters);
 
                 // 阶段1：同步提交任务到后端，立即获取 backendTaskId 或失败原因
-                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator);
+                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator, sessionId);
                 if (!submitResult.Success)
                 {
                     TJLog.LogError($"[GenerateSkyboxTool] 任务提交失败 [{submitResult.ErrorCode}]: {submitResult.Message}");
@@ -314,7 +276,7 @@ namespace UnityTcp.Editor.Tools
                 TJLog.Log($"[GenerateSkyboxTool] 任务提交成功，backend_task_id={submitResult.BackendTaskId}");
 
                 // 提交成功后才创建 placeholder（避免在鉴权失败时留下无用文件）
-                string placeholderPath = CreatePlaceholderAssets(outputPath);
+                string placeholderPath = CreatePlaceholderAssets(normalizedOutputPath);
 
                 // Create tracked task (before starting so we have the taskId for the callback)
                 string capturedBackendTaskId = submitResult.BackendTaskId;
@@ -327,7 +289,7 @@ namespace UnityTcp.Editor.Tools
                     {
                         SkyboxTaskTracker.MarkCompleted(taskId, savedPath, previewUrl);
                         // Read the completed task to include timing fields in the notification,
-                        // mirroring the full field set returned by query_skybox_status.
+                        // mirroring the full field set returned by query_local_task.
                         var t = SkyboxTaskTracker.GetTask(taskId);
                         GenerationNotifier.NotifyCompleted("generate_skybox", taskId, capturedBackendTaskId,
                             new JObject
@@ -360,7 +322,7 @@ namespace UnityTcp.Editor.Tools
                     });
 
                 // 阶段2：异步轮询（跳过提交）
-                var pipeline = new GenerationPipeline(host, ConfigType.Skybox);
+                var pipeline = new GenerationPipeline(host, ConfigType.Skybox, GenerationRequestOrigin.Agent, sessionId, "generate_skybox");
                 string historyAssetGuid = CustomToolHistoryBindings.HistoryGuidFromPlaceholderAssetPath(placeholderPath);
                 EditorCoroutineUtility.StartCoroutineOwnerless(
                     pipeline.StartFromSubmittedTask(generator, historyAssetGuid, submitResult.BackendTaskId));
@@ -373,12 +335,12 @@ namespace UnityTcp.Editor.Tools
                     { "submission_success", true },
                     { "message",
                         "Skybox generation started. " +
-                        "STEP 1 (do now): Use `place_assets_in_scene` skill to apply placeholder_material_path to the scene skybox. " +
-                        "STEP 2 (critical): END THIS RESPONSE TURN immediately after applying the placeholder. " +
-                        "STEP 3 (automatic): A <bg_task_done> notification will appear in your next turn (~90s) " +
+                        "STEP 1 (do now): Call activate_skill(\"unity-place-assets-in-scene\"), then use exec_editor_script as instructed to apply placeholder_material_path to the scene skybox. " +
+                        "STEP 2 (critical): Keep this worker active until the task is terminal and its assets are verified. " +
+                        "STEP 3: A <bg_task_done> notification may arrive (~90s) " +
                         "containing ALL generation results (texture_path, material_path, preview_url, timing, etc.). " +
-                        "*** POLLING IS STRICTLY FORBIDDEN — do NOT call query_skybox_status repeatedly. " +
-                        "Only call query_skybox_status ONCE as a last-resort fallback if no notification arrives. ***" },
+                        "Wait up to 30 seconds in the current worker, then call query_local_task once; repeat only while pending. " +
+                        "Do not busy-poll query_local_task, submit again, or report success while pending." },
                     { "task_id",            taskId },
                     { "backend_task_id",    submitResult.BackendTaskId },
                     { "status",             "submitted" },
@@ -390,7 +352,7 @@ namespace UnityTcp.Editor.Tools
                     { "preview_url",        PreviewUrlHelper.BuildFixedPreviewUrl(submitResult.BackendTaskId) },
                     { "estimated_wait_seconds", 90 },
                     { "notification_mode",  "bg_task_done" },
-                    { "next_action",        "Apply placeholder NOW, then END YOUR TURN. Wait for <bg_task_done> notification with final texture_path." }
+                    { "next_action",        "Apply the placeholder once, then wait and query this task until terminal; verify the final Cubemap and material before reporting success." }
                 };
             }
             catch (Exception e)
@@ -411,11 +373,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("query_skybox_status",
-            "Query the status of a skybox generation task. Use ONLY as a one-time fallback if no <bg_task_done> notification arrives. " +
-            "Status values: 'generating', 'completed', 'failed'. " +
-            "When completed, returns 'texture_path' with the Cubemap asset path in the project. " +
-            "WARNING: Do NOT call this tool repeatedly. Polling is forbidden.")]
         public static object QuerySkyboxStatus(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -469,7 +426,7 @@ namespace UnityTcp.Editor.Tools
                     result["duration_seconds"] = (int)(task.EndTime.Value - task.StartTime).TotalSeconds;
                 }
 
-                if (task.Status == "generating")
+                if (task.Status == "generating" || task.Status == "recovering")
                 {
                     if (!string.IsNullOrEmpty(task.PlaceholderPath))
                         result["placeholder_path"] = task.PlaceholderPath;
@@ -497,7 +454,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("list_skybox_tasks", "List all active and recent skybox generation tasks")]
         public static object ListSkyboxTasks(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -558,25 +514,27 @@ namespace UnityTcp.Editor.Tools
         }
 
 #if UNITY_EDITOR
+        /// <param name="outputPath">
+        /// Already-normalized Assets-relative path from <see cref="PathUtils.TryNormalizeOutputAssetPath"/>, or null/empty for default History path.
+        /// </param>
         private static string CreatePlaceholderAssets(string outputPath)
         {
+            const string defaultHistoryPath = "Assets/TJGenerators/History/Skybox.png";
             string placeholderPath;
             if (!string.IsNullOrEmpty(outputPath))
             {
-                string dir = Path.GetDirectoryName(outputPath);
-                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-                placeholderPath = AssetDatabase.GenerateUniqueAssetPath(
-                    Path.ChangeExtension(outputPath, ".png"));
+                string preferred = Path.ChangeExtension(outputPath, ".png").Replace('\\', '/');
+                string dir = Path.GetDirectoryName(preferred)?.Replace('\\', '/');
+                if (!string.IsNullOrEmpty(dir))
+                    PathUtils.EnsureAssetFolder(dir);
+                placeholderPath = PathUtils.GenerateUniqueAssetPathChecked(preferred, defaultHistoryPath);
             }
             else
             {
-                if (!AssetDatabase.IsValidFolder("Assets/TJGenerators"))
-                    AssetDatabase.CreateFolder("Assets", "TJGenerators");
-                if (!AssetDatabase.IsValidFolder("Assets/TJGenerators/History"))
-                    AssetDatabase.CreateFolder("Assets/TJGenerators", "History");
+                PathUtils.EnsureAssetFolder("Assets/TJGenerators/History");
                 string uniqueName = "Skybox_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
-                placeholderPath = AssetDatabase.GenerateUniqueAssetPath("Assets/TJGenerators/History/" + uniqueName);
+                placeholderPath = PathUtils.GenerateUniqueAssetPathChecked(
+                    "Assets/TJGenerators/History/" + uniqueName, defaultHistoryPath);
             }
 
             // Create 1x1 gray placeholder PNG
@@ -586,13 +544,16 @@ namespace UnityTcp.Editor.Tools
             byte[] pngBytes = tex.EncodeToPNG();
             UnityEngine.Object.DestroyImmediate(tex);
 
-            string absolutePath = Path.GetFullPath(
-                Path.Combine(Application.dataPath, "..", placeholderPath));
+            string absolutePath = Path.GetFullPath(PathUtils.ToAbsoluteAssetPath(placeholderPath));
+            if (!PathUtils.IsAbsolutePathUnderAssets(absolutePath))
+                throw new InvalidOperationException(
+                    $"Refusing to write skybox placeholder outside project Assets: '{placeholderPath}'");
+
             string parentDir = Path.GetDirectoryName(absolutePath);
             if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
                 Directory.CreateDirectory(parentDir);
             File.WriteAllBytes(absolutePath, pngBytes);
-            AssetDatabase.ImportAsset(placeholderPath, ImportAssetOptions.ForceUpdate);
+            PathUtils.ImportAssetAfterDiskWrite(placeholderPath);
 
             // Configure as Cubemap so AI Agent can load it immediately
             var importer = AssetImporter.GetAtPath(placeholderPath) as TextureImporter;
@@ -603,9 +564,16 @@ namespace UnityTcp.Editor.Tools
                 importer.SaveAndReimport();
             }
 
-            // Create placeholder skybox material using Skybox/Cubemap shader
-            string matPath = AssetDatabase.GenerateUniqueAssetPath(
-                SkyboxTaskTracker.DeriveMaterialPath(placeholderPath));
+            // Create placeholder skybox material using Skybox/Cubemap shader.
+            // Keep exact DeriveMaterialPath so tracker / notifications stay in sync with the created .mat.
+            string matPath = SkyboxTaskTracker.DeriveMaterialPath(placeholderPath);
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(matPath) != null)
+            {
+                TJLog.LogWarning(
+                    $"[GenerateSkyboxTool] Replacing existing skybox material at '{matPath}' so placeholder material matches tracker path.");
+                AssetDatabase.DeleteAsset(matPath);
+            }
+
             var cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(placeholderPath);
             var shader = Shader.Find("Skybox/Cubemap") ?? Shader.Find("Skybox/6 Sided");
             if (shader != null)
@@ -632,15 +600,123 @@ namespace UnityTcp.Editor.Tools
                     generator.SetParameter("highRes", parameters["high_res"].ToObject<bool>());
             }
         }
+
+        /// <summary>
+        /// Restore prompt/image after domain reload. Session tracker takes precedence.
+        /// </summary>
+        internal static void ApplySkyboxRecoveryGeneratorSettings(
+            DynamicGenerator generator, InterruptedTaskData interrupted, SkyboxTaskTracker.SkyboxTaskInfo trackerTask = null)
+        {
+            if (generator == null || interrupted == null) return;
+
+            string prompt = !string.IsNullOrEmpty(trackerTask?.Prompt) ? trackerTask.Prompt : interrupted.prompt;
+            string imagePath = !string.IsNullOrEmpty(trackerTask?.ImagePath) ? trackerTask.ImagePath : interrupted.imagePath;
+
+            if (!string.IsNullOrEmpty(prompt))
+                generator.SetTextPrompt(prompt);
+            if (!string.IsNullOrEmpty(imagePath))
+                generator.SetImagePath(imagePath);
+        }
 #endif
     }
 
 #if UNITY_EDITOR
     /// <summary>
+    /// Automatically resumes interrupted generate_skybox tasks after domain reload.
+    /// </summary>
+    [InitializeOnLoad]
+    public static class SkyboxDomainReloadRecovery
+    {
+        static SkyboxDomainReloadRecovery()
+        {
+            CustomToolDomainReloadRecovery.Schedule(ResumeInterruptedTasks);
+        }
+
+        private static void ResumeInterruptedTasks()
+        {
+            CustomToolDomainReloadRecovery.Resume(
+                "GenerateSkyboxTool",
+                ConfigType.Skybox,
+                t => t.toolName == "generate_skybox",
+                () => SkyboxTaskTracker.GetAllTasks(),
+                (interrupted, _, generator) =>
+                {
+                    var trackerTask = SkyboxTaskTracker.GetTaskByBackendId(interrupted.backendTaskId);
+                    if (trackerTask != null)
+                    {
+                        CustomToolDomainReloadRecovery.MarkTrackerRecoveringIfNeeded(trackerTask.Status, () =>
+                        {
+                            SkyboxTaskTracker.ApplyTaskUpdate(trackerTask, t => t.Status = "recovering");
+                        });
+                    }
+                    else
+                    {
+                        string placeholderPath = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+                        trackerTask = SkyboxTaskTracker.CreateRecoveredTask(
+                            interrupted.backendTaskId, interrupted.prompt, placeholderPath, interrupted.timestamp,
+                            interrupted.modelVersion, interrupted.imagePath);
+                    }
+
+                    string placeholderPathForHost = trackerTask.PlaceholderPath ?? "";
+                    if (string.IsNullOrEmpty(placeholderPathForHost))
+                        placeholderPathForHost = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+
+                    string derivedMaterialPath = trackerTask.PlaceholderMaterialPath
+                        ?? SkyboxTaskTracker.DeriveMaterialPath(placeholderPathForHost);
+
+                    GenerateSkyboxTool.ApplySkyboxRecoveryGeneratorSettings(generator, interrupted, trackerTask);
+
+                    string sessionId = interrupted.sessionId ?? "";
+                    string capturedBackendTaskId = interrupted.backendTaskId;
+                    string taskId = trackerTask.TaskId;
+
+                    var host = new SkyboxPipelineHost(
+                        placeholderPathForHost,
+                        sessionId,
+                        (savedPath, previewUrl) =>
+                        {
+                            SkyboxTaskTracker.MarkCompleted(taskId, savedPath, previewUrl);
+                            var t = SkyboxTaskTracker.GetTask(taskId);
+                            GenerationNotifier.NotifyCompleted("generate_skybox", taskId, capturedBackendTaskId,
+                                new JObject
+                                {
+                                    ["session_id"]       = sessionId,
+                                    ["generator_id"]     = t?.GeneratorId ?? interrupted.modelVersion ?? "",
+                                    ["prompt"]           = t?.Prompt ?? interrupted.prompt ?? "",
+                                    ["image_path"]       = t?.ImagePath ?? interrupted.imagePath ?? "",
+                                    ["texture_path"]     = savedPath,
+                                    ["material_path"]    = derivedMaterialPath,
+                                    ["preview_url"]      = previewUrl ?? "",
+                                    ["progress"]         = 100,
+                                    ["start_time"]       = t?.StartTime.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                                    ["end_time"]         = t?.EndTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                                    ["duration_seconds"] = (t != null && t.EndTime.HasValue) ? (int)(t.EndTime.Value - t.StartTime).TotalSeconds : 0
+                                });
+                        },
+                        errorMsg =>
+                        {
+                            SkyboxTaskTracker.MarkFailed(taskId, errorMsg);
+                            GenerationNotifier.NotifyFailed("generate_skybox", taskId, capturedBackendTaskId, errorMsg,
+                                new JObject
+                                {
+                                    ["session_id"]   = sessionId,
+                                    ["generator_id"] = trackerTask.GeneratorId ?? interrupted.modelVersion ?? "",
+                                    ["prompt"]       = trackerTask.Prompt ?? interrupted.prompt ?? ""
+                                });
+                        });
+
+                    CustomToolDomainReloadRecovery.StartPolling(
+                        "GenerateSkyboxTool", host, ConfigType.Skybox,
+                        sessionId, "generate_skybox", generator, interrupted.backendTaskId);
+                });
+        }
+    }
+
+    /// <summary>
     /// IGenerationPipelineHost implementation for headless skybox generation via custom tools.
     /// Handles texture saving, Cubemap import settings, and task lifecycle callbacks.
     /// </summary>
-    internal class SkyboxPipelineHost : IGenerationPipelineHost
+    internal class SkyboxPipelineHost : HeadlessPipelineHostBase, IMediaAssetPipelineHost
     {
         private readonly string _placeholderPath;
         private readonly string _placeholderMaterialPath;
@@ -659,27 +735,20 @@ namespace UnityTcp.Editor.Tools
             _onFailed = onFailed;
         }
 
-        public TJGeneratorsAssetReference GetTargetAsset() => _placeholderRef;
+        protected override string DialogLogTag => "GenerateSkyboxTool";
+        protected override Action<string> DialogFailedCallback => errorMessage => _onFailed?.Invoke(errorMessage);
+
+        public override TJGeneratorsAssetReference GetTargetAsset() => _placeholderRef;
 
         public void StartEditorCoroutine(IEnumerator coroutine)
         {
             EditorCoroutineUtility.StartCoroutineOwnerless(coroutine);
         }
 
-        public void RefreshHistory() { }
-        public void ShowPreviewModel(string assetPath) { }
-        public void RefreshUserInfo() { }
-        public void Repaint() { }
-        public void StartGeneration(ModelGeneratorBase generator) { }
-
-        public void ShowDialog(string title, string message)
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator)
         {
-            // Pipeline calls ShowDialog on error — treat as failure
-            ErrorDialogUtils.ShowErrorDialog(title, message, (errorMessage) => _onFailed?.Invoke(errorMessage), "GenerateSkyboxTool");
-        }
+            if (_type != PipelineMediaType.Texture) return null;
 
-        public string GetTextureSavePath(ModelGeneratorBase generator)
-        {
             // Delete placeholder so the real download can use the same path
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(_placeholderPath) != null ||
                 File.Exists(Path.GetFullPath(Path.Combine(Application.dataPath, "..", _placeholderPath))))
@@ -689,8 +758,10 @@ namespace UnityTcp.Editor.Tools
             return _placeholderPath;
         }
 
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator)
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
         {
+            if (_type != PipelineMediaType.Texture) return;
+
             TJLog.Log($"[GenerateSkyboxTool] Skybox texture saved: {savePath}");
 
             // Import as Cubemap (TextureCube)
@@ -721,11 +792,6 @@ namespace UnityTcp.Editor.Tools
 
             _onCompleted?.Invoke(savePath, generator.CurrentPreviewUrl);
         }
-
-        public string GetAudioSavePath(ModelGeneratorBase generator) => null;
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
-        public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
     }
 #endif
 }

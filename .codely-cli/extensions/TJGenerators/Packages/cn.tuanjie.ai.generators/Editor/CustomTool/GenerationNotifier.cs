@@ -2,7 +2,6 @@ using Codely.Newtonsoft.Json.Linq;
 
 #if UNITY_EDITOR
 using Codely.Newtonsoft.Json;
-using TJGenerators;
 using TJGenerators.Utils;
 using UnityEngine;
 using UnityTcp.Editor;
@@ -13,7 +12,7 @@ namespace UnityTcp.Editor.Tools
     /// <summary>
     /// Sends generation-result push notifications to Codely CLI.
     /// Uses two complementary channels:
-    ///   1. UnityTcpBridge.NotifyAll — TCP push (if CLI client is version ≥ 2)
+    ///   1. UnityTcpBridge.NotifyAll — TCP push when bridge ≥ 1.0.40 (CODELY_BRIDGE_HAS_NOTIFY_ALL)
     ///   2. File append — reliable fallback read by the CLI file watcher
     /// </summary>
     internal static class GenerationNotifier
@@ -40,7 +39,9 @@ namespace UnityTcp.Editor.Tools
                 foreach (var p in extraData.Properties())
                     payload[p.Name] = p.Value;
 
+#if CODELY_BRIDGE_HAS_NOTIFY_ALL
             UnityTcpBridge.NotifyAll(EventTypeResult, payload);
+#endif
             WriteNotificationToFile(payload);
             TJLog.Log($"[GenerationNotifier] Notified completed: tool={toolName} task={taskId}");
 #endif
@@ -68,7 +69,9 @@ namespace UnityTcp.Editor.Tools
                 foreach (var p in extraData.Properties())
                     payload[p.Name] = p.Value;
 
+#if CODELY_BRIDGE_HAS_NOTIFY_ALL
             UnityTcpBridge.NotifyAll(EventTypeResult, payload);
+#endif
             WriteNotificationToFile(payload);
             TJLog.Log($"[GenerationNotifier] Notified failed: tool={toolName} task={taskId} error={errorMessage}");
 #endif

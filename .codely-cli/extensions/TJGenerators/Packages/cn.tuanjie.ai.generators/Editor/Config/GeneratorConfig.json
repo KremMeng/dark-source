@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0",
   "apiBaseUrl": "https://ai-generator.tuanjie.cn/api/editor/",
   "codelyBaseUrl": "https://codely.tuanjie.cn",
@@ -58,10 +58,12 @@
         "textInputLabel": "文本提示词（可选）",
         "textInputPlaceholder": "在此处输入文本提示...",
         "imageUploadLabel": "参考图片",
-        "multiViewLabel": "多视图生成（可选）",
+        "multiViewLabel": "多视图生成",
         "multiViewHint": "上传多角度图片生成3D模型，正面必需，至少4张图片",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -185,7 +187,7 @@
       ],
       "responseMapping": {
         "downloadUrlPath": "model",
-        "previewUrlPath": "rendered_image",
+        "previewUrlPath": "generated_image",
         "renderedImagePath": "rendered_image"
       },
       "postProcessing": {
@@ -237,10 +239,12 @@
         "textInputLabel": "文本提示词（可选）",
         "textInputPlaceholder": "在此处输入文本提示...",
         "imageUploadLabel": "参考图片",
-        "multiViewLabel": "多视图生成（可选）",
+        "multiViewLabel": "多视图生成",
         "multiViewHint": "上传多角度图片生成3D模型，正面必需，至少4张图片",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -375,7 +379,7 @@
         }
       ],
       "responseMapping": {
-        "downloadUrlPath": "pbr_model",
+        "downloadUrlPath": "model",
         "downloadUrlPathMultiview": "model",
         "previewUrlPath": "generated_image",
         "renderedImagePath": "rendered_image"
@@ -424,7 +428,9 @@
         "textInputPlaceholder": "描述你想要生成的3D模型...",
         "imageUploadLabel": "参考图片",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -535,6 +541,18 @@
           "tooltip": "生成T/A姿势的模型",
           "apiFieldName": "taPose",
           "defaultValue": "false"
+        },
+        {
+          "id": "qualityOverride",
+          "type": "int",
+          "label": "面数上限",
+          "apiFieldName": "qualityOverride",
+          "apiFieldNameImage": "qualityOverride",
+          "apiFieldNameMultiview": "qualityOverride",
+          "defaultValue": "20000",
+          "min": 0,
+          "max": 1000000,
+          "tooltip": "自定义目标面数，优先于质量预设；范围 500-2000000，Quad 模式上限 200000，非 High 档上限 1000000；设为 0 表示使用质量预设"
         }
       ],
       "responseMapping": {
@@ -550,114 +568,6 @@
           "y": 0.0,
           "z": 0.0
         }
-      }
-    },
-    {
-      "id": "hunyuan",
-      "displayName": "混元3D",
-      "enabled": true,
-      "modelSelector": {
-        "description": "Text-to-3D with PBR materials",
-        "functionTags": [
-          "文生3D",
-          "图生3D",
-          "多视图生成3D"
-        ],
-        "vendorTags": [
-          "Tencent Hunyuan"
-        ],
-        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/hunyuan-color.png"
-      },
-      "imageBase64FieldName": "image",
-      "endpoints": [
-        {
-          "key": "default",
-          "value": "task/hunyuan-3d-text2gen-wf"
-        },
-        {
-          "key": "text",
-          "value": "task/hunyuan-3d-text2gen-wf"
-        },
-        {
-          "key": "image",
-          "value": "task/hunyuan-3d-image2gen-wf"
-        }
-      ],
-      "uiLayout": {
-        "showTextInput": true,
-        "showImageUpload": true,
-        "showMultiView": false,
-        "advancedFoldout": true,
-        "textInputLabel": "文本提示词",
-        "textInputPlaceholder": "描述你想要生成的3D模型...",
-        "imageUploadLabel": "参考图片",
-        "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
-      },
-      "parameters": [
-        {
-          "id": "faceCount",
-          "type": "dropdown",
-          "label": "面数",
-          "apiFieldName": "faceCount",
-          "options": [
-            {
-              "value": "50000",
-              "label": "50000（低）"
-            },
-            {
-              "value": "100000",
-              "label": "100000（中低）"
-            },
-            {
-              "value": "300000",
-              "label": "300000（中）"
-            },
-            {
-              "value": "500000",
-              "label": "500000（中高）"
-            },
-            {
-              "value": "1000000",
-              "label": "1000000（高）"
-            },
-            {
-              "value": "1500000",
-              "label": "1500000（超高）"
-            }
-          ],
-          "defaultValue": "50000"
-        },
-        {
-          "id": "enablePbr",
-          "type": "bool",
-          "label": "PBR纹理",
-          "apiFieldName": "enablePbr",
-          "defaultValue": "false"
-        },
-        {
-          "id": "strictMode",
-          "type": "bool",
-          "label": "严格按面数",
-          "apiFieldName": "strictMode",
-          "defaultValue": "false"
-        }
-      ],
-      "fixedFields": [
-        {
-          "key": "convertToFBX",
-          "value": "true",
-          "type": "bool"
-        }
-      ],
-      "responseMapping": {
-        "downloadUrlPath": "obj_zip_url",
-        "previewUrlPath": "image_url",
-        "convertDownloadUrlPath": "fbx_url"
-      },
-      "postProcessing": {
-        "enableMotion": true,
-        "modelScale": 1.0
       }
     },
     {
@@ -692,10 +602,12 @@
         "textInputLabel": "文本提示词",
         "textInputPlaceholder": "描述你想要生成的3D模型...",
         "imageUploadLabel": "参考图片",
-        "multiViewLabel": "多视图生成（可选）",
+        "multiViewLabel": "多视图生成",
         "multiViewHint": "上传多角度图片生成3D模型，正面必需，至少2张图片",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -742,302 +654,6 @@
       }
     },
     {
-      "id": "hunyuan-lowpoly",
-      "displayName": "混元智能减面",
-      "enabled": true,
-      "modelSelector": {
-        "description": "Intelligent mesh decimation for OBJ models",
-        "functionTags": [
-          "优化"
-        ],
-        "vendorTags": [
-          "Tencent Hunyuan"
-        ],
-        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/hunyuan-color.png"
-      },
-      "endpoints": [
-        {
-          "key": "default",
-          "value": "task/hunyuan-3d-low-poly"
-        }
-      ],
-      "uiLayout": {
-        "showTextInput": false,
-        "showImageUpload": false,
-        "showMultiView": false,
-        "showObjSelector": true,
-        "advancedFoldout": false,
-        "objSelectorLabel": "选择要减面的OBJ文件",
-        "objSelectorHint": "提示：此功能用于对OBJ模型进行智能减面处理。列表中只显示可处理的模型（需要先生成OBJ格式的模型）。"
-      },
-      "parameters": [
-        {
-          "id": "polygonType",
-          "type": "dropdown",
-          "label": "多边形类型",
-          "apiFieldName": "polygon_type",
-          "options": [
-            {
-              "value": "triangle",
-              "label": "三角形"
-            },
-            {
-              "value": "quad",
-              "label": "四边形"
-            }
-          ],
-          "defaultValue": "triangle"
-        }
-      ],
-      "responseMapping": {
-        "downloadUrlPath": "obj_url",
-        "previewUrlPath": "image_url"
-      },
-      "postProcessing": {
-        "enableMotion": true,
-        "modelScale": 1.0,
-        "rotation": {
-          "x": 90.0,
-          "y": 0.0,
-          "z": 0.0
-        }
-      }
-    },
-    {
-      "id": "meshy-animation",
-      "displayName": "Meshy 动画模型",
-      "enabled": true,
-      "modelSelector": {
-        "description": "Text-to-3D with Animation",
-        "functionTags": [
-          "文生3D带动画"
-        ],
-        "vendorTags": [
-          "Meshy"
-        ],
-        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/meshy-color.png"
-      },
-      "endpoints": [
-        {
-          "key": "default",
-          "value": "task/meshy-text-to-3d-with-animation"
-        }
-      ],
-      "uiLayout": {
-        "showTextInput": true,
-        "showImageUpload": false,
-        "showMultiView": false,
-        "advancedFoldout": true,
-        "textInputLabel": "文本提示词",
-        "textInputPlaceholder": "描述你想要生成的带动画的3D角色（最多600字符）...",
-        "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
-      },
-      "parameters": [
-        {
-          "id": "topology",
-          "type": "dropdown",
-          "label": "拓扑类型",
-          "apiFieldName": "topology",
-          "options": [
-            {
-              "value": "quad",
-              "label": "四边形"
-            },
-            {
-              "value": "triangle",
-              "label": "三角形"
-            }
-          ],
-          "defaultValue": "quad"
-        },
-        {
-          "id": "targetPolycount",
-          "type": "int",
-          "label": "目标面数",
-          "apiFieldName": "targetPolycount",
-          "defaultValue": "15000",
-          "min": 100,
-          "max": 300000,
-          "tooltip": "目标面数，范围100-300000"
-        },
-        {
-          "id": "shouldRemesh",
-          "type": "bool",
-          "label": "启用Remesh",
-          "apiFieldName": "shouldRemesh",
-          "defaultValue": "true"
-        },
-        {
-          "id": "symmetryMode",
-          "type": "dropdown",
-          "label": "对称模式",
-          "apiFieldName": "symmetryMode",
-          "options": [
-            {
-              "value": "auto",
-              "label": "自动"
-            },
-            {
-              "value": "on",
-              "label": "开启"
-            },
-            {
-              "value": "off",
-              "label": "关闭"
-            }
-          ],
-          "defaultValue": "auto"
-        },
-        {
-          "id": "poseMode",
-          "type": "dropdown",
-          "label": "姿势模式",
-          "apiFieldName": "poseMode",
-          "tooltip": "用于绑骨的姿势，T-Pose更适合动画",
-          "options": [
-            {
-              "value": "t-pose",
-              "label": "T-Pose"
-            },
-            {
-              "value": "a-pose",
-              "label": "A-Pose"
-            },
-            {
-              "value": "",
-              "label": "默认"
-            }
-          ],
-          "defaultValue": "t-pose"
-        },
-        {
-          "id": "enablePbr",
-          "type": "bool",
-          "label": "生成PBR贴图",
-          "apiFieldName": "enablePbr",
-          "defaultValue": "true"
-        },
-        {
-          "id": "heightMeters",
-          "type": "float",
-          "label": "角色高度(米)",
-          "apiFieldName": "heightMeters",
-          "defaultValue": "1.7",
-          "min": 0.1,
-          "max": 10.0,
-          "tooltip": "角色高度，单位为米"
-        },
-        {
-          "id": "actionId",
-          "type": "dropdown",
-          "label": "动画动作",
-          "apiFieldName": "actionId",
-          "defaultValue": "0",
-          "tooltip": "选择动画动作，完整列表见 Editor/Config/MeshyAnimationIds.json",
-          "options": [
-            {
-              "value": "0",
-              "label": "0 - Idle 待机"
-            },
-            {
-              "value": "1",
-              "label": "1 - Walking 行走"
-            },
-            {
-              "value": "16",
-              "label": "16 - Run Fast 快跑"
-            },
-            {
-              "value": "509",
-              "label": "509 - Sprint 冲刺"
-            },
-            {
-              "value": "4",
-              "label": "4 - Attack 攻击"
-            },
-            {
-              "value": "92",
-              "label": "92 - Double Combo 双连击"
-            },
-            {
-              "value": "105",
-              "label": "105 - Triple Combo 三连击"
-            },
-            {
-              "value": "242",
-              "label": "242 - Charged Slash 蓄力劈"
-            },
-            {
-              "value": "96",
-              "label": "96 - Kung Fu Punch 功夫拳"
-            },
-            {
-              "value": "207",
-              "label": "207 - Roundhouse Kick 回旋踢"
-            },
-            {
-              "value": "125",
-              "label": "125 - Spell Cast 施法"
-            },
-            {
-              "value": "224",
-              "label": "224 - Archery Shot 射箭"
-            },
-            {
-              "value": "156",
-              "label": "156 - Stand Dodge 闪避"
-            },
-            {
-              "value": "7",
-              "label": "7 - Be Hit Fly Up 击飞"
-            },
-            {
-              "value": "8",
-              "label": "8 - Dead 死亡"
-            },
-            {
-              "value": "452",
-              "label": "452 - Backflip 后空翻"
-            },
-            {
-              "value": "466",
-              "label": "466 - Jump 跳跃"
-            },
-            {
-              "value": "22",
-              "label": "22 - Funny Dance 搞笑舞"
-            },
-            {
-              "value": "568",
-              "label": "568 - Swim 游泳"
-            }
-          ]
-        },
-        {
-          "id": "seed",
-          "type": "int",
-          "label": "随机种子",
-          "apiFieldName": "seed",
-          "defaultValue": "0",
-          "min": 0,
-          "max": 2147483647,
-          "tooltip": "随机种子，0表示随机"
-        }
-      ],
-      "responseMapping": {
-        "downloadUrlPath": "rig_result.rigged_character_fbx_url",
-        "previewUrlPath": "thumbnail_url",
-        "animationUrlPath": "animation_result.animation_fbx_url",
-        "walkingAnimationUrlPath": "rig_result.basic_animations.walking_fbx_url",
-        "runningAnimationUrlPath": "rig_result.basic_animations.running_fbx_url"
-      },
-      "postProcessing": {
-        "enableMotion": false,
-        "modelScale": 1.0
-      }
-    },
-    {
       "id": "tripo-p1-animation",
       "displayName": "Tripo P1 动画模型",
       "enabled": true,
@@ -1072,7 +688,9 @@
         "textInputPlaceholder": "描述你想要生成的带动画的3D人物角色（将自动追加T-Pose）...",
         "imageUploadLabel": "参考图片",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -1191,10 +809,6 @@
             {
               "value": "fbx",
               "label": "FBX"
-            },
-            {
-              "value": "glb",
-              "label": "GLB"
             }
           ],
           "defaultValue": "fbx"
@@ -1218,389 +832,151 @@
       ],
       "responseMapping": {
         "downloadUrlPath": "model",
-        "previewUrlPath": "rendered_image",
+        "previewUrlPath": "generated_image",
         "renderedImagePath": "rendered_image"
       }
     },
     {
-      "id": "meshy-image-to-3d",
-      "displayName": "Meshy 图生3D",
-      "enabled": true,
-      "modelSelector": {
-        "description": "Image-to-3D Model",
-        "functionTags": [
-          "图生3D"
-        ],
-        "vendorTags": [
-          "Meshy"
-        ],
-        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/meshy-color.png"
-      },
+      "id": "tripo-texture-model",
+      "displayName": "Tripo 纹理模型",
+      "enabled": false,
       "endpoints": [
         {
           "key": "default",
-          "value": "task/meshy-image-to-3d"
+          "value": "task/tripo-texture-model"
         }
       ],
-      "imageBase64FieldName": "imageUrl",
-      "imageBase64WithPrefix": true,
       "uiLayout": {
         "showTextInput": false,
-        "showImageUpload": true,
+        "showImageUpload": false,
         "showMultiView": false,
+        "showFileUpload": true,
         "advancedFoldout": true,
-        "imageUploadLabel": "参考图片",
-        "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "fileUploadLabel": "模型文件",
+        "fileUploadHint": "请在工程 Assets 内选择 FBX / OBJ 模型文件；将上传至纹理重绘服务",
+        "advancedLabel": "高级设置"
       },
       "parameters": [
         {
-          "id": "aiModel",
+          "id": "modelVersion",
           "type": "dropdown",
-          "label": "AI模型",
-          "apiFieldName": "aiModel",
+          "label": "模型版本",
+          "apiFieldName": "modelVersion",
           "options": [
             {
-              "value": "meshy-6",
-              "label": "meshy-6 (最新)"
+              "value": "v2.5-20250123",
+              "label": "v2.5"
             },
             {
-              "value": "meshy-5",
-              "label": "meshy-5 (稳定)"
+              "value": "v3.0-20250812",
+              "label": "v3.0"
             }
           ],
-          "defaultValue": "meshy-6"
+          "defaultValue": "v2.5-20250123"
         },
         {
-          "id": "topology",
+          "id": "textureQuality",
           "type": "dropdown",
-          "label": "拓扑结构",
-          "apiFieldName": "topology",
+          "label": "纹理质量",
+          "apiFieldName": "textureQuality",
           "options": [
             {
-              "value": "quad",
-              "label": "四边形"
+              "value": "standard",
+              "label": "标准"
             },
             {
-              "value": "triangle",
-              "label": "三角形"
+              "value": "detailed",
+              "label": "精细"
             }
           ],
-          "defaultValue": "quad"
+          "defaultValue": "standard"
         },
         {
-          "id": "targetPolycount",
-          "type": "int",
-          "label": "目标面数",
-          "apiFieldName": "targetPolycount",
-          "defaultValue": "10000",
-          "min": 100,
-          "max": 300000,
-          "tooltip": "目标多边形数量，范围100-300000"
-        },
-        {
-          "id": "symmetryMode",
-          "type": "dropdown",
-          "label": "对称模式",
-          "apiFieldName": "symmetryMode",
-          "options": [
-            {
-              "value": "auto",
-              "label": "自动"
-            },
-            {
-              "value": "on",
-              "label": "开启"
-            },
-            {
-              "value": "off",
-              "label": "关闭"
-            }
-          ],
-          "defaultValue": "auto"
-        },
-        {
-          "id": "shouldTexture",
+          "id": "texture",
           "type": "bool",
-          "label": "生成纹理",
-          "apiFieldName": "shouldTexture",
+          "label": "纹理",
+          "apiFieldName": "texture",
           "defaultValue": "true"
         },
         {
-          "id": "enablePbr",
+          "id": "pbr",
           "type": "bool",
-          "label": "生成PBR贴图",
-          "apiFieldName": "enablePbr",
+          "label": "PBR材质",
+          "apiFieldName": "pbr",
+          "defaultValue": "true"
+        },
+        {
+          "id": "bake",
+          "type": "bool",
+          "label": "烘焙",
+          "apiFieldName": "bake",
           "defaultValue": "false"
         },
         {
-          "id": "isATPose",
+          "id": "withFbx",
           "type": "bool",
-          "label": "A/T姿势",
-          "apiFieldName": "isATPose",
-          "tooltip": "是否生成A/T姿势",
-          "defaultValue": "false"
+          "label": "FBX输出",
+          "apiFieldName": "withFbx",
+          "defaultValue": "true"
         },
         {
-          "id": "texturePrompt",
-          "type": "string",
-          "label": "纹理提示词",
-          "apiFieldName": "texturePrompt",
-          "defaultValue": "",
-          "tooltip": "纹理提示词（最多600字符）"
+          "id": "textureSeed",
+          "type": "int",
+          "label": "纹理种子",
+          "apiFieldName": "textureSeed"
         },
         {
-          "id": "moderation",
-          "type": "bool",
-          "label": "内容审核",
-          "apiFieldName": "moderation",
-          "defaultValue": "false"
-        }
-      ],
-      "fixedFields": [
+          "id": "textureAlignment",
+          "type": "dropdown",
+          "label": "纹理对齐",
+          "apiFieldName": "textureAlignment",
+          "options": [
+            {
+              "value": "",
+              "label": "默认"
+            },
+            {
+              "value": "original_image",
+              "label": "原图对齐"
+            },
+            {
+              "value": "geometry",
+              "label": "几何对齐"
+            }
+          ],
+          "defaultValue": ""
+        },
         {
-          "key": "shouldRemesh",
-          "value": "false",
-          "type": "bool"
+          "id": "compress",
+          "type": "dropdown",
+          "label": "纹理压缩",
+          "apiFieldName": "compress",
+          "options": [
+            {
+              "value": "",
+              "label": "默认"
+            },
+            {
+              "value": "geometry",
+              "label": "geometry"
+            }
+          ],
+          "defaultValue": ""
         }
       ],
       "responseMapping": {
-        "downloadUrlPath": "model_urls.fbx",
-        "previewUrlPath": "thumbnail_url"
+        "downloadUrlPath": "model",
+        "previewUrlPath": "generated_image",
+        "renderedImagePath": "rendered_image"
       },
       "postProcessing": {
         "enableMotion": true,
-        "modelScale": 100.0
-      }
-    },
-    {
-      "id": "meshy-multi-image-to-3d",
-      "displayName": "Meshy 多图生3D",
-      "enabled": true,
-      "modelSelector": {
-        "description": "Multi-Image-to-3D Model",
-        "functionTags": [
-          "多视图生成3D"
-        ],
-        "vendorTags": [
-          "Meshy"
-        ],
-        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/meshy-color.png"
-      },
-      "endpoints": [
-        {
-          "key": "default",
-          "value": "task/meshy-multi-image-to-3d"
+        "modelScale": 1.0,
+        "rotation": {
+          "x": -90.0,
+          "y": 0.0,
+          "z": 0.0
         }
-      ],
-      "imageBase64FieldName": "imageUrls",
-      "imageBase64AsArray": true,
-      "imageBase64WithPrefix": true,
-      "uiLayout": {
-        "showTextInput": false,
-        "showImageUpload": false,
-        "showMultiView": true,
-        "multiViewMinRequired": 2,
-        "advancedFoldout": true,
-        "multiViewLabel": "多视图生成",
-        "multiViewHint": "上传多角度图片生成3D模型，正面必需，至少2张图片",
-        "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
-      },
-      "parameters": [
-        {
-          "id": "aiModel",
-          "type": "dropdown",
-          "label": "AI模型",
-          "apiFieldName": "aiModel",
-          "options": [
-            {
-              "value": "meshy-6",
-              "label": "meshy-6 (最新)"
-            },
-            {
-              "value": "meshy-5",
-              "label": "meshy-5 (稳定)"
-            }
-          ],
-          "defaultValue": "meshy-6"
-        },
-        {
-          "id": "topology",
-          "type": "dropdown",
-          "label": "拓扑结构",
-          "apiFieldName": "topology",
-          "options": [
-            {
-              "value": "quad",
-              "label": "四边形"
-            },
-            {
-              "value": "triangle",
-              "label": "三角形"
-            }
-          ],
-          "defaultValue": "quad"
-        },
-        {
-          "id": "targetPolycount",
-          "type": "int",
-          "label": "目标面数",
-          "apiFieldName": "targetPolycount",
-          "defaultValue": "15000",
-          "min": 100,
-          "max": 300000,
-          "tooltip": "目标多边形数量，范围100-300000"
-        },
-        {
-          "id": "symmetryMode",
-          "type": "dropdown",
-          "label": "对称模式",
-          "apiFieldName": "symmetryMode",
-          "options": [
-            {
-              "value": "auto",
-              "label": "自动"
-            },
-            {
-              "value": "on",
-              "label": "开启"
-            },
-            {
-              "value": "off",
-              "label": "关闭"
-            }
-          ],
-          "defaultValue": "auto"
-        },
-        {
-          "id": "shouldRemesh",
-          "type": "bool",
-          "label": "启用Remesh",
-          "apiFieldName": "shouldRemesh",
-          "defaultValue": "true"
-        },
-        {
-          "id": "shouldTexture",
-          "type": "bool",
-          "label": "生成纹理",
-          "apiFieldName": "shouldTexture",
-          "defaultValue": "true"
-        },
-        {
-          "id": "enablePbr",
-          "type": "bool",
-          "label": "生成PBR贴图",
-          "apiFieldName": "enablePbr",
-          "defaultValue": "true"
-        },
-        {
-          "id": "isATPose",
-          "type": "bool",
-          "label": "A/T姿势",
-          "apiFieldName": "isATPose",
-          "tooltip": "是否生成A/T姿势",
-          "defaultValue": "false"
-        },
-        {
-          "id": "texturePrompt",
-          "type": "string",
-          "label": "纹理提示词",
-          "apiFieldName": "texturePrompt",
-          "defaultValue": "",
-          "tooltip": "纹理提示词"
-        },
-        {
-          "id": "moderation",
-          "type": "bool",
-          "label": "内容审核",
-          "apiFieldName": "moderation",
-          "defaultValue": "false"
-        }
-      ],
-      "responseMapping": {
-        "downloadUrlPath": "model_urls.fbx",
-        "previewUrlPath": "thumbnail_url"
-      },
-      "postProcessing": {
-        "enableMotion": true,
-        "modelScale": 100.0
-      }
-    },
-    {
-      "id": "hunyuan-multi-image-to-3d",
-      "displayName": "混元多视图生3D",
-      "enabled": true,
-      "modelSelector": {
-        "description": "Multi-Image-to-3D Model",
-        "functionTags": [
-          "多视图生成3D"
-        ],
-        "vendorTags": [
-          "Tencent Hunyuan"
-        ],
-        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/hunyuan-color.png"
-      },
-      "endpoints": [
-        {
-          "key": "default",
-          "value": "task/hunyuan-3d-views2geometry-wf"
-        }
-      ],
-      "multiViewFieldNames": {
-        "front": "frontImage",
-        "back": "backImage",
-        "left": "leftImage",
-        "right": "rightImage"
-      },
-      "uiLayout": {
-        "showTextInput": false,
-        "showImageUpload": false,
-        "showMultiView": true,
-        "multiViewMinRequired": 2,
-        "advancedFoldout": true,
-        "multiViewLabel": "多视图生成",
-        "multiViewHint": "上传多角度图片生成3D模型，正面必需，至少2张图片",
-        "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
-      },
-      "parameters": [
-        {
-          "id": "seed",
-          "type": "int",
-          "label": "随机种子",
-          "apiFieldName": "seed",
-          "defaultValue": "0",
-          "min": 0,
-          "max": 2147483647,
-          "tooltip": "生成种子，0表示随机"
-        },
-        {
-          "id": "faceCount",
-          "type": "int",
-          "label": "目标面数",
-          "apiFieldName": "faceCount",
-          "defaultValue": "50000",
-          "min": 50000,
-          "max": 1500000,
-          "tooltip": "目标面数，范围[50000, 1500000]"
-        },
-        {
-          "id": "strictMode",
-          "type": "bool",
-          "label": "严格按目标面数",
-          "apiFieldName": "strictMode",
-          "defaultValue": "false",
-          "tooltip": "是否严格按目标面数生成"
-        }
-      ],
-      "responseMapping": {
-        "downloadUrlPath": "fbx_url",
-        "previewUrlPath": "image_url"
-      },
-      "postProcessing": {
-        "enableMotion": true,
-        "modelScale": 1.0
       }
     },
     {
@@ -1633,7 +1009,9 @@
         "textInputLabel": "动作描述",
         "textInputPlaceholder": "输入动作描述，如：walk、run、jump...",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -1671,7 +1049,6 @@
       },
       "postProcessing": {
         "modelScale": 1.0,
-        "isHumanoid": true,
         "singleClipLoopAnimatorController": true
       }
     },
@@ -1710,8 +1087,7 @@
       },
       "outputType": "rigged-model",
       "postProcessing": {
-        "modelScale": 1.0,
-        "isHumanoid": true
+        "modelScale": 1.0
       }
     }
   ],
@@ -1845,7 +1221,9 @@
         "imageUploadLabel": "参考图片（可选）",
         "maxReferenceImages": 14,
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -1889,16 +1267,24 @@
           "apiFieldName": "outputFormat",
           "options": [
             {
-              "value": "png",
-              "label": "png"
-            },
-            {
               "value": "jpeg",
               "label": "jpeg"
+            },
+            {
+              "value": "png",
+              "label": "png"
             }
           ],
-          "defaultValue": "png",
-          "tooltip": "生成图片格式（png/jpeg）"
+          "defaultValue": "jpeg",
+          "tooltip": "生成图片格式"
+        },
+        {
+          "id": "isSegmentation",
+          "type": "bool",
+          "label": "自动抠图（去除背景）",
+          "apiFieldName": "isSegmentation",
+          "tooltip": "是否自动抠图去除背景",
+          "defaultValue": "false"
         }
       ],
       "fixedFields": [
@@ -1975,7 +1361,9 @@
         "imageUploadLabel": "参考图片",
         "maxReferenceImages": 14,
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -2102,7 +1490,9 @@
         "imageUploadLabel": "参考图片（可选）",
         "maxReferenceImages": 14,
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -2112,16 +1502,16 @@
           "apiFieldName": "outputFormat",
           "options": [
             {
-              "value": "png",
-              "label": "png"
-            },
-            {
               "value": "jpeg",
               "label": "jpeg"
+            },
+            {
+              "value": "png",
+              "label": "png"
             }
           ],
-          "defaultValue": "png",
-          "tooltip": "生成图片格式（png/jpeg）"
+          "defaultValue": "jpeg",
+          "tooltip": "生成图片格式"
         },
         {
           "id": "resolution",
@@ -2207,6 +1597,585 @@
       "responseMapping": {
         "downloadUrlPath": "imageUrls"
       }
+    },
+    {
+      "id": "huoshan_seedream_pro_image",
+      "displayName": "火山 SeeDream Pro",
+      "enabled": true,
+      "outputType": "image",
+      "imageBase64FieldName": "images",
+      "imageBase64AsArray": true,
+      "imageUrlsFieldName": "imageUrls",
+      "modelSelector": {
+        "name": "火山 SeeDream Pro",
+        "description": "文生图、图生图",
+        "functionTags": [
+          "文生图",
+          "图生图"
+        ],
+        "vendorTags": [
+          "火山"
+        ],
+        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/volcengine-color.png",
+        "pinned": false
+      },
+      "promptTemplateSelector": {
+        "enabled": true,
+        "title": "提示词模板",
+        "description": "可选前缀，会与下方文本提示词合并后发送",
+        "options": [
+          {
+            "id": "game_icon",
+            "name": "游戏图标",
+            "description": "透明感、易抠图",
+            "category": "游戏",
+            "prompt": "game asset icon, single centered subject, clean edges, high detail"
+          },
+          {
+            "id": "photo_real",
+            "name": "照片级",
+            "description": "写实光影",
+            "category": "写实",
+            "prompt": "photorealistic, professional photography, sharp focus, natural lighting"
+          }
+        ]
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/huoshan-seedream-pro-async"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "showMultiView": false,
+        "advancedFoldout": true,
+        "textInputLabel": "文本提示词",
+        "textInputPlaceholder": "描述你想要生成的图片...",
+        "imageUploadLabel": "参考图片",
+        "maxReferenceImages": 14,
+        "advancedLabel": "高级设置",
+        "primaryParameterIds": [
+          "animation"
+        ]
+      },
+      "parameters": [
+        {
+          "id": "isSegmentation",
+          "type": "bool",
+          "label": "自动抠图（去除背景）",
+          "apiFieldName": "isSegmentation",
+          "tooltip": "是否自动抠图去除背景",
+          "defaultValue": "true"
+        },
+        {
+          "id": "qValue",
+          "type": "int",
+          "label": "压缩质量",
+          "apiFieldName": "qValue",
+          "tooltip": "抠图后压缩质量",
+          "defaultValue": "75",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "id": "resizeWidth",
+          "type": "int",
+          "label": "裁剪宽度（像素）",
+          "apiFieldName": "resizeWidth",
+          "tooltip": "0 表示不裁剪",
+          "defaultValue": "0",
+          "min": 0,
+          "max": 4096
+        },
+        {
+          "id": "size",
+          "type": "dropdown",
+          "label": "图片尺寸",
+          "apiFieldName": "size",
+          "options": [
+            {
+              "value": "1024x1024",
+              "label": "1024×1024（1K 1:1）"
+            },
+            {
+              "value": "1152x864",
+              "label": "1152×864（1K 4:3）"
+            },
+            {
+              "value": "864x1152",
+              "label": "864×1152（1K 3:4）"
+            },
+            {
+              "value": "1312x736",
+              "label": "1312×736（1K 16:9）"
+            },
+            {
+              "value": "736x1312",
+              "label": "736×1312（1K 9:16）"
+            },
+            {
+              "value": "1248x832",
+              "label": "1248×832（1K 3:2）"
+            },
+            {
+              "value": "832x1248",
+              "label": "832×1248（1K 2:3）"
+            },
+            {
+              "value": "1568x672",
+              "label": "1568×672（1K 21:9）"
+            },
+            {
+              "value": "2048x2048",
+              "label": "2048×2048（2K 1:1）"
+            },
+            {
+              "value": "2304x1728",
+              "label": "2304×1728（2K 4:3）"
+            },
+            {
+              "value": "1728x2304",
+              "label": "1728×2304（2K 3:4）"
+            },
+            {
+              "value": "2848x1600",
+              "label": "2848×1600（2K 16:9）"
+            },
+            {
+              "value": "1600x2848",
+              "label": "1600×2848（2K 9:16）"
+            },
+            {
+              "value": "2496x1664",
+              "label": "2496×1664（2K 3:2）"
+            },
+            {
+              "value": "1664x2496",
+              "label": "1664×2496（2K 2:3）"
+            },
+            {
+              "value": "3136x1344",
+              "label": "3136×1344（2K 21:9）"
+            }
+          ],
+          "defaultValue": "2048x2048"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "image_urls"
+      }
+    },
+    {
+      "id": "frontier_lite",
+      "displayName": "Frontier Lite",
+      "enabled": true,
+      "outputType": "image",
+      "imageBase64FieldName": "images",
+      "imageBase64AsArray": true,
+      "modelSelector": {
+        "name": "Frontier Lite",
+        "description": "文生图、图生图",
+        "functionTags": [
+          "文生图",
+          "图生图"
+        ],
+        "vendorTags": [
+          "Frontier"
+        ],
+        "iconPath": "",
+        "pinned": false
+      },
+      "promptTemplateSelector": {
+        "enabled": true,
+        "title": "提示词模板",
+        "description": "可选前缀，会与下方文本提示词合并后发送",
+        "options": [
+          {
+            "id": "unity_terrain_heightmap",
+            "name": "Unity 地形高度图",
+            "description": "高度图，顶视图",
+            "category": "地形",
+            "prompt": "strict top-down orthographic view, grayscale heightmap for Unity Terrain, follow reference image layout and elevation, high precision, seamless terrain coverage, no perspective, no horizon, suitable as RAW height texture import"
+          }
+        ]
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/frontier-lite"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "showMultiView": false,
+        "advancedFoldout": false,
+        "textInputLabel": "提示词",
+        "textInputPlaceholder": "例如：a cute banana mascot, studio lighting, high detail",
+        "imageUploadLabel": "参考图片（可选）",
+        "maxReferenceImages": 14,
+        "advancedLabel": "高级设置",
+        "primaryParameterIds": [
+          "animation"
+        ]
+      },
+      "parameters": [
+        {
+          "id": "outputFormat",
+          "type": "dropdown",
+          "label": "输出格式",
+          "apiFieldName": "outputFormat",
+          "options": [
+            {
+              "value": "jpeg",
+              "label": "jpeg"
+            },
+            {
+              "value": "png",
+              "label": "png"
+            }
+          ],
+          "defaultValue": "jpeg",
+          "tooltip": "生成图片格式"
+        },
+        {
+          "id": "resolution",
+          "type": "dropdown",
+          "label": "分辨率",
+          "apiFieldName": "resolution",
+          "options": [
+            {
+              "value": "0.5K",
+              "label": "0.5K"
+            },
+            {
+              "value": "1K",
+              "label": "1K"
+            },
+            {
+              "value": "2K",
+              "label": "2K"
+            },
+            {
+              "value": "4K",
+              "label": "4K"
+            }
+          ],
+          "defaultValue": "1K",
+          "tooltip": "生成分辨率（0.5K/1K/2K/4K）"
+        },
+        {
+          "id": "aspectRatio",
+          "type": "dropdown",
+          "label": "宽高比",
+          "apiFieldName": "aspectRatio",
+          "options": [
+            {
+              "value": "auto",
+              "label": "auto"
+            },
+            {
+              "value": "21:9",
+              "label": "21:9"
+            },
+            {
+              "value": "16:9",
+              "label": "16:9"
+            },
+            {
+              "value": "3:2",
+              "label": "3:2"
+            },
+            {
+              "value": "4:3",
+              "label": "4:3"
+            },
+            {
+              "value": "5:4",
+              "label": "5:4"
+            },
+            {
+              "value": "1:1",
+              "label": "1:1"
+            },
+            {
+              "value": "4:5",
+              "label": "4:5"
+            },
+            {
+              "value": "3:4",
+              "label": "3:4"
+            },
+            {
+              "value": "2:3",
+              "label": "2:3"
+            },
+            {
+              "value": "9:16",
+              "label": "9:16"
+            }
+          ],
+          "defaultValue": "auto",
+          "tooltip": "生成宽高比（auto 或指定比例）"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "imageUrls"
+      }
+    },
+    {
+      "id": "esrgan",
+      "displayName": "ESRGAN 图片放大",
+      "enabled": false,
+      "outputType": "image",
+      "modelSelector": {
+        "name": "ESRGAN 图片放大",
+        "description": "AI 超分辨率放大",
+        "functionTags": [
+          "图片放大"
+        ],
+        "vendorTags": [
+          "fal.ai"
+        ],
+        "iconPath": "",
+        "pinned": false
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/fal-esrgan"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": false,
+        "showImageUpload": true,
+        "showMultiView": false,
+        "advancedFoldout": true,
+        "imageUploadLabel": "待放大图片",
+        "advancedLabel": "高级设置",
+        "primaryParameterIds": [
+          "scale"
+        ]
+      },
+      "parameters": [
+        {
+          "id": "imageUrl",
+          "type": "string",
+          "label": "图片URL",
+          "apiFieldName": "imageUrl"
+        },
+        {
+          "id": "scale",
+          "type": "int",
+          "label": "放大倍数",
+          "apiFieldName": "scale",
+          "defaultValue": "4",
+          "min": 1,
+          "max": 8,
+          "tooltip": "放大倍数 1-8"
+        },
+        {
+          "id": "model",
+          "type": "dropdown",
+          "label": "模型",
+          "apiFieldName": "model",
+          "options": [
+            {
+              "value": "",
+              "label": "自动选择"
+            },
+            {
+              "value": "RealESRGAN_x4plus",
+              "label": "RealESRGAN_x4plus"
+            },
+            {
+              "value": "RealESRGAN_x2plus",
+              "label": "RealESRGAN_x2plus"
+            },
+            {
+              "value": "RealESRGAN_x4plus_anime_6B",
+              "label": "RealESRGAN_x4plus_anime_6B"
+            },
+            {
+              "value": "RealESRGAN_x4_v3",
+              "label": "RealESRGAN_x4_v3"
+            },
+            {
+              "value": "RealESRGAN_x4_wdn_v3",
+              "label": "RealESRGAN_x4_wdn_v3"
+            },
+            {
+              "value": "RealESRGAN_x4_anime_v3",
+              "label": "RealESRGAN_x4_anime_v3"
+            }
+          ],
+          "defaultValue": ""
+        },
+        {
+          "id": "face",
+          "type": "bool",
+          "label": "人脸增强",
+          "apiFieldName": "face",
+          "defaultValue": "false",
+          "tooltip": "启用人脸增强"
+        },
+        {
+          "id": "outputFormat",
+          "type": "dropdown",
+          "label": "输出格式",
+          "apiFieldName": "outputFormat",
+          "options": [
+            {
+              "value": "jpeg",
+              "label": "JPEG"
+            },
+            {
+              "value": "png",
+              "label": "PNG"
+            }
+          ],
+          "defaultValue": "png"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "image_urls"
+      }
+    },
+    {
+      "id": "image-layering",
+      "displayName": "图片分层",
+      "enabled": true,
+      "outputType": "image",
+      "imageBase64FieldName": "images",
+      "imageBase64AsArray": true,
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/image-layering"
+        }
+      ],
+      "modelSelector": {
+        "name": "图片分层",
+        "description": "一张图片 → 多个独立 RGBA 图层",
+        "functionTags": [
+          "图生图",
+          "图片分层"
+        ],
+        "vendorTags": [
+          "Qwen"
+        ],
+        "pinned": false
+      },
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "imageUploadRequired": true,
+        "imageUploadLabel": "输入图片（必填）",
+        "maxReferenceImages": 1,
+        "advancedFoldout": true,
+        "advancedLabel": "高级设置",
+        "textInputLabel": "提示词",
+        "textInputPlaceholder": "描述图片内容，辅助图层分离..."
+      },
+      "parameters": [
+        {
+          "id": "numLayers",
+          "type": "int",
+          "label": "图层数量",
+          "apiFieldName": "numLayers",
+          "defaultValue": "4",
+          "min": 1,
+          "max": 8,
+          "tooltip": "生成的图层数量（1–8），默认 4"
+        },
+        {
+          "id": "outputFormat",
+          "type": "dropdown",
+          "label": "输出格式",
+          "apiFieldName": "outputFormat",
+          "options": [
+            {
+              "value": "png",
+              "label": "png"
+            }
+          ],
+          "defaultValue": "png",
+          "tooltip": "图层文件格式"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "imageUrls"
+      }
+    },
+    {
+      "id": "seedream-image-layering",
+      "displayName": "Seedream 图片分层",
+      "enabled": true,
+      "outputType": "image",
+      "imageBase64FieldName": "images",
+      "imageBase64AsArray": true,
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/seedream-image-layering"
+        }
+      ],
+      "modelSelector": {
+        "name": "Seedream 图片分层",
+        "description": "一张图片 → 底图 + 最多 16 个透明图层（自动分层）",
+        "functionTags": [
+          "图生图",
+          "图片分层"
+        ],
+        "vendorTags": [
+          "Seedream"
+        ],
+        "pinned": false
+      },
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "imageUploadRequired": true,
+        "imageUploadLabel": "输入图片（必填，仅 1 张）",
+        "maxReferenceImages": 1,
+        "advancedFoldout": true,
+        "advancedLabel": "高级设置",
+        "textInputLabel": "拆分提示词（可选）",
+        "textInputPlaceholder": "留空自动拆分全部主体；也可指定要拆分的元素..."
+      },
+      "parameters": [
+        {
+          "id": "size",
+          "type": "dropdown",
+          "label": "分辨率档位",
+          "apiFieldName": "size",
+          "options": [
+            {
+              "value": "",
+              "label": "auto"
+            },
+            {
+              "value": "1K",
+              "label": "1K"
+            },
+            {
+              "value": "1.5K",
+              "label": "1.5K"
+            },
+            {
+              "value": "2K",
+              "label": "2K"
+            }
+          ],
+          "defaultValue": "",
+          "tooltip": "输出分辨率档位；auto 跟随输入图尺寸（1K/1.5K/2K）"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "imageUrls"
+      }
     }
   ],
   "skyboxGenerators": [
@@ -2245,7 +2214,9 @@
         "textInputPlaceholder": "描述你想要生成的天空盒场景...",
         "imageUploadLabel": "参考图片",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -2303,7 +2274,9 @@
         "imageUploadLabel": "参考图片",
         "maxReferenceImages": 14,
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -2417,7 +2390,9 @@
         "imageUploadLabel": "参考图片（可选）",
         "maxReferenceImages": 14,
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -2498,7 +2473,7 @@
             }
           ],
           "defaultValue": "png",
-          "tooltip": "生成图片格式（png/jpeg）"
+          "tooltip": "生成图片格式"
         }
       ],
       "fixedFields": [
@@ -2553,7 +2528,9 @@
         "imageUploadLabel": "参考图片（可选）",
         "maxReferenceImages": 14,
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -2600,7 +2577,327 @@
             }
           ],
           "defaultValue": "png",
-          "tooltip": "生成图片格式（png/jpeg）"
+          "tooltip": "生成图片格式"
+        },
+        {
+          "id": "resolution",
+          "type": "dropdown",
+          "label": "分辨率",
+          "apiFieldName": "resolution",
+          "options": [
+            {
+              "value": "0.5K",
+              "label": "0.5K"
+            },
+            {
+              "value": "1K",
+              "label": "1K"
+            },
+            {
+              "value": "2K",
+              "label": "2K"
+            },
+            {
+              "value": "4K",
+              "label": "4K"
+            }
+          ],
+          "defaultValue": "1K",
+          "tooltip": "生成分辨率（0.5K/1K/2K/4K）"
+        },
+        {
+          "id": "aspectRatio",
+          "type": "dropdown",
+          "label": "宽高比",
+          "apiFieldName": "aspectRatio",
+          "options": [
+            {
+              "value": "auto",
+              "label": "auto"
+            },
+            {
+              "value": "21:9",
+              "label": "21:9"
+            },
+            {
+              "value": "16:9",
+              "label": "16:9"
+            },
+            {
+              "value": "3:2",
+              "label": "3:2"
+            },
+            {
+              "value": "4:3",
+              "label": "4:3"
+            },
+            {
+              "value": "5:4",
+              "label": "5:4"
+            },
+            {
+              "value": "1:1",
+              "label": "1:1"
+            },
+            {
+              "value": "4:5",
+              "label": "4:5"
+            },
+            {
+              "value": "3:4",
+              "label": "3:4"
+            },
+            {
+              "value": "2:3",
+              "label": "2:3"
+            },
+            {
+              "value": "9:16",
+              "label": "9:16"
+            }
+          ],
+          "defaultValue": "auto",
+          "tooltip": "生成宽高比（auto 或指定比例）"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "imageUrls"
+      }
+    },
+    {
+      "id": "huoshan_seedream_pro",
+      "displayName": "火山 SeeDream Pro",
+      "enabled": true,
+      "outputType": "sprite",
+      "imageBase64FieldName": "images",
+      "imageBase64AsArray": true,
+      "imageUrlsFieldName": "imageUrls",
+      "modelSelector": {
+        "name": "火山 SeeDream Pro",
+        "description": "文生图、图生图",
+        "functionTags": [
+          "文生图",
+          "图生图"
+        ],
+        "vendorTags": [
+          "火山"
+        ],
+        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/volcengine-color.png",
+        "pinned": false
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/huoshan-seedream-pro-async"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "showMultiView": false,
+        "advancedFoldout": true,
+        "textInputLabel": "文本提示词",
+        "textInputPlaceholder": "描述你想要生成的图片...",
+        "imageUploadLabel": "参考图片",
+        "maxReferenceImages": 14,
+        "advancedLabel": "高级设置",
+        "primaryParameterIds": [
+          "animation"
+        ]
+      },
+      "parameters": [
+        {
+          "id": "isSegmentation",
+          "type": "bool",
+          "label": "自动抠图（去除背景）",
+          "apiFieldName": "isSegmentation",
+          "tooltip": "是否自动抠图去除背景",
+          "defaultValue": "true"
+        },
+        {
+          "id": "qValue",
+          "type": "int",
+          "label": "压缩质量",
+          "apiFieldName": "qValue",
+          "tooltip": "抠图后压缩质量，100 不压缩，值越小压缩越厉害",
+          "defaultValue": "75",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "id": "resizeWidth",
+          "type": "int",
+          "label": "裁剪宽度（像素）",
+          "apiFieldName": "resizeWidth",
+          "tooltip": "抠图后裁剪宽度（像素），0 表示不裁剪，等比例缩放",
+          "defaultValue": "0",
+          "min": 0,
+          "max": 4096
+        },
+        {
+          "id": "size",
+          "type": "dropdown",
+          "label": "图片尺寸",
+          "apiFieldName": "size",
+          "options": [
+            {
+              "value": "1024x1024",
+              "label": "1024×1024（1K 1:1）"
+            },
+            {
+              "value": "1152x864",
+              "label": "1152×864（1K 4:3）"
+            },
+            {
+              "value": "864x1152",
+              "label": "864×1152（1K 3:4）"
+            },
+            {
+              "value": "1312x736",
+              "label": "1312×736（1K 16:9）"
+            },
+            {
+              "value": "736x1312",
+              "label": "736×1312（1K 9:16）"
+            },
+            {
+              "value": "1248x832",
+              "label": "1248×832（1K 3:2）"
+            },
+            {
+              "value": "832x1248",
+              "label": "832×1248（1K 2:3）"
+            },
+            {
+              "value": "1568x672",
+              "label": "1568×672（1K 21:9）"
+            },
+            {
+              "value": "2048x2048",
+              "label": "2048×2048（2K 1:1）"
+            },
+            {
+              "value": "2304x1728",
+              "label": "2304×1728（2K 4:3）"
+            },
+            {
+              "value": "1728x2304",
+              "label": "1728×2304（2K 3:4）"
+            },
+            {
+              "value": "2848x1600",
+              "label": "2848×1600（2K 16:9）"
+            },
+            {
+              "value": "1600x2848",
+              "label": "1600×2848（2K 9:16）"
+            },
+            {
+              "value": "2496x1664",
+              "label": "2496×1664（2K 3:2）"
+            },
+            {
+              "value": "1664x2496",
+              "label": "1664×2496（2K 2:3）"
+            },
+            {
+              "value": "3136x1344",
+              "label": "3136×1344（2K 21:9）"
+            }
+          ],
+          "defaultValue": "2048x2048"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "image_urls"
+      }
+    },
+    {
+      "id": "frontier_lite",
+      "displayName": "Frontier Lite",
+      "enabled": true,
+      "outputType": "sprite",
+      "imageBase64FieldName": "images",
+      "imageBase64AsArray": true,
+      "modelSelector": {
+        "name": "Frontier Lite",
+        "description": "文生图、图生图",
+        "functionTags": [
+          "文生图",
+          "图生图"
+        ],
+        "vendorTags": [
+          "Frontier"
+        ],
+        "iconPath": "",
+        "pinned": false
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/frontier-lite"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "showMultiView": false,
+        "advancedFoldout": true,
+        "textInputLabel": "提示词",
+        "textInputPlaceholder": "例如：a fantasy sword icon, studio lighting, high detail",
+        "imageUploadLabel": "参考图片（可选）",
+        "maxReferenceImages": 14,
+        "advancedLabel": "高级设置",
+        "primaryParameterIds": [
+          "animation"
+        ]
+      },
+      "parameters": [
+        {
+          "id": "isSegmentation",
+          "type": "bool",
+          "label": "自动抠图（去除背景）",
+          "apiFieldName": "isSegmentation",
+          "tooltip": "是否自动抠图去除背景",
+          "defaultValue": "true"
+        },
+        {
+          "id": "qValue",
+          "type": "int",
+          "label": "压缩质量",
+          "apiFieldName": "qValue",
+          "tooltip": "抠图后压缩质量，100 不压缩，值越小压缩越厉害",
+          "defaultValue": "75",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "id": "resizeWidth",
+          "type": "int",
+          "label": "裁剪宽度（像素）",
+          "apiFieldName": "resizeWidth",
+          "tooltip": "抠图后裁剪宽度（像素），0 表示不裁剪，等比例缩放",
+          "defaultValue": "0",
+          "min": 0,
+          "max": 4096
+        },
+        {
+          "id": "outputFormat",
+          "type": "dropdown",
+          "label": "输出格式",
+          "apiFieldName": "outputFormat",
+          "options": [
+            {
+              "value": "png",
+              "label": "png"
+            },
+            {
+              "value": "jpeg",
+              "label": "jpeg"
+            }
+          ],
+          "defaultValue": "png",
+          "tooltip": "（png/jpeg）"
         },
         {
           "id": "resolution",
@@ -2980,9 +3277,11 @@
         "showMultiView": false,
         "advancedFoldout": true,
         "textInputLabel": "文本提示词",
-        "textInputPlaceholder": "描述材质效果（与纹理走势二选一，或两者都填）...",
+        "textInputPlaceholder": "描述材质效果...",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -3035,27 +3334,28 @@
   ],
   "musicGenerators": [
     {
-      "id": "huoshan_music",
-      "displayName": "火山 文生音频",
+      "id": "sonilo-music",
+      "displayName": "Sonilo 音乐生成",
       "enabled": true,
       "outputType": "audio",
-      "audioFormat": "mp4",
+      "audioFormat": "wav",
+      "textInputFieldName": "prompt",
       "modelSelector": {
-        "name": "火山 文生音频",
-        "description": "文生音频、背景音乐",
+        "name": "Sonilo 音乐生成",
+        "description": "文生音乐、背景音乐",
         "functionTags": [
           "文生音频"
         ],
         "vendorTags": [
-          "火山"
+          "Sonilo"
         ],
-        "iconPath": "Packages/cn.tuanjie.ai.generators/Editor/EditorTextures/Logo/volcengine-color.png",
+        "iconPath": "",
         "pinned": true
       },
       "endpoints": [
         {
           "key": "default",
-          "value": "task/huoshan-music"
+          "value": "task/sonilo-music"
         }
       ],
       "uiLayout": {
@@ -3066,54 +3366,53 @@
         "textInputLabel": "文本提示词",
         "textInputPlaceholder": "描述你想要生成的音乐风格、情绪或场景...",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
-          "id": "duration",
-          "type": "int",
+          "id": "durationSeconds",
+          "type": "float",
           "label": "时长(秒)",
-          "apiFieldName": "duration",
-          "defaultValue": "60",
-          "min": 30,
-          "max": 120,
-          "tooltip": "v5.0 有效范围 [30,120]。优先级：Text 中指定 > 本参数"
+          "apiFieldName": "durationSeconds",
+          "defaultValue": "90",
+          "min": 1,
+          "max": 180,
+          "tooltip": "音乐时长（秒），1-180"
         },
         {
-          "id": "version",
+          "id": "outputFormat",
           "type": "dropdown",
-          "label": "模型版本",
-          "apiFieldName": "version",
+          "label": "输出格式",
+          "apiFieldName": "outputFormat",
           "options": [
             {
-              "value": "v5.0",
-              "label": "v5.0"
+              "value": "wav",
+              "label": "WAV"
+            },
+            {
+              "value": "mp3",
+              "label": "MP3"
             }
           ],
-          "defaultValue": "v5.0"
-        },
-        {
-          "id": "enableInputRewrite",
-          "type": "bool",
-          "label": "启用输入重写",
-          "apiFieldName": "enableInputRewrite",
-          "defaultValue": "false",
-          "tooltip": "是否使用模型改写输入 prompt"
+          "defaultValue": "wav"
         }
       ],
       "responseMapping": {
-        "downloadUrlPath": "audio_url",
-        "previewUrlPath": "audio_url"
+        "downloadUrlPath": "audioUrl",
+        "previewUrlPath": "audioUrl"
       }
     },
     {
-      "id": "sound-effect",
-      "displayName": "音效生成",
+      "id": "sonilo-sfx",
+      "displayName": "Sonilo 音效生成",
       "enabled": true,
       "outputType": "audio",
-      "audioFormat": "mp3",
+      "audioFormat": "wav",
+      "textInputFieldName": "prompt",
       "modelSelector": {
-        "name": "音效生成",
+        "name": "Sonilo 音效生成",
         "description": "文生音效",
         "functionTags": [
           "文生音频",
@@ -3125,7 +3424,7 @@
       "endpoints": [
         {
           "key": "default",
-          "value": "task/sound-effect"
+          "value": "task/sonilo-sfx"
         }
       ],
       "uiLayout": {
@@ -3133,10 +3432,12 @@
         "showImageUpload": false,
         "showMultiView": false,
         "advancedFoldout": true,
-        "textInputLabel": "文本提示词（仅支持英文描述）",
-        "textInputPlaceholder": "用英文描述你想要生成的音效，例如：雷声、爆炸、鸟鸣...",
+        "textInputLabel": "文本提示词",
+        "textInputPlaceholder": "描述你想要生成的音效，例如：雷声、爆炸、鸟鸣...",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -3144,20 +3445,10 @@
           "type": "float",
           "label": "时长(秒)",
           "apiFieldName": "durationSeconds",
-          "defaultValue": "5",
+          "defaultValue": "8",
           "min": 1,
-          "max": 22,
-          "tooltip": "音效时长（秒）"
-        },
-        {
-          "id": "promptInfluence",
-          "type": "float",
-          "label": "提示词影响度",
-          "apiFieldName": "promptInfluence",
-          "defaultValue": "0.5",
-          "min": 0,
-          "max": 1,
-          "tooltip": "提示词对生成结果的影响程度"
+          "max": 180,
+          "tooltip": "音效时长（秒），1-180"
         },
         {
           "id": "outputFormat",
@@ -3166,67 +3457,15 @@
           "apiFieldName": "outputFormat",
           "options": [
             {
-              "value": "",
-              "label": "Default"
+              "value": "wav",
+              "label": "WAV"
             },
             {
-              "value": "mp3_22050_32",
-              "label": "mp3_22050_32"
-            },
-            {
-              "value": "mp3_44100_32",
-              "label": "mp3_44100_32"
-            },
-            {
-              "value": "mp3_44100_64",
-              "label": "mp3_44100_64"
-            },
-            {
-              "value": "mp3_44100_96",
-              "label": "mp3_44100_96"
-            },
-            {
-              "value": "mp3_44100_128",
-              "label": "mp3_44100_128"
-            },
-            {
-              "value": "mp3_44100_192",
-              "label": "mp3_44100_192"
-            },
-            {
-              "value": "pcm_8000",
-              "label": "pcm_8000"
-            },
-            {
-              "value": "pcm_16000",
-              "label": "pcm_16000"
-            },
-            {
-              "value": "pcm_22050",
-              "label": "pcm_22050"
-            },
-            {
-              "value": "pcm_24000",
-              "label": "pcm_24000"
-            },
-            {
-              "value": "pcm_44100",
-              "label": "pcm_44100"
-            },
-            {
-              "value": "pcm_48000",
-              "label": "pcm_48000"
+              "value": "mp3",
+              "label": "MP3"
             }
           ],
-          "defaultValue": ""
-        },
-        {
-          "id": "loop",
-          "type": "bool",
-          "label": "循环",
-          "apiFieldName": "loop",
-          "defaultValue": "false",
-          "tooltip": "是否生成可循环音效"
+          "defaultValue": "wav"
         }
       ],
       "responseMapping": {
@@ -3268,7 +3507,9 @@
         "textInputLabel": "语音文本",
         "textInputPlaceholder": "输入要合成语音的文本内容...",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
         {
@@ -3318,6 +3559,50 @@
         "downloadUrlPath": "audioUrl",
         "previewUrlPath": "audioUrl"
       }
+    },
+    {
+      "id": "voice-clone",
+      "displayName": "声音克隆",
+      "enabled": false,
+      "outputType": "audio",
+      "audioFormat": "mp3",
+      "modelSelector": {
+        "name": "声音克隆",
+        "description": "从音频样本克隆语音",
+        "functionTags": [
+          "语音克隆"
+        ],
+        "vendorTags": [
+          "fal.ai"
+        ],
+        "iconPath": "",
+        "pinned": false
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/fal-voice-clone"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": false,
+        "showImageUpload": false,
+        "showMultiView": false,
+        "advancedFoldout": false,
+        "primaryParameterIds": []
+      },
+      "parameters": [
+        {
+          "id": "audioUrl",
+          "type": "string",
+          "label": "音频URL",
+          "apiFieldName": "audioUrl"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "previewAudioUrl",
+        "previewUrlPath": "previewAudioUrl"
+      }
     }
   ],
   "videoGenerators": [
@@ -3356,9 +3641,33 @@
         "textInputPlaceholder": "描述你想要生成的视频内容...",
         "imageUploadLabel": "参考图片（可选）",
         "advancedLabel": "高级设置",
-        "primaryParameterIds": ["animation"]
+        "primaryParameterIds": [
+          "animation"
+        ]
       },
       "parameters": [
+        {
+          "id": "model",
+          "type": "dropdown",
+          "label": "模型",
+          "apiFieldName": "model",
+          "options": [
+            {
+              "value": "doubao-seedance-2-0-mini-260615",
+              "label": "Mini（默认）"
+            },
+            {
+              "value": "doubao-seedance-2-0-260128",
+              "label": "标准版"
+            },
+            {
+              "value": "doubao-seedance-2-0-fast-260128",
+              "label": "快速版"
+            }
+          ],
+          "defaultValue": "doubao-seedance-2-0-mini-260615",
+          "tooltip": "Seedance2 模型版本"
+        },
         {
           "id": "mode",
           "type": "dropdown",
@@ -3372,10 +3681,22 @@
             {
               "value": "text_to_video",
               "label": "文生视频"
+            },
+            {
+              "value": "multimodal",
+              "label": "多模态参考"
+            },
+            {
+              "value": "first_frame",
+              "label": "首帧生视频"
+            },
+            {
+              "value": "first_last_frame",
+              "label": "首尾帧生视频"
             }
           ],
-          "defaultValue": "reference_image",
-          "tooltip": "图生视频：基于参考图片生成视频；文生视频：基于文本描述生成视频。上传参考图片时自动切换为图生视频。"
+          "defaultValue": "text_to_video",
+          "tooltip": "图生视频：基于参考图片生成视频；文生视频：基于文本描述生成视频。上传参考图片时自动切换为图生视频。首帧/首尾帧：用 1-2 张图定义视频起止画面。多模态参考：上传参考视频作为运镜/动作参考，可同时上传风格参考图和音频。"
         },
         {
           "id": "resolution",
@@ -3388,8 +3709,8 @@
               "label": "720p"
             },
             {
-              "value": "1080p",
-              "label": "1080p"
+              "value": "480p",
+              "label": "480p"
             }
           ],
           "defaultValue": "720p",
@@ -3412,6 +3733,22 @@
             {
               "value": "1:1",
               "label": "1:1"
+            },
+            {
+              "value": "4:3",
+              "label": "4:3"
+            },
+            {
+              "value": "3:4",
+              "label": "3:4"
+            },
+            {
+              "value": "21:9",
+              "label": "21:9"
+            },
+            {
+              "value": "adaptive",
+              "label": "自适应"
             }
           ],
           "defaultValue": "16:9",
@@ -3422,9 +3759,9 @@
           "type": "int",
           "label": "时长(秒)",
           "apiFieldName": "duration",
-          "defaultValue": "5",
-          "min": 1,
-          "max": 10,
+          "defaultValue": "12",
+          "min": 4,
+          "max": 15,
           "tooltip": "视频时长（秒）"
         },
         {
@@ -3434,89 +3771,335 @@
           "apiFieldName": "return_last_frame",
           "defaultValue": "true",
           "tooltip": "是否返回视频最后一帧作为预览"
+        },
+        {
+          "id": "generate_audio",
+          "type": "bool",
+          "label": "生成音频",
+          "apiFieldName": "generate_audio",
+          "defaultValue": "true",
+          "tooltip": "是否为视频生成音频"
         }
       ],
       "responseMapping": {
         "downloadUrlPath": "video_url",
         "previewUrlPath": "last_frame_url"
       }
-    }
-  ],
-  "spriteSequenceGenerators": [
+    },
     {
-      "id": "sprite_sequence_v1",
-      "displayName": "序列帧动画",
+      "id": "effect_video_wf",
+      "displayName": "特效视频（生图+生视频）",
       "enabled": true,
-      "outputType": "sprite_sequence",
+      "outputType": "video",
       "modelSelector": {
-        "name": "序列帧动画",
-        "description": "角色动作序列帧生成（图生序列帧）",
+        "name": "特效视频",
+        "description": "输入特效描述，自动生成原画+绿幕特效视频",
         "functionTags": [
-          "2D序列帧",
-          "动作"
+          "特效",
+          "绿幕视频"
         ],
         "vendorTags": [
           "AI生成"
         ],
+        "pinned": false
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/effect-video-wf"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "showMultiView": false,
+        "advancedFoldout": true,
+        "textInputLabel": "特效描述",
+        "textInputPlaceholder": "描述你想要的特效，例如：fire explosion, magic glow, lightning strike...（绿幕背景自动添加）",
+        "imageUploadLabel": "参考图片（可选）",
+        "advancedLabel": "高级设置",
+        "primaryParameterIds": [
+          "videoDuration"
+        ]
+      },
+      "parameters": [
+        {
+          "id": "videoDuration",
+          "type": "int",
+          "label": "视频时长(秒)",
+          "apiFieldName": "videoDuration",
+          "defaultValue": "5",
+          "min": 4,
+          "max": 15,
+          "tooltip": "特效视频时长（4-15秒）"
+        },
+        {
+          "id": "videoRatio",
+          "type": "dropdown",
+          "label": "视频比例",
+          "apiFieldName": "videoRatio",
+          "options": [
+            {
+              "value": "16:9",
+              "label": "16:9"
+            },
+            {
+              "value": "9:16",
+              "label": "9:16"
+            },
+            {
+              "value": "1:1",
+              "label": "1:1"
+            },
+            {
+              "value": "4:3",
+              "label": "4:3"
+            }
+          ],
+          "defaultValue": "16:9",
+          "tooltip": "视频宽高比"
+        },
+        {
+          "id": "videoResolution",
+          "type": "dropdown",
+          "label": "视频分辨率",
+          "apiFieldName": "videoResolution",
+          "options": [
+            {
+              "value": "720p",
+              "label": "720p"
+            },
+            {
+              "value": "480p",
+              "label": "480p"
+            }
+          ],
+          "defaultValue": "720p",
+          "tooltip": "视频分辨率"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "video_url",
+        "previewUrlPath": "last_frame_url"
+      }
+    },
+    {
+      "id": "happyhorse_video",
+      "displayName": "HappyHorse 1.1",
+      "enabled": true,
+      "outputType": "video",
+      "imageBase64FieldName": "first_frame",
+      "modelSelector": {
+        "name": "HappyHorse 1.1",
+        "description": "文生视频、图生视频",
+        "functionTags": [
+          "文生视频",
+          "图生视频"
+        ],
+        "vendorTags": [
+          "阿里云"
+        ],
         "iconPath": "",
+        "pinned": false
+      },
+      "endpoints": [
+        {
+          "key": "default",
+          "value": "task/happyhorse-video"
+        }
+      ],
+      "uiLayout": {
+        "showTextInput": true,
+        "showImageUpload": true,
+        "showMultiView": false,
+        "advancedFoldout": true,
+        "textInputLabel": "文本提示词",
+        "textInputPlaceholder": "描述你想要生成的视频内容...",
+        "imageUploadLabel": "首帧图片（图生视频模式）",
+        "advancedLabel": "高级设置",
+        "primaryParameterIds": [
+          "animation"
+        ]
+      },
+      "parameters": [
+        {
+          "id": "mode",
+          "type": "dropdown",
+          "label": "生成模式",
+          "apiFieldName": "mode",
+          "options": [
+            {
+              "value": "text_to_video",
+              "label": "文生视频"
+            },
+            {
+              "value": "first_frame",
+              "label": "图生视频"
+            }
+          ],
+          "defaultValue": "text_to_video",
+          "tooltip": "文生视频：基于文本描述生成视频；图生视频：基于首帧图片生成视频。上传参考图片时自动切换为图生视频。"
+        },
+        {
+          "id": "resolution",
+          "type": "dropdown",
+          "label": "分辨率",
+          "apiFieldName": "resolution",
+          "options": [
+            {
+              "value": "720P",
+              "label": "720P"
+            },
+            {
+              "value": "1080P",
+              "label": "1080P"
+            }
+          ],
+          "defaultValue": "720P",
+          "tooltip": "视频分辨率"
+        },
+        {
+          "id": "ratio",
+          "type": "dropdown",
+          "label": "宽高比",
+          "apiFieldName": "ratio",
+          "options": [
+            {
+              "value": "16:9",
+              "label": "16:9"
+            },
+            {
+              "value": "9:16",
+              "label": "9:16"
+            },
+            {
+              "value": "1:1",
+              "label": "1:1"
+            },
+            {
+              "value": "4:3",
+              "label": "4:3"
+            },
+            {
+              "value": "3:4",
+              "label": "3:4"
+            },
+            {
+              "value": "4:5",
+              "label": "4:5"
+            },
+            {
+              "value": "5:4",
+              "label": "5:4"
+            },
+            {
+              "value": "9:21",
+              "label": "9:21"
+            },
+            {
+              "value": "21:9",
+              "label": "21:9"
+            }
+          ],
+          "defaultValue": "16:9",
+          "tooltip": "视频宽高比（仅文生视频模式支持）"
+        },
+        {
+          "id": "duration",
+          "type": "int",
+          "label": "时长(秒)",
+          "apiFieldName": "duration",
+          "defaultValue": "5",
+          "min": 3,
+          "max": 15,
+          "tooltip": "视频时长（3-15秒）"
+        }
+      ],
+      "responseMapping": {
+        "downloadUrlPath": "video_url"
+      }
+    }
+  ],
+  "spriteSequenceGenerators": [],
+  "worldGenerators": [
+    {
+      "id": "worldlabs-marble",
+      "displayName": "World Labs Marble",
+      "enabled": true,
+      "outputType": "texture",
+      "textInputFieldName": "textPrompt",
+      "imageBase64FieldName": "image",
+      "imageBase64WithPrefix": true,
+      "modelSelector": {
+        "name": "World Labs Marble",
+        "description": "AI World Generation",
+        "functionTags": [
+          "文生世界",
+          "图生世界"
+        ],
+        "vendorTags": [
+          "WorldLabs"
+        ],
         "pinned": true
       },
       "endpoints": [
         {
           "key": "default",
-          "value": "task/sprite-sequence"
+          "value": "task/worldlabs-generate"
         }
       ],
       "uiLayout": {
-        "showTextInput": false,
+        "showTextInput": true,
         "showImageUpload": true,
         "showMultiView": false,
-        "imageUploadLabel": "角色图片"
+        "advancedFoldout": true,
+        "textInputLabel": "文本提示词",
+        "textInputPlaceholder": "描述你想要生成的世界...",
+        "imageUploadLabel": "参考图片",
+        "advancedLabel": "高级设置"
       },
       "parameters": [
         {
-          "id": "animation_type",
+          "id": "model",
           "type": "dropdown",
-          "label": "动画类型",
-          "apiFieldName": "animation_type",
+          "label": "模型版本",
+          "apiFieldName": "model",
+          "defaultValue": "marble-1.1-plus",
           "options": [
             {
-              "value": "idle",
-              "label": "待机"
+              "value": "marble-1.0-draft",
+              "label": "Marble 1.0 Draft"
             },
             {
-              "value": "frontRun",
-              "label": "向前跑"
+              "value": "marble-1.0",
+              "label": "Marble 1.0"
             },
             {
-              "value": "backRun",
-              "label": "向后跑"
+              "value": "marble-1.1",
+              "label": "Marble 1.1"
+            },
+            {
+              "value": "marble-1.1-plus",
+              "label": "Marble 1.1 Plus"
             }
-          ],
-          "defaultValue": "idle"
+          ]
         },
         {
-          "id": "fps",
+          "id": "seed",
           "type": "int",
-          "label": "帧率",
-          "apiFieldName": "fps",
-          "defaultValue": "12",
-          "min": 1,
-          "max": 60,
-          "tooltip": "生成 AnimationClip 的帧率"
-        },
-        {
-          "id": "loop",
-          "type": "bool",
-          "label": "循环播放",
-          "apiFieldName": "loop",
-          "defaultValue": "true",
-          "tooltip": "生成的 AnimationClip 是否循环"
+          "label": "随机种子",
+          "tooltip": "留空为随机，填入数字则使用固定种子",
+          "apiFieldName": "seed",
+          "min": 0,
+          "max": 4294967295
         }
       ],
       "responseMapping": {
-        "downloadUrlPath": "image_urls",
-        "previewUrlPath": "preview_url"
+        "downloadUrlPath": "assets.thumbnailUrl",
+        "previewUrlPath": "assets.thumbnailUrl"
+      },
+      "postProcessing": {
+        "modelScale": 1.0
       }
     }
   ],

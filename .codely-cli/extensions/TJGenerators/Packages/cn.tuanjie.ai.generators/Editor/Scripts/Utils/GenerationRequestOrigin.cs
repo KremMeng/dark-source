@@ -15,11 +15,49 @@ namespace TJGenerators.Utils
         /// <summary>包版本请求头名称，与 fromMethod 并列上报。</summary>
         public const string PackageVersionHeaderName = "X-Package-Version";
 
+        /// <summary>Agent 会话 ID 请求头名称，用于按 session 分组查询任务。</summary>
+        public const string SessionIdHeaderName = "X-Session-Id";
+
+        /// <summary>Workspace 名请求头名称，与 X-Session-Id 并列上报，用于按项目/工作区分组统计。</summary>
+        public const string WorkspaceNameHeaderName = "X-Workspace-Name";
+        public const string WorkspaceNameEncodingHeaderName = "X-Workspace-Name-Encoding";
+
+        /// <summary>Unity rejects non-ASCII/control characters in HTTP headers. Mark encoded names explicitly
+        /// so literal percent escapes in old clients' names are never decoded accidentally.</summary>
+        internal static void ApplyWorkspaceNameHeader(UnityEngine.Networking.UnityWebRequest request, string name)
+        {
+            if (string.IsNullOrEmpty(name)) return;
+            bool encode = false;
+            foreach (char c in name)
+                if (c < 32 || c > 126) { encode = true; break; }
+            request.SetRequestHeader(WorkspaceNameHeaderName, encode ? System.Uri.EscapeDataString(name) : name);
+            if (encode) request.SetRequestHeader(WorkspaceNameEncodingHeaderName, "uri");
+        }
+
         /// <summary>编辑器 UI 面板发起的生成。</summary>
         public const string Ui = "ui";
 
         /// <summary>AI custom tool（agent）发起的生成。</summary>
         public const string Agent = "agent";
+
+        private static string _workspaceName = "";
+
+        /// <summary>
+        /// 当前 workspace 名（codely-cli 在 execute_custom_tool 参数中注入 workspace_name，
+        /// 各 custom tool 入口读取后调用 <see cref="SetWorkspaceName"/> 缓存）。
+        /// 同一编辑器会话内不变；为空表示未知，此时不上报该头。
+        /// </summary>
+        public static string CurrentWorkspaceName
+        {
+            get { return _workspaceName; }
+        }
+
+        /// <summary>缓存 workspace 名；空值忽略（保留已缓存值）。</summary>
+        public static void SetWorkspaceName(string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+                _workspaceName = value;
+        }
 
         /// <summary>
         /// 获取当前包版本号，通过 PackageManager API 动态读取。

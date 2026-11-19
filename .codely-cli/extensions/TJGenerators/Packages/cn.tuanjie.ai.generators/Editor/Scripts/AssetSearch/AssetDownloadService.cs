@@ -156,7 +156,17 @@ namespace TJGenerators.AssetSearch
             if (string.IsNullOrWhiteSpace(request.Url))        throw new ArgumentException("Url is required",        nameof(request));
             if (string.IsNullOrWhiteSpace(request.PrefabPath)) throw new ArgumentException("PrefabPath is required", nameof(request));
 
-            // asset_id 即 slug，直接用作目录名（与原 SearchAssetsTool 逻辑一致）
+            // Unity 禁止在 Play 模式下 ImportPackage；下载到项目与放入场景均不可用。
+            if (TJGeneratorsPlayModeGuard.IsActive)
+            {
+                return new StartDownloadResult
+                {
+                    Status  = DownloadTaskStatus.Failed,
+                    Message = TJGeneratorsPlayModeGuard.DownloadOrPlaceShortHint,
+                };
+            }
+
+            // asset_id 即 slug，直接用作目录名
             string packageDir   = DefaultDestBase + "/" + request.AssetId;
             string metadataPath = packageDir + "/" + request.AssetId + "_metadata.json";
             string tempPath     = Path.Combine(Application.temporaryCachePath, request.AssetId + ".unitypackage");
@@ -206,6 +216,10 @@ namespace TJGenerators.AssetSearch
                 request.PrefabMeta ?? "", request.Query ?? "", request.Score, request.Keywords ?? "",
                 request.PreviewUrl ?? "", request.Url ?? "");
 
+            // 后台落账：直连 Codely 的下载不经后台缓存，这里把资产元数据报到后台用于
+            // 首次扣费 + 任务记录 + 去重（best-effort，失败不阻断下载）。
+            var billing = AssetDownloadBilling.Record(request);
+
             AssetDownloadPipeline.StartDownload(
                 taskId, request.Url, request.PrefabPath, packageDir, tempPath,
                 request.SessionId ?? "", request.InstantiateInScene);
@@ -215,9 +229,12 @@ namespace TJGenerators.AssetSearch
 
             return new StartDownloadResult
             {
-                TaskId  = taskId,
-                Status  = DownloadTaskStatus.Downloading,
-                Message = "Download started. Poll GetTask(taskId) to track progress.",
+                TaskId          = taskId,
+                Status          = DownloadTaskStatus.Downloading,
+                Message         = "Download started. Poll GetTask(taskId) to track progress.",
+                IsFirstDownload = billing.IsFirstDownload,
+                CreditsCharged  = billing.CreditsCharged,
+                BillingError    = billing.HasError ? billing.Error : null,
             };
         }
 

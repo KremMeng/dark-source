@@ -48,6 +48,11 @@ namespace TJGenerators.Config
         /// <summary>
         /// 视频生成配置（用于「生成视频」窗口，对应 GeneratorConfig.json 的 videoGenerators）
         /// </summary>
-        Video
+        Video,
+
+        /// <summary>
+        /// 世界生成配置（用于世界生成窗口，对应 GeneratorConfig.json 的 worldGenerators）
+        /// </summary>
+        World
     }
 }

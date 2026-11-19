@@ -1,6 +1,6 @@
 ---
 name: install-codely-dotnet
-description: Downloads and installs the .NET 8 SDK into the Codely CLI user directory (~/.codely-cli/tmp/bin/dotnet) when system PATH or user-path dotnet is unavailable. Use when codely-unity-lsp-server reports missing dotnet runtime, bootstrap fails with dotnet errors, or the user asks to install dotnet for Unity LSP.
+description: Downloads and installs the .NET 8 SDK into the Codely CLI user directory (~/.codely-cli/tmp/bin/dotnet). Use when codely-unity-lsp-server reports missing dotnet runtime, bootstrap fails with dotnet errors, or the user asks to install dotnet for Unity LSP.
 ---
 
 # Install Codely Dotnet
@@ -9,8 +9,8 @@ description: Downloads and installs the .NET 8 SDK into the Codely CLI user dire
 
 ## 何时使用
 
-- LSP 报错「未找到可用的 dotnet 运行时」
-- 系统 PATH 无可用 .NET 8 SDK
+- LSP 报错「未找到可用的 .NET 8 SDK」
+- `~/.codely-cli/tmp/bin/dotnet` 下尚未安装 .NET 8 SDK
 - 需要手动预装 dotnet 到 Codely 用户路径
 
 ## 安装目标
@@ -54,11 +54,11 @@ python3 skills/install-codely-dotnet/scripts/install_dotnet.py \
 
 `codely-unity-lsp-server` bootstrap 在找不到 dotnet 时会报错并指向本 skill 文档；Codely Agent 应读取本 skill、执行安装脚本后重试 bootstrap。
 
-dotnet 解析顺序：
+dotnet 解析顺序（所有来源均须为 .NET 8，`dotnet --version` 主版本为 8）：
 
 1. `CODELY_DOTNET`（显式指定 dotnet 可执行文件）
 2. `CODELY_DOTNET_HOME` 或 `~/.codely-cli/tmp/bin/dotnet`
-3. 系统 PATH（`which dotnet` / `where dotnet`）
+3. 系统 PATH（`which dotnet` / `where dotnet`），仅当版本为 .NET 8 时使用
 
 ## 故障排查
 

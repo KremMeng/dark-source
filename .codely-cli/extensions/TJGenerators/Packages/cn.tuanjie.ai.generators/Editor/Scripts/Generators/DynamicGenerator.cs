@@ -29,8 +29,8 @@ namespace TJGenerators.Generators
         // 输入数据
         private string _textPrompt = "";
         private string _historyDisplayPrompt = "";
-        private VisualSelectorOptionConfig _selectedType = null;
-        private VisualSelectorOptionConfig _selectedStyle = null;
+        private SelectorOptionConfig _selectedType = null;
+        private SelectorOptionConfig _selectedStyle = null;
         private MaterialTemplateOptionConfig _selectedPromptTemplate = null;
         private string _imagePath = "";
         private Texture2D _uploadedImage;
@@ -67,25 +67,10 @@ namespace TJGenerators.Generators
         // UI状态
         private bool _advancedFoldout = false;
         private bool _postProcessingFoldout = false;
-        // 生成按钮点数（由宿主窗口根据接口查询后注入）
-        private int _generateCost = 0;
-
-        /// <summary>
-        /// 宿主窗口在生成前才写入参考图时，用于积分预览（文生/图生端点切换）。
-        /// </summary>
-        private bool _costPreviewHasReferenceImage;
 
         private bool _addMotionEnabled = false;
 
         private string _motionDescription = "";
-
-        // OBJ选择器数据（用于混元智能减面）
-        private List<TJGeneratorsGenerationHistoryItem> _convertibleObjFiles;
-        private string[] _convertibleObjDisplayNames;
-        private int _selectedObjIndex = -1;
-        private string _sourceObjPath = "";
-        private string _sourceObjUrl = "";
-        private GameObject _sourceObjObject;
 
         // 文件上传数据（用于UniRig等需要上传文件的生成器）
         private string _uploadedFilePath = "";
@@ -158,10 +143,19 @@ namespace TJGenerators.Generators
             {
                 _imagePaths.Clear();
                 _imagePath = "";
-                _uploadedImage = null;
+                DestroyUploadedImage();
                 return;
             }
-            _imagePaths = new List<string>(paths);
+
+            DestroyUploadedImage();
+            _imagePaths = new List<string>(paths.Count);
+            for (int i = 0; i < paths.Count; i++)
+            {
+                string p = paths[i];
+                if (!string.IsNullOrEmpty(p))
+                    p = p.Replace('\\', '/');
+                _imagePaths.Add(p ?? "");
+            }
             _imagePath = _imagePaths[0] ?? "";
             _currentInputMode = "image";
             UpdateEndpointForInputMode();
@@ -172,16 +166,16 @@ namespace TJGenerators.Generators
             }
             else
             {
-                _uploadedImage = null;
+                DestroyUploadedImage();
             }
         }
 
-        public void SetTypeSelection(VisualSelectorOptionConfig type)
+        public void SetTypeSelection(SelectorOptionConfig type)
         {
             _selectedType = type;
         }
 
-        public void SetStyleSelection(VisualSelectorOptionConfig style)
+        public void SetStyleSelection(SelectorOptionConfig style)
         {
             _selectedStyle = style;
         }
@@ -209,6 +203,7 @@ namespace TJGenerators.Generators
             if (paths == null || paths.Length == 0)
                 return;
 
+            DestroyMultiViewImages();
             _multiViewPaths = new List<string>(new string[4]);
             _multiViewImages = new List<Texture2D>(new Texture2D[4]);
             _multiViewCount = 4;
@@ -267,109 +262,6 @@ namespace TJGenerators.Generators
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// 由宿主在绘制参考图区域时同步，以便未写入 <see cref="_imagePaths"/> 前也能按图生端点预估积分。
-        /// </summary>
-        public void SyncReferenceImagesForCostPreview(bool hasReferenceImage)
-        {
-            _costPreviewHasReferenceImage = hasReferenceImage;
-        }
-
-        /// <summary>
-        /// 与即将提交生成时一致的 API 端点，用于查询积分消耗。
-        /// </summary>
-        public string GetEffectiveApiEndpointForCredit()
-        {
-            var uiLayout = _config.uiLayout ?? new UILayoutConfig();
-
-            if (uiLayout.showObjSelector || uiLayout.showFileUpload)
-            {
-                string convertEp = _config.GetEndpoint("default");
-                if (!string.IsNullOrEmpty(convertEp))
-                    return convertEp;
-            }
-
-            var (isMultiViewOnly, isDualMode) = ResolveUILayoutModes(uiLayout);
-            string modeKey;
-            if (isMultiViewOnly || (isDualMode && _primaryInputMode == "multiview"))
-                modeKey = "multiview";
-            else if (HasReferenceImageInputForCredit())
-                modeKey = "image";
-            else
-                modeKey = "text";
-
-            string endpoint = _config.GetEndpoint(modeKey);
-            if (!string.IsNullOrEmpty(endpoint))
-                return endpoint;
-
-            endpoint = _config.GetEndpoint(_currentEndpointKey);
-            if (!string.IsNullOrEmpty(endpoint))
-                return endpoint;
-
-            return _config.GetEndpoint("text");
-        }
-
-        /// <summary>
-        /// 影响因素哈希；变化时应重新查询积分。
-        /// </summary>
-        public int ComputeCostFactorsHash()
-        {
-            unchecked
-            {
-                int hash = 17;
-                hash = hash * 31 + (_primaryInputMode?.GetHashCode() ?? 0);
-                hash = hash * 31 + (_currentInputMode?.GetHashCode() ?? 0);
-                hash = hash * 31 + (HasReferenceImageInputForCredit() ? 1 : 0);
-                hash = hash * 31 + (_addMotionEnabled ? 1 : 0);
-                hash = hash * 31 + (string.IsNullOrWhiteSpace(_motionDescription) ? 0 : _motionDescription.Trim().GetHashCode());
-                hash = hash * 31 + (GeneratorId?.GetHashCode() ?? 0);
-                if (_parameterValues != null)
-                {
-                    foreach (var kv in _parameterValues)
-                        hash = hash * 31 + ((kv.Key ?? "") + ":" + (kv.Value?.ToString() ?? "")).GetHashCode();
-                }
-                return hash;
-            }
-        }
-
-        private bool HasReferenceImageInputForCredit() =>
-            HasReferenceImageInput() || _costPreviewHasReferenceImage;
-
-        /// <summary>
-        /// 设置生成按钮展示的预计总积分（主任务 + 已选后处理子任务之和）。
-        /// </summary>
-        public void SetGenerateCost(int cost)
-        {
-            _generateCost = Mathf.Max(0, cost);
-        }
-
-        /// <summary>
-        /// 收集当前选项下预计会触发的全部扣费任务（用于按钮积分预览）。
-        /// </summary>
-        public void BuildEstimatedCostComponents(List<GenerationCreditHelper.CostComponent> components)
-        {
-            components.Clear();
-            components.Add(
-                new GenerationCreditHelper.CostComponent(GeneratorId, GetEffectiveApiEndpointForCredit())
-            );
-
-            if (!GetAddMotionEnabled())
-                return;
-
-            var unirigCfg = ConfigManager.GetGeneratorConfig(ConfigType.Generator, "unirig");
-            string unirigEndpoint = unirigCfg?.GetEndpoint("default");
-            if (!string.IsNullOrEmpty(unirigEndpoint))
-                components.Add(new GenerationCreditHelper.CostComponent("unirig", unirigEndpoint));
-
-            if (string.IsNullOrWhiteSpace(_motionDescription))
-                return;
-
-            var motionCfg = ConfigManager.GetGeneratorConfig(ConfigType.Generator, "hunyuan-motion");
-            string motionEndpoint = motionCfg?.GetEndpoint("default");
-            if (!string.IsNullOrEmpty(motionEndpoint))
-                components.Add(new GenerationCreditHelper.CostComponent("hunyuan-motion", motionEndpoint));
         }
 
         /// <summary>
@@ -468,23 +360,27 @@ namespace TJGenerators.Generators
         {
             if (string.IsNullOrEmpty(param.defaultValue))
             {
-                return param.type switch
+                switch (param.type)
                 {
-                    "int" => 0,
-                    "float" => 0f,
-                    "bool" => false,
-                    "string" => "",
-                    _ => "",
-                };
+                    case "int":   return 0;
+                    case "float": return 0f;
+                    case "bool":  return false;
+                    case "string": return "";
+                    default:      return "";
+                }
             }
 
-            return param.type switch
+            switch (param.type)
             {
-                "int" => int.TryParse(param.defaultValue, out int i) ? i : 0,
-                "float" => float.TryParse(param.defaultValue, out float f) ? f : 0f,
-                "bool" => param.defaultValue.ToLower() == "true",
-                _ => param.defaultValue,
-            };
+                case "int":
+                    return int.TryParse(param.defaultValue, out int i) ? i : 0;
+                case "float":
+                    return float.TryParse(param.defaultValue, out float f) ? f : 0f;
+                case "bool":
+                    return param.defaultValue.ToLower() == "true";
+                default:
+                    return param.defaultValue;
+            }
         }
 
         #endregion
@@ -509,13 +405,6 @@ namespace TJGenerators.Generators
 
             var (isMultiViewOnly, isDualMode) = ResolveUILayoutModes(uiLayout);
 
-            // OBJ选择器区域（用于混元智能减面）
-            if (uiLayout.showObjSelector)
-            {
-                DrawObjSelector(context);
-            }
-
-            // 文件上传区域（用于UniRig等）
             if (uiLayout.showFileUpload)
             {
                 DrawFileUpload(context);
@@ -561,15 +450,14 @@ namespace TJGenerators.Generators
                 else
                 {
                     EnsureMultiViewInit();
-                    DrawMultiViewHeaderRow(context, uiLayout, rowHeight, CommonStyles.Space3);
+                    DrawMultiViewHeaderRow(context, uiLayout, CommonStyles.Space3);
                     DrawMultiViewArea(context);
                 }
             }
             else if (isMultiViewOnly)
             {
                 EnsureMultiViewInit();
-                float rowHeight = 22f;
-                DrawMultiViewHeaderRow(context, uiLayout, rowHeight, CommonStyles.Space3);
+                DrawMultiViewHeaderRow(context, uiLayout, CommonStyles.Space3);
                 DrawMultiViewArea(context);
             }
             else
@@ -631,9 +519,6 @@ namespace TJGenerators.Generators
                     uppercaseLabel: false
                 );
             }
-
-            if (context is GenerationWindowBase costHost)
-                costHost.TryRefreshGenerationCostFromGenerator(this);
         }
 
         public override void DrawActionButton(IGenerationPipelineHost context, LeftPanelBottomDock.Layout layout)
@@ -781,7 +666,8 @@ namespace TJGenerators.Generators
             bool addTrailingSectionSpacing)
         {
             string title = uiLayout?.imageUploadLabel ?? "参考图片";
-            int maxReferenceImages = ConfigManager.ResolveMaxReferenceImages(_config);            int imageCount = string.IsNullOrEmpty(_imagePath) ? 0 : 1;
+            int maxReferenceImages = ConfigManager.ResolveMaxReferenceImages(_config);
+            int imageCount = string.IsNullOrEmpty(_imagePath) ? 0 : 1;
             if (_imagePaths != null && _imagePaths.Count > 0)
                 imageCount = _imagePaths.Count;
             UIComponents.DrawReferenceImageSectionTitle(
@@ -869,14 +755,7 @@ namespace TJGenerators.Generators
             bool windowPipelineBusy = context is GenerationWindowBase gwb && gwb.IsPipelineBusy;
             bool busy = IsRunning || windowPipelineBusy;
             bool canGenerate = !busy;
-            if (uiLayout.showObjSelector)
-            {
-                canGenerate =
-                    canGenerate
-                    && !string.IsNullOrEmpty(_sourceObjPath)
-                    && !string.IsNullOrEmpty(_sourceObjUrl);
-            }
-            else if (uiLayout.showFileUpload)
+            if (uiLayout.showFileUpload)
             {
                 canGenerate =
                     canGenerate && !string.IsNullOrEmpty(_uploadedFilePath);
@@ -888,7 +767,6 @@ namespace TJGenerators.Generators
 
             // 与独立窗口共用 DrawGenerationSectionAt：统一延迟输入框提交（DelayCall）。
             // 生成中仅切换按钮文案，进度在历史项等处展示。
-            string idleLabel = uiLayout.showObjSelector ? TJGeneratorsL10n.L("转换") : null;
             UIComponents.DrawGenerationSectionAt(
                 layout,
                 busy,
@@ -897,16 +775,14 @@ namespace TJGenerators.Generators
                 canGenerate,
                 () => HandleTopGenerateClicked(context, uiLayout),
                 null,
-                busy ? (Action)context.Repaint : null,
-                _generateCost,
-                idleLabel);
+                busy ? (Action)context.Repaint : null);
         }
 
         private void HandleTopGenerateClicked(IGenerationPipelineHost context, UILayoutConfig uiLayout)
         {
             if (ValidateInputs(out string error))
             {
-                if (uiLayout.showObjSelector || uiLayout.showFileUpload)
+                if (uiLayout.showFileUpload)
                 {
                     _currentEndpointKey = "default";
                 }
@@ -927,7 +803,10 @@ namespace TJGenerators.Generators
                     }
                     UpdateEndpointForInputMode();
                 }
-                context.StartGeneration(this);
+                if (context is IGenerationTriggerHost triggerHost)
+                    triggerHost.StartGeneration(this);
+                else
+                    ErrorDialogUtils.ShowErrorDialog(TJGeneratorsL10n.L("错误"), TJGeneratorsL10n.L("当前宿主不支持触发生成。"), "[DynamicGenerator]");
             }
             else
             {
@@ -937,11 +816,17 @@ namespace TJGenerators.Generators
 
         private void EnsureMultiViewInit()
         {
-            if (_multiViewPaths.Count < 4)
-            {
-                _multiViewPaths = new List<string>(new string[4]);
-                _multiViewImages = new List<Texture2D>(new Texture2D[4]);
-            }
+            if (_multiViewPaths == null)
+                _multiViewPaths = new List<string>();
+            if (_multiViewImages == null)
+                _multiViewImages = new List<Texture2D>();
+
+            // Pad to four slots without discarding partial uploads (Count 1–3 must be preserved).
+            while (_multiViewPaths.Count < 4)
+                _multiViewPaths.Add(null);
+            while (_multiViewImages.Count < 4)
+                _multiViewImages.Add(null);
+
             _multiViewCount = 4;
             _multiViewMinRequired = GetMultiViewMinRequired();
         }
@@ -954,19 +839,14 @@ namespace TJGenerators.Generators
         private void DrawMultiViewHeaderRow(
             IGenerationPipelineHost context,
             UILayoutConfig uiLayout,
-            float rowHeight,
             float foldoutSpacing
         )
         {
             GUILayout.Space(foldoutSpacing);
-            GUILayout.BeginHorizontal(GUILayout.Height(rowHeight));
-            GUILayout.BeginVertical();
-            GUILayout.FlexibleSpace();
-            GUILayout.Label(TJGeneratorsL10n.L(uiLayout.multiViewLabel ?? "多视图生成"), CommonStyles.HeaderStyle);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndVertical();
-            GUILayout.FlexibleSpace();
-            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            UIComponents.DrawSectionTitle(
+                TJGeneratorsL10n.L(uiLayout.multiViewLabel ?? "多视图生成"),
+                uppercase: false);
             GUILayout.FlexibleSpace();
             UIComponents.LinkButton(
                 TJGeneratorsL10n.L("生成参考图"),
@@ -1030,92 +910,7 @@ namespace TJGenerators.Generators
                     );
                 }
             );
-            GUILayout.FlexibleSpace();
-            GUILayout.EndVertical();
             GUILayout.EndHorizontal();
-        }
-
-        private void DrawObjSelector(IGenerationPipelineHost context)
-        {
-            var uiLayout = _config.uiLayout ?? new UILayoutConfig();
-
-            GUILayout.BeginVertical();
-            UIComponents.DrawSectionTitle(TJGeneratorsL10n.L("源OBJ文件"), uppercase: false);
-            GUILayout.EndVertical();
-
-            GUILayout.Space(CommonStyles.Space2);
-
-            GUILayout.BeginVertical();
-            GUILayout.Label(
-                TJGeneratorsL10n.L(uiLayout.objSelectorLabel
-                    ?? "选择要减面的OBJ文件，将混元生成的OBJ模型进行智能减面处理"),
-                CommonStyles.SmallGreyLabelStyle
-            );
-            GUILayout.EndVertical();
-
-            GUILayout.Space(CommonStyles.Space2);
-
-            // 刷新可减面文件列表
-            RefreshConvertibleObjFiles();
-
-            GUILayout.BeginHorizontal();
-
-            if (_convertibleObjFiles == null || _convertibleObjFiles.Count == 0)
-            {
-                GUILayout.BeginVertical();
-                GUILayout.Label(TJGeneratorsL10n.L("暂无可减面的OBJ文件"), CommonStyles.HelpBoxStyle);
-                GUILayout.EndVertical();
-            }
-            else
-            {
-                GUILayout.BeginVertical();
-                EditorGUI.BeginChangeCheck();
-                _selectedObjIndex = EditorGUILayout.Popup(
-                    _selectedObjIndex,
-                    _convertibleObjDisplayNames
-                );
-                if (
-                    EditorGUI.EndChangeCheck()
-                    && _selectedObjIndex >= 0
-                    && _selectedObjIndex < _convertibleObjFiles.Count
-                )
-                {
-                    var selectedItem = _convertibleObjFiles[_selectedObjIndex];
-                    _sourceObjPath = selectedItem.modelPath;
-                    _sourceObjUrl = selectedItem.sourceObjUrl;
-
-                    // 同步ObjectField显示
-                    _sourceObjObject = AssetDatabase.LoadAssetAtPath<GameObject>(_sourceObjPath);
-                }
-                GUILayout.EndVertical();
-            }
-
-            GUILayout.EndHorizontal();
-
-            // 显示选中文件的预览
-            if (_sourceObjObject != null)
-            {
-                GUILayout.Space(CommonStyles.Space2);
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.ObjectField(
-                    _sourceObjObject,
-                    typeof(GameObject),
-                    false,
-                    GUILayout.Height(40f)
-                );
-                GUILayout.EndHorizontal();
-            }
-
-            // 提示信息
-            GUILayout.Space(CommonStyles.Space2);
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(
-                TJGeneratorsL10n.L(uiLayout.objSelectorHint
-                    ?? "列表中只显示可减面的模型（需要先用混元3D生成OBJ格式的模型）"),
-                CommonStyles.HelpBoxStyle
-            );
-            GUILayout.EndHorizontal();
-            GUILayout.Space(CommonStyles.Space2);
         }
 
         private void DrawFileUpload(IGenerationPipelineHost context)
@@ -1297,52 +1092,16 @@ namespace TJGenerators.Generators
             _selectedProjectMeshPopupIndex = idx >= 0 ? idx + 1 : 0;
         }
 
-        private void RefreshConvertibleObjFiles()
-        {
-            _convertibleObjFiles = TJGeneratorsHistoryManager.GetConvertibleObjFiles();
-
-            if (_convertibleObjFiles != null && _convertibleObjFiles.Count > 0)
-            {
-                _convertibleObjDisplayNames = new string[_convertibleObjFiles.Count];
-                for (int i = 0; i < _convertibleObjFiles.Count; i++)
-                {
-                    var item = _convertibleObjFiles[i];
-                    string fileName = Path.GetFileName(item.modelPath);
-                    string prompt = string.IsNullOrEmpty(item.prompt) ? "" : $" ({item.prompt})";
-                    if (prompt.Length > 20)
-                        prompt = prompt.Substring(0, 17) + "...)";
-                    _convertibleObjDisplayNames[i] = fileName + prompt;
-                }
-
-                // 如果当前选择无效，重置
-                if (_selectedObjIndex < 0 || _selectedObjIndex >= _convertibleObjFiles.Count)
-                {
-                    // 尝试根据当前路径找到对应的索引
-                    if (!string.IsNullOrEmpty(_sourceObjPath))
-                    {
-                        _selectedObjIndex = _convertibleObjFiles.FindIndex(f =>
-                            f.modelPath == _sourceObjPath
-                        );
-                    }
-                }
-            }
-            else
-            {
-                _convertibleObjDisplayNames = new string[0];
-                _selectedObjIndex = -1;
-            }
-        }
-
         private void DrawMultiViewArea(IGenerationPipelineHost context)
         {
             float labelControlSpacing = 6f;
             GUILayout.Space(CommonStyles.Space2);
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
             var uiLayout = _config.uiLayout ?? new UILayoutConfig();
-            GUILayout.Label(TJGeneratorsL10n.L(uiLayout.multiViewHint), CommonStyles.SmallGreyLabelStyle);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
+            GUILayout.Label(
+                TJGeneratorsL10n.L(uiLayout.multiViewHint),
+                CommonStyles.SmallGreyLeftLabelStyle,
+                GUILayout.MaxWidth(CommonStyles.LeftComponentWidth),
+                GUILayout.ExpandWidth(true));
 
             GUILayout.Space(CommonStyles.Space2);
 
@@ -1433,15 +1192,34 @@ namespace TJGenerators.Generators
                         string path = EditorUtility.OpenFilePanel(
                             TJGeneratorsL10n.L("选择{0}图片", TJGeneratorsL10n.L(s_multiViewPickerTitleLabels[slotIndex])),
                             "",
-                            "jpg,png"
+                            TJGeneratorsImageAssetPathUtility.ReferenceImagePickFilter
                         );
-                        if (!string.IsNullOrEmpty(path))
+                        if (string.IsNullOrEmpty(path))
+                            return;
+
+                        if (!TJGeneratorsImageAssetPathUtility.IsSupportedReferenceImageUploadPath(path))
                         {
-                            _multiViewPaths[slotIndex] = path;
-                            _multiViewImages[slotIndex] = new Texture2D(2, 2);
-                            _multiViewImages[slotIndex].LoadImage(File.ReadAllBytes(path));
-                            context.Repaint();
+                            ErrorDialogUtils.ShowErrorDialog(
+                                TJGeneratorsL10n.L("不支持的图片格式"),
+                                TJGeneratorsL10n.L("仅支持 png、jpg、jpeg 格式的图片。"),
+                                "[DynamicGenerator]");
+                            return;
                         }
+
+                        var tex = new Texture2D(2, 2);
+                        if (!tex.LoadImage(File.ReadAllBytes(path)))
+                        {
+                            UnityEngine.Object.DestroyImmediate(tex);
+                            ErrorDialogUtils.ShowErrorDialog(
+                                TJGeneratorsL10n.L("错误"),
+                                TJGeneratorsL10n.L("无法读取图片文件。"),
+                                "[DynamicGenerator]");
+                            return;
+                        }
+
+                        _multiViewPaths[slotIndex] = path;
+                        _multiViewImages[slotIndex] = tex;
+                        context.Repaint();
                     };
                 }
             }
@@ -1472,6 +1250,27 @@ namespace TJGenerators.Generators
 
         #region 端点与输入模式
 
+        private static void DestroyTextureIfNeeded(Texture2D texture)
+        {
+            if (texture != null)
+                UnityEngine.Object.DestroyImmediate(texture);
+        }
+
+        private void DestroyUploadedImage()
+        {
+            DestroyTextureIfNeeded(_uploadedImage);
+            _uploadedImage = null;
+        }
+
+        private void DestroyMultiViewImages()
+        {
+            if (_multiViewImages == null)
+                return;
+
+            for (int i = 0; i < _multiViewImages.Count; i++)
+                DestroyTextureIfNeeded(_multiViewImages[i]);
+        }
+
         private void UpdateEndpointForInputMode()
         {
             // Update endpoint key based on current input mode
@@ -1480,12 +1279,12 @@ namespace TJGenerators.Generators
 
         private static string GetEndpointKeyForInputMode(string inputMode)
         {
-            return inputMode switch
+            switch (inputMode)
             {
-                "multiview" => "multiview",
-                "image" => "image",
-                _ => "text",
-            };
+                case "multiview": return "multiview";
+                case "image":     return "image";
+                default:          return "text";
+            }
         }
 
         #endregion
@@ -1560,25 +1359,6 @@ namespace TJGenerators.Generators
             {
                 errorMessage = TJGeneratorsL10n.L("已勾选添加动作，请输入动作描述");
                 return false;
-            }
-
-            // OBJ选择器模式
-            if (uiLayout.showObjSelector)
-            {
-                if (string.IsNullOrEmpty(_sourceObjPath))
-                {
-                    errorMessage = TJGeneratorsL10n.L("请选择源OBJ文件");
-                    return false;
-                }
-
-                if (string.IsNullOrEmpty(_sourceObjUrl))
-                {
-                    errorMessage = TJGeneratorsL10n.L("未找到该OBJ文件的服务器URL，只有通过AI生成的OBJ模型才能减面");
-                    return false;
-                }
-
-                errorMessage = null;
-                return true;
             }
 
             // 文件上传模式
@@ -1707,8 +1487,7 @@ namespace TJGenerators.Generators
                 _multiViewCount,
                 _currentInputMode,
                 _parameterValues,
-                _extraRawJsonFields,
-                _sourceObjUrl
+                _extraRawJsonFields
             );
         }
 
@@ -1745,7 +1524,6 @@ namespace TJGenerators.Generators
             return new DynamicTaskResponseContext(
                 _config,
                 _parameterValues,
-                _sourceObjPath,
                 GeneratorId,
                 _currentInputMode
             );
@@ -1763,15 +1541,6 @@ namespace TJGenerators.Generators
         public override string GetRenderedImageUrl(TJTaskStatusResponse response) =>
             DynamicTaskResponseResolver.GetRenderedImageUrl(CreateResponseContext(), response);
 
-        public override string GetAnimationUrl(TJTaskStatusResponse response) =>
-            DynamicTaskResponseResolver.GetAnimationUrl(CreateResponseContext(), response);
-
-        public override string GetWalkingAnimationUrl(TJTaskStatusResponse response) =>
-            DynamicTaskResponseResolver.GetWalkingAnimationUrl(CreateResponseContext(), response);
-
-        public override string GetRunningAnimationUrl(TJTaskStatusResponse response) =>
-            DynamicTaskResponseResolver.GetRunningAnimationUrl(CreateResponseContext(), response);
-
         public override string GetModelFileName() =>
             DynamicTaskResponseResolver.GetModelFileName(CreateResponseContext());
 
@@ -1781,20 +1550,36 @@ namespace TJGenerators.Generators
 
         public override string GetOutputType() => _pipelineSettings.GetOutputType();
 
-        public string AudioFormat => _pipelineSettings.AudioFormat;
+        public string AudioFormat
+        {
+            get
+            {
+                // Prefer the user-requested output_format (fal enum, e.g. "mp3_44100_128" / "pcm_44100")
+                // over the config default. The pipeline uses this to detect the download extension from
+                // magic bytes, so it must match what the backend actually returns — otherwise the
+                // placeholder (.mp3) and the final asset (.wav) diverge and the placeholder goes stale.
+                if (_parameterValues.TryGetValue("outputFormat", out var value) && value != null)
+                {
+                    string fmt = value.ToString().Trim();
+                    if (!string.IsNullOrEmpty(fmt))
+                        return fmt;
+                }
+                return _pipelineSettings.AudioFormat;
+            }
+        }
 
-        public override bool GetAddMotionEnabled() =>
-            ShouldShowEnableMotionUi() && _addMotionEnabled;
+        /// <summary>
+        /// CustomTool / 任务恢复：打开与 UI「添加动作」相同的后处理（UniRig + HunyuanMotion）。
+        /// </summary>
+        public void SetAddMotion(bool enabled, string description = "")
+        {
+            _addMotionEnabled = enabled;
+            _motionDescription = description ?? "";
+        }
+
+        public override bool GetAddMotionEnabled() => _addMotionEnabled;
 
         public override string GetMotionDescription() => _motionDescription ?? "";
-
-        public override string GetSourceModelUrl()
-        {
-            var uiLayout = _config?.uiLayout ?? new UILayoutConfig();
-            if (uiLayout.showObjSelector)
-                return _sourceObjUrl;
-            return null;
-        }
 
         public override PipelineSettings GetPipelineSettings() => _pipelineSettings;
 
@@ -1807,7 +1592,7 @@ namespace TJGenerators.Generators
             string targetAssetGuid
         )
         {
-            return new InterruptedTaskData
+            var data = new InterruptedTaskData
             {
                 backendTaskId = backendTaskId,
                 localTaskId = CurrentGeneratingTaskId,
@@ -1820,6 +1605,61 @@ namespace TJGenerators.Generators
                 targetAssetGuid = targetAssetGuid ?? "",
                 status = "pending",
             };
+
+            var animationType = GetParameter("animation_type")?.ToString();
+            if (!string.IsNullOrEmpty(animationType))
+                data.animationType = animationType;
+
+            if (GetParameter("fps") != null && int.TryParse(GetParameter("fps").ToString(), out int fps) && fps > 0)
+                data.fps = fps;
+
+            if (GetParameter("loop") != null)
+            {
+                data.loopSpecified = true;
+                if (GetParameter("loop") is bool loopBool)
+                    data.loop = loopBool;
+                else if (bool.TryParse(GetParameter("loop").ToString(), out bool loopParsed))
+                    data.loop = loopParsed;
+            }
+
+            if (GetParameter("numLayers") != null
+                && int.TryParse(GetParameter("numLayers").ToString(), out int numLayers)
+                && numLayers > 0)
+            {
+                data.numLayers = numLayers;
+            }
+
+            data.addMotion = _addMotionEnabled;
+            data.motionDescription = _motionDescription ?? "";
+
+            return data;
+        }
+
+        public override void RestoreFromInterruptedTask(InterruptedTaskData taskData)
+        {
+            base.RestoreFromInterruptedTask(taskData);
+            if (taskData == null) return;
+
+            if (!string.IsNullOrEmpty(taskData.prompt))
+                SetTextPrompt(taskData.prompt);
+
+            if (!string.IsNullOrEmpty(taskData.imagePath))
+                SetImagePath(taskData.imagePath);
+
+            if (!string.IsNullOrEmpty(taskData.animationType))
+                SetParameter("animation_type", taskData.animationType);
+
+            if (taskData.fps > 0)
+                SetParameter("fps", taskData.fps);
+
+            if (taskData.loopSpecified)
+                SetParameter("loop", taskData.loop);
+
+            if (taskData.numLayers > 0)
+                SetParameter("numLayers", taskData.numLayers);
+
+            if (taskData.addMotion)
+                SetAddMotion(true, taskData.motionDescription);
         }
 
         #endregion

@@ -1,4 +1,6 @@
 #if UNITY_EDITOR
+using System;
+
 namespace TJGenerators.Utils
 {
     /// <summary>
@@ -56,12 +58,26 @@ namespace TJGenerators.Utils
 
         /// <summary>
         /// 将配置/API 侧的音频格式规范为落盘扩展名（不含路径点），与后端 URL 扩展名保持一致。
+        /// 支持 plain 扩展名（mp3/wav）以及 fal.ai sound-effect 枚举（mp3_44100_128 / pcm_44100）。
         /// </summary>
         public static string NormalizeImportedAudioFileExtension(string audioFormat)
         {
             if (string.IsNullOrWhiteSpace(audioFormat))
                 return "wav";
-            return audioFormat.Trim().TrimStart('.').ToLowerInvariant();
+
+            string fmt = audioFormat.Trim().TrimStart('.').ToLowerInvariant();
+
+            // fal.ai enums are codec_sampleRate[_bitrate] — map to a real file extension.
+            if (fmt.StartsWith("mp3", StringComparison.Ordinal))
+                return "mp3";
+            if (fmt.StartsWith("pcm", StringComparison.Ordinal)
+                || fmt.StartsWith("ulaw", StringComparison.Ordinal)
+                || fmt.StartsWith("alaw", StringComparison.Ordinal))
+                return "wav";
+            if (fmt.StartsWith("opus", StringComparison.Ordinal))
+                return "ogg";
+
+            return fmt;
         }
     }
 }

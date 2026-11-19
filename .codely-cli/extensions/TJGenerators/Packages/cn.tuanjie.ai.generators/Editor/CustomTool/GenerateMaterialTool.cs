@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -24,12 +24,6 @@ namespace UnityTcp.Editor.Tools
     public static class MaterialTaskTracker
     {
 #if UNITY_EDITOR
-        private static readonly Dictionary<string, MaterialTaskInfo> _activeTasks = new Dictionary<string, MaterialTaskInfo>();
-        private static int _taskIdCounter = 0;
-
-        private const string SessionKeyIds = "TJGen_Material_Ids";
-        private const string SessionKeyFmt = "TJGen_Material_{0}";
-
         [Serializable]
         private class PersistedTask
         {
@@ -52,7 +46,7 @@ namespace UnityTcp.Editor.Tools
             public string backendTaskId;
         }
 
-        public class MaterialTaskInfo
+        public class MaterialTaskInfo : IGenerationTaskInfo
         {
             public string TaskId { get; set; }
             public string GeneratorId { get; set; }
@@ -73,170 +67,131 @@ namespace UnityTcp.Editor.Tools
             public string BackendTaskId { get; set; }
         }
 
-        internal static void SaveToSession(MaterialTaskInfo info)
+        private static readonly GenerationTaskTrackerStore<MaterialTaskInfo, PersistedTask> Store =
+            new GenerationTaskTrackerStore<MaterialTaskInfo, PersistedTask>(
+                "TJGen_Material", BuildPersisted, FromPersisted);
+
+        private static PersistedTask BuildPersisted(MaterialTaskInfo info) => new PersistedTask
         {
-            var p = new PersistedTask
-            {
-                taskId                  = info.TaskId,
-                generatorId             = info.GeneratorId,
-                prompt                  = info.Prompt ?? "",
-                presetId                = info.PresetId ?? "",
-                patternId               = info.PatternId ?? "",
-                styleId                 = info.StyleId ?? "",
-                status                  = info.Status,
-                progress                = info.Progress,
-                texturePath             = info.TexturePath ?? "",
-                materialPath            = info.MaterialPath ?? "",
-                errorMessage            = info.ErrorMessage ?? "",
-                startTimeTicks          = info.StartTime.Ticks,
-                endTimeTicks            = info.EndTime?.Ticks ?? 0,
-                previewUrl              = info.PreviewUrl ?? "",
-                placeholderPath         = info.PlaceholderPath ?? "",
-                placeholderMaterialPath = info.PlaceholderMaterialPath ?? "",
-                backendTaskId           = info.BackendTaskId ?? ""
-            };
-            SessionState.SetString(string.Format(SessionKeyFmt, info.TaskId), JsonUtility.ToJson(p));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!ids.Contains(info.TaskId))
-                SessionState.SetString(SessionKeyIds, string.IsNullOrEmpty(ids) ? info.TaskId : ids + "|" + info.TaskId);
-        }
+            taskId                  = info.TaskId,
+            generatorId             = info.GeneratorId,
+            prompt                  = info.Prompt ?? "",
+            presetId                = info.PresetId ?? "",
+            patternId               = info.PatternId ?? "",
+            styleId                 = info.StyleId ?? "",
+            status                  = info.Status,
+            progress                = info.Progress,
+            texturePath             = info.TexturePath ?? "",
+            materialPath            = info.MaterialPath ?? "",
+            errorMessage            = info.ErrorMessage ?? "",
+            startTimeTicks          = info.StartTime.Ticks,
+            endTimeTicks            = info.EndTime?.Ticks ?? 0,
+            previewUrl              = info.PreviewUrl ?? "",
+            placeholderPath         = info.PlaceholderPath ?? "",
+            placeholderMaterialPath = info.PlaceholderMaterialPath ?? "",
+            backendTaskId           = info.BackendTaskId ?? ""
+        };
 
-        private static MaterialTaskInfo TryRestoreFromSession(string taskId)
+        private static MaterialTaskInfo FromPersisted(PersistedTask p) => new MaterialTaskInfo
         {
-            string json = SessionState.GetString(string.Format(SessionKeyFmt, taskId), "");
-            if (string.IsNullOrEmpty(json)) return null;
-            PersistedTask p;
-            try { p = JsonUtility.FromJson<PersistedTask>(json); }
-            catch { return null; }
+            TaskId                  = p.taskId,
+            GeneratorId             = p.generatorId,
+            Prompt                  = p.prompt,
+            PresetId                = p.presetId,
+            PatternId               = p.patternId,
+            StyleId                 = p.styleId,
+            Status                  = p.status,
+            Progress                = p.progress,
+            TexturePath             = p.texturePath,
+            MaterialPath            = p.materialPath,
+            ErrorMessage            = p.errorMessage,
+            PreviewUrl              = p.previewUrl,
+            StartTime               = new DateTime(p.startTimeTicks),
+            EndTime                 = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
+            PlaceholderPath         = p.placeholderPath,
+            PlaceholderMaterialPath = p.placeholderMaterialPath,
+            BackendTaskId           = p.backendTaskId
+        };
 
-            var info = new MaterialTaskInfo
-            {
-                TaskId                  = p.taskId,
-                GeneratorId             = p.generatorId,
-                Prompt                  = p.prompt,
-                PresetId                = p.presetId,
-                PatternId               = p.patternId,
-                StyleId                 = p.styleId,
-                Status                  = p.status,
-                Progress                = p.progress,
-                TexturePath             = p.texturePath,
-                MaterialPath            = p.materialPath,
-                ErrorMessage            = p.errorMessage,
-                PreviewUrl              = p.previewUrl,
-                StartTime               = new DateTime(p.startTimeTicks),
-                EndTime                 = p.endTimeTicks > 0 ? (DateTime?)new DateTime(p.endTimeTicks) : null,
-                PlaceholderPath         = p.placeholderPath,
-                PlaceholderMaterialPath = p.placeholderMaterialPath,
-                BackendTaskId           = p.backendTaskId
-            };
-
-            // 这些类型无 domain reload 恢复 pipeline，一律标记为 interrupted
-            if (info.Status == "generating" || info.Status == "initializing")
-            {
-                info.Status       = "interrupted";
-                info.ErrorMessage = "Generation was interrupted (domain reload). Please re-generate.";
-                info.EndTime      = DateTime.Now;
-                SaveToSession(info);
-            }
-
-            _activeTasks[taskId] = info;
-            return info;
-        }
+        internal static void ApplyTaskUpdate(MaterialTaskInfo task, Action<MaterialTaskInfo> mutate) =>
+            Store.ApplyTaskUpdate(task, mutate);
 
         public static string CreateTask(string generatorId, string prompt, string presetId, string patternId, string styleId, string placeholderPath = null, string placeholderMaterialPath = null, string backendTaskId = null)
         {
-            string taskId = $"material_{++_taskIdCounter}_{DateTime.Now.Ticks}";
-
+            string taskId = Store.AllocateTaskId("material");
             var task = new MaterialTaskInfo
             {
-                TaskId = taskId,
-                GeneratorId = generatorId,
-                Prompt = prompt ?? "",
-                PresetId = presetId ?? "",
-                PatternId = patternId ?? "",
-                StyleId = styleId ?? "",
-                Status = "generating",
-                StartTime = DateTime.Now,
-                PlaceholderPath = placeholderPath,
+                TaskId                  = taskId,
+                GeneratorId             = generatorId,
+                Prompt                  = prompt ?? "",
+                PresetId                = presetId ?? "",
+                PatternId               = patternId ?? "",
+                StyleId                 = styleId ?? "",
+                Status                  = "generating",
+                StartTime               = DateTime.Now,
+                PlaceholderPath         = placeholderPath,
                 PlaceholderMaterialPath = placeholderMaterialPath,
-                BackendTaskId = backendTaskId
+                BackendTaskId           = backendTaskId
             };
-            _activeTasks[taskId] = task;
-            SaveToSession(task);
-
+            Store.RegisterTask(taskId, task);
             return taskId;
         }
 
         public static void MarkCompleted(string taskId, string texturePath, string materialPath, string previewUrl = null)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status = "completed";
-                task.Progress = 100;
-                task.TexturePath = texturePath;
-                task.MaterialPath = materialPath;
-                task.PreviewUrl = previewUrl;
-                task.EndTime = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status      = "completed";
+                t.Progress    = 100;
+                t.TexturePath = texturePath;
+                t.MaterialPath = materialPath;
+                t.PreviewUrl  = previewUrl;
+                t.EndTime     = DateTime.Now;
+            });
         }
 
         public static void MarkFailed(string taskId, string errorMessage)
         {
-            if (_activeTasks.TryGetValue(taskId, out var task))
+            var task = Store.GetTask(taskId);
+            if (task == null) return;
+            Store.ApplyTaskUpdate(task, t =>
             {
-                task.Status = "failed";
-                task.ErrorMessage = errorMessage;
-                task.EndTime = DateTime.Now;
-                SaveToSession(task);
-            }
+                t.Status       = "failed";
+                t.ErrorMessage = errorMessage;
+                t.EndTime      = DateTime.Now;
+            });
         }
 
-        public static MaterialTaskInfo GetTask(string taskId)
-        {
-            if (_activeTasks.TryGetValue(taskId, out var task)) return task;
-            return TryRestoreFromSession(taskId);
-        }
+        public static MaterialTaskInfo GetTask(string taskId) => Store.GetTask(taskId);
 
-        public static List<MaterialTaskInfo> GetAllTasks()
+        public static List<MaterialTaskInfo> GetAllTasks() => Store.GetAllTasks();
+
+        public static MaterialTaskInfo GetTaskByBackendId(string backendTaskId) =>
+            Store.GetTaskByBackendId(backendTaskId);
+
+        public static MaterialTaskInfo CreateRecoveredTask(
+            string backendTaskId, string prompt, string placeholderPath, string placeholderMaterialPath, long timestampMs)
         {
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            if (!string.IsNullOrEmpty(ids))
+            return Store.CreateRecoveredTask(backendTaskId, () => new MaterialTaskInfo
             {
-                foreach (var id in ids.Split('|'))
-                {
-                    if (!string.IsNullOrEmpty(id) && !_activeTasks.ContainsKey(id))
-                        TryRestoreFromSession(id);
-                }
-            }
-            return new List<MaterialTaskInfo>(_activeTasks.Values);
+                TaskId                  = $"recovered_{backendTaskId}",
+                BackendTaskId           = backendTaskId,
+                Prompt                  = prompt ?? "",
+                PlaceholderPath         = placeholderPath ?? "",
+                PlaceholderMaterialPath = placeholderMaterialPath ?? "",
+                Status                  = "recovering",
+                Progress                = 0,
+                StartTime               = timestampMs > 0
+                                            ? DateTimeOffset.FromUnixTimeMilliseconds(timestampMs).LocalDateTime
+                                            : DateTime.Now
+            });
         }
 
-        public static void RemoveTask(string taskId)
-        {
-            _activeTasks.Remove(taskId);
-            SessionState.EraseString(string.Format(SessionKeyFmt, taskId));
-            string ids = SessionState.GetString(SessionKeyIds, "");
-            var list = new List<string>(ids.Split('|'));
-            list.Remove(taskId);
-            SessionState.SetString(SessionKeyIds, string.Join("|", list));
-        }
+        public static void RemoveTask(string taskId) => Store.RemoveTask(taskId);
 
-        public static void CleanupCompletedTasks()
-        {
-            var toRemove = new List<string>();
-            foreach (var kvp in _activeTasks)
-            {
-                if ((kvp.Value.Status == "completed" || kvp.Value.Status == "failed") &&
-                    kvp.Value.EndTime.HasValue &&
-                    (DateTime.Now - kvp.Value.EndTime.Value).TotalMinutes > 60)
-                {
-                    toRemove.Add(kvp.Key);
-                }
-            }
-            foreach (var id in toRemove)
-                _activeTasks.Remove(id);
-        }
+        public static void CleanupCompletedTasks() => Store.CleanupCompletedTasks();
 #endif
     }
 
@@ -260,7 +215,7 @@ namespace UnityTcp.Editor.Tools
             "size (optional output resolution: '1920x1920', '2048x2048', '3072x3072', '3200x3200'; total pixels must be between ~3.69M and ~10.4M — do not use '1024x1024' or '4096x4096', default '2048x2048'), " +
             "output_path (optional custom save path for the texture PNG). " +
             "NOTE: Provide at least one of image_path, pattern_id, preset_id, or prompt. " +
-            "IMPORTANT: Generation takes 1-3 minutes. Wait at least 5 seconds before the first query_material_status call, then poll every 10-15 seconds. " +
+            "IMPORTANT: Generation takes 1-3 minutes. Wait at least 5 seconds before the first query_local_task call, then poll every 10-15 seconds. " +
             "A placeholder_path and placeholder_material_path are returned immediately — you can assign the material to a renderer right away.")]
         public static object GenerateMaterial(JObject parameters)
         {
@@ -277,6 +232,18 @@ namespace UnityTcp.Editor.Tools
                 string styleId = parameters["style_id"]?.ToString();
                 string outputPath = parameters["output_path"]?.ToString();
                 string sessionId = parameters["session_id"]?.ToString() ?? "";
+                GenerationRequestOrigin.SetWorkspaceName(parameters["workspace_name"]?.ToString());
+
+                int maxLen = TJGeneratorsPromptLimits.GetMaxLength(generatorId);
+                if (maxLen > 0 && !string.IsNullOrEmpty(userPrompt) && userPrompt.Length > maxLen)
+                {
+                    return new Dictionary<string, object>
+                    {
+                        { "success", false },
+                        { "error_code", "PROMPT_TOO_LONG" },
+                        { "message", $"Prompt length ({userPrompt.Length}) exceeds the {maxLen} character limit for '{generatorId}'." }
+                    };
+                }
 
                 // Load material generator config
                 var config = ConfigManager.GetGeneratorConfig(ConfigType.Material, generatorId);
@@ -351,7 +318,7 @@ namespace UnityTcp.Editor.Tools
                 ApplyMaterialParameters(generator, parameters);
 
                 // 阶段1：同步提交任务到后端，立即获取 backendTaskId 或失败原因
-                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator);
+                var submitResult = TJGeneratorsGenerationService.SubmitTaskSync(generator, sessionId);
                 if (!submitResult.Success)
                 {
                     TJLog.LogError($"[GenerateMaterialTool] 任务提交失败 [{submitResult.ErrorCode}]: {submitResult.Message}");
@@ -406,7 +373,7 @@ namespace UnityTcp.Editor.Tools
                     });
 
                 // 阶段2：异步轮询（跳过提交）
-                var pipeline = new GenerationPipeline(host, ConfigType.Material);
+                var pipeline = new GenerationPipeline(host, ConfigType.Material, GenerationRequestOrigin.Agent, sessionId, "generate_material");
                 string historyAssetGuid = CustomToolHistoryBindings.HistoryGuidFromPlaceholderAssetPath(placeholderMatPath);
                 EditorCoroutineUtility.StartCoroutineOwnerless(
                     pipeline.StartFromSubmittedTask(generator, historyAssetGuid, submitResult.BackendTaskId));
@@ -419,12 +386,12 @@ namespace UnityTcp.Editor.Tools
                     { "submission_success",   true },
                     { "message",
                         "Material generation started. " +
-                        "STEP 1 (do now): Use `place_assets_in_scene` skill to apply placeholder_material_path to the scene. " +
-                        "STEP 2 (critical): END THIS RESPONSE TURN immediately. " +
-                        "STEP 3 (automatic): A <bg_task_done> notification will appear in your next turn (~90s) " +
+                        "STEP 1 (do now): Call activate_skill(\"unity-place-assets-in-scene\"), then use exec_editor_script as instructed to apply placeholder_material_path to the scene. " +
+                        "STEP 2 (critical): Keep this worker active until the task is terminal and its assets are verified. " +
+                        "STEP 3: A <bg_task_done> notification may arrive (~90s) " +
                         "containing ALL generation results (texture_path, material_path, preview_url, timing, etc.). " +
-                        "*** POLLING IS STRICTLY FORBIDDEN — do NOT call query_material_status repeatedly. " +
-                        "Only call query_material_status ONCE as a last-resort fallback if no notification arrives. ***" },
+                        "Wait up to 30 seconds in the current worker, then call query_local_task once; repeat only while pending. " +
+                        "Do not busy-poll query_local_task, submit again, or report success while pending." },
                     { "task_id",              taskId },
                     { "backend_task_id",      submitResult.BackendTaskId },
                     { "status",               "submitted" },
@@ -463,11 +430,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("query_material_status",
-            "Query the status of a material generation task. Use ONLY as a one-time fallback if no <bg_task_done> notification arrives. " +
-            "When completed, returns 'texture_path' (PNG) and 'material_path' (.mat) with asset paths in the project. " +
-            "Status values: 'generating', 'completed', 'failed'. " +
-            "WARNING: Do NOT call this tool repeatedly. Polling is forbidden.")]
         public static object QueryMaterialStatus(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -548,7 +510,6 @@ namespace UnityTcp.Editor.Tools
 #endif
         }
 
-        [ExecuteCustomTool.CustomTool("list_material_tasks", "List all active and recent material generation tasks")]
         public static object ListMaterialTasks(JObject parameters)
         {
 #if UNITY_EDITOR
@@ -699,10 +660,106 @@ namespace UnityTcp.Editor.Tools
 
 #if UNITY_EDITOR
     /// <summary>
+    /// Automatically resumes interrupted generate_material tasks after domain reload.
+    /// </summary>
+    [InitializeOnLoad]
+    public static class MaterialDomainReloadRecovery
+    {
+        static MaterialDomainReloadRecovery()
+        {
+            CustomToolDomainReloadRecovery.Schedule(ResumeInterruptedTasks);
+        }
+
+        private static void ResumeInterruptedTasks()
+        {
+            CustomToolDomainReloadRecovery.Resume(
+                "GenerateMaterialTool",
+                ConfigType.Material,
+                t => t.toolName == "generate_material",
+                () => MaterialTaskTracker.GetAllTasks(),
+                (interrupted, config, generator) =>
+                {
+                    var trackerTask = MaterialTaskTracker.GetTaskByBackendId(interrupted.backendTaskId);
+                    if (trackerTask != null)
+                    {
+                        CustomToolDomainReloadRecovery.MarkTrackerRecoveringIfNeeded(trackerTask.Status, () =>
+                        {
+                            MaterialTaskTracker.ApplyTaskUpdate(trackerTask, t => t.Status = "recovering");
+                        });
+                    }
+                    else
+                    {
+                        string matPath = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+                        string texPath = !string.IsNullOrEmpty(matPath)
+                            ? Path.ChangeExtension(matPath, ".png")
+                            : "";
+                        trackerTask = MaterialTaskTracker.CreateRecoveredTask(
+                            interrupted.backendTaskId, interrupted.prompt, texPath, matPath, interrupted.timestamp);
+                    }
+
+                    string placeholderPath = trackerTask.PlaceholderPath ?? "";
+                    string placeholderMatPath = trackerTask.PlaceholderMaterialPath ?? "";
+                    if (string.IsNullOrEmpty(placeholderMatPath))
+                        placeholderMatPath = CustomToolDomainReloadRecovery.ResolveAssetPath(interrupted.targetAssetGuid);
+                    if (string.IsNullOrEmpty(placeholderPath) && !string.IsNullOrEmpty(placeholderMatPath))
+                        placeholderPath = Path.ChangeExtension(placeholderMatPath, ".png");
+
+                    var presetOption = !string.IsNullOrEmpty(trackerTask.PresetId)
+                        ? config.materialPresetSelector?.options?.FirstOrDefault(o => o.id == trackerTask.PresetId)
+                        : null;
+
+                    string sessionId = interrupted.sessionId ?? "";
+                    string capturedBackendTaskId = interrupted.backendTaskId;
+                    string taskId = trackerTask.TaskId;
+
+                    var host = new MaterialPipelineHost(
+                        placeholderPath,
+                        placeholderMatPath,
+                        presetOption,
+                        sessionId,
+                        (texPath, matPath, previewUrl) =>
+                        {
+                            MaterialTaskTracker.MarkCompleted(taskId, texPath, matPath, previewUrl);
+                            var t = MaterialTaskTracker.GetTask(taskId);
+                            GenerationNotifier.NotifyCompleted("generate_material", taskId, capturedBackendTaskId,
+                                new JObject
+                                {
+                                    ["session_id"] = sessionId,
+                                    ["generator_id"] = t?.GeneratorId ?? interrupted.modelVersion ?? "",
+                                    ["prompt"] = t?.Prompt ?? interrupted.prompt ?? "",
+                                    ["texture_path"] = texPath ?? "",
+                                    ["material_path"] = matPath ?? "",
+                                    ["preview_url"] = previewUrl ?? "",
+                                    ["progress"] = 100,
+                                    ["start_time"] = t?.StartTime.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                                    ["end_time"] = t?.EndTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "",
+                                    ["duration_seconds"] = (t != null && t.EndTime.HasValue) ? (int)(t.EndTime.Value - t.StartTime).TotalSeconds : 0
+                                });
+                        },
+                        errorMsg =>
+                        {
+                            MaterialTaskTracker.MarkFailed(taskId, errorMsg);
+                            GenerationNotifier.NotifyFailed("generate_material", taskId, capturedBackendTaskId, errorMsg,
+                                new JObject
+                                {
+                                    ["session_id"] = sessionId,
+                                    ["generator_id"] = trackerTask.GeneratorId ?? interrupted.modelVersion ?? "",
+                                    ["prompt"] = trackerTask.Prompt ?? interrupted.prompt ?? ""
+                                });
+                        });
+
+                    CustomToolDomainReloadRecovery.StartPolling(
+                        "GenerateMaterialTool", host, ConfigType.Material,
+                        sessionId, "generate_material", generator, interrupted.backendTaskId);
+                });
+        }
+    }
+
+    /// <summary>
     /// IGenerationPipelineHost implementation for headless material generation via custom tools.
     /// Handles texture saving with Default import settings and creates a .mat Material asset.
     /// </summary>
-    internal class MaterialPipelineHost : IGenerationPipelineHost
+    internal class MaterialPipelineHost : HeadlessPipelineHostBase, IMediaAssetPipelineHost
     {
         private readonly string _placeholderPath;
         private readonly TJGeneratorsAssetReference _materialRef;
@@ -727,34 +784,30 @@ namespace UnityTcp.Editor.Tools
             _onFailed = onFailed;
         }
 
-        public TJGeneratorsAssetReference GetTargetAsset() => _materialRef;
+        protected override string DialogLogTag => "GenerateMaterialTool";
+        protected override Action<string> DialogFailedCallback => errorMessage => _onFailed?.Invoke(errorMessage);
+
+        public override TJGeneratorsAssetReference GetTargetAsset() => _materialRef;
 
         public void StartEditorCoroutine(IEnumerator coroutine)
         {
             EditorCoroutineUtility.StartCoroutineOwnerless(coroutine);
         }
 
-        public void RefreshHistory() { }
-        public void ShowPreviewModel(string assetPath) { }
-        public void RefreshUserInfo() { }
-        public void Repaint() { }
-        public void StartGeneration(ModelGeneratorBase generator) { }
-
-        public void ShowDialog(string title, string message)
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator)
         {
-            ErrorDialogUtils.ShowErrorDialog(title, message, (errorMessage) => _onFailed?.Invoke(errorMessage), "GenerateMaterialTool");
-        }
+            if (_type != PipelineMediaType.Texture) return null;
 
-        public string GetTextureSavePath(ModelGeneratorBase generator)
-        {
             // Return the placeholder path directly — pipeline overwrites the file bytes in-place.
             // Do NOT delete the placeholder: deleting would assign a new GUID on reimport,
             // breaking any Renderer.sharedMaterial references set up before generation completed.
             return _placeholderPath;
         }
 
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator)
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
         {
+            if (_type != PipelineMediaType.Texture) return;
+
             TJLog.Log($"[GenerateMaterialTool] Texture saved: {savePath}");
 
             // Import texture as Default (not Sprite)
@@ -829,11 +882,6 @@ namespace UnityTcp.Editor.Tools
                 return null;
             }
         }
-
-        public string GetAudioSavePath(ModelGeneratorBase generator) => null;
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
-        public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
     }
 #endif
 }

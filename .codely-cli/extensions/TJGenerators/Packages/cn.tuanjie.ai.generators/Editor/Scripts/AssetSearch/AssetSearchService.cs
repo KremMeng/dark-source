@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Codely.Newtonsoft.Json.Linq;
 using TJGenerators.Config;
+using TJGenerators.Utils;
 
 namespace TJGenerators.AssetSearch
 {
@@ -91,7 +92,7 @@ namespace TJGenerators.AssetSearch
 
                 string assetId    = obj["asset_id"]?.ToString();
                 string prefabPath = obj["prefab_path"]?.ToString();
-                string url        = obj["url"]?.ToString();
+                string url        = PathUtils.NormalizeRemoteUrl(obj["url"]?.ToString());
                 if (string.IsNullOrWhiteSpace(assetId) ||
                     string.IsNullOrWhiteSpace(prefabPath) ||
                     string.IsNullOrWhiteSpace(url))

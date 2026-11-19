@@ -12,8 +12,8 @@ namespace TJGenerators.Generators
     {
         public GeneratorConfig Config { get; }
         public string TextPrompt { get; }
-        public VisualSelectorOptionConfig SelectedType { get; }
-        public VisualSelectorOptionConfig SelectedStyle { get; }
+        public SelectorOptionConfig SelectedType { get; }
+        public SelectorOptionConfig SelectedStyle { get; }
         public MaterialTemplateOptionConfig SelectedPromptTemplate { get; }
         public string ImagePath { get; }
         public IReadOnlyList<string> ImagePaths { get; }
@@ -22,13 +22,12 @@ namespace TJGenerators.Generators
         public string CurrentInputMode { get; }
         public IReadOnlyDictionary<string, object> ParameterValues { get; }
         public IReadOnlyDictionary<string, string> ExtraRawJsonFields { get; }
-        public string SourceObjUrl { get; }
 
         public DynamicRequestBuildContext(
             GeneratorConfig config,
             string textPrompt,
-            VisualSelectorOptionConfig selectedType,
-            VisualSelectorOptionConfig selectedStyle,
+            SelectorOptionConfig selectedType,
+            SelectorOptionConfig selectedStyle,
             MaterialTemplateOptionConfig selectedPromptTemplate,
             string imagePath,
             IReadOnlyList<string> imagePaths,
@@ -36,8 +35,7 @@ namespace TJGenerators.Generators
             int multiViewCount,
             string currentInputMode,
             IReadOnlyDictionary<string, object> parameterValues,
-            IReadOnlyDictionary<string, string> extraRawJsonFields,
-            string sourceObjUrl
+            IReadOnlyDictionary<string, string> extraRawJsonFields
         )
         {
             Config = config ?? throw new ArgumentNullException(nameof(config));
@@ -54,7 +52,6 @@ namespace TJGenerators.Generators
                 parameterValues ?? new Dictionary<string, object>(StringComparer.Ordinal);
             ExtraRawJsonFields =
                 extraRawJsonFields ?? new Dictionary<string, string>(StringComparer.Ordinal);
-            SourceObjUrl = sourceObjUrl ?? "";
         }
     }
 

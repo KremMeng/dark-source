@@ -49,7 +49,6 @@ namespace TJGenerators
                 // 你可以在这里对单个按钮精调，例如 new Vector2(+1f, 0f) 或 new Vector2(+2f, +1f)
                 // { "Tripo", new Vector2(-1f, 0f) },
                 // { "Tencent Hunyuan", new Vector2(1f, 0f) },
-                // { "Meshy", new Vector2(1f, 0f) },
                 // { "Rodin", new Vector2(1f, 0f) },
                 // { "UniRig", new Vector2(1f, 0f) },
             };
@@ -61,8 +60,8 @@ namespace TJGenerators
 
         // 回调
         private Action<AIModelInfo> onModelSelected;
-        private Action<VisualSelectorOptionConfig> onTypeSelected;
-        private Action<VisualSelectorOptionConfig> onStyleSelected;
+        private Action<SelectorOptionConfig> onTypeSelected;
+        private Action<SelectorOptionConfig> onStyleSelected;
 
         private IList<GeneratorConfig> _generatorList;
 
@@ -75,10 +74,10 @@ namespace TJGenerators
         private AIModelInfo selectedModel;
 
         // 类型和风格数据
-        private List<VisualSelectorOptionConfig> typeOptions;
-        private List<VisualSelectorOptionConfig> styleOptions;
-        private VisualSelectorOptionConfig selectedType;
-        private VisualSelectorOptionConfig selectedStyle;
+        private List<SelectorOptionConfig> typeOptions;
+        private List<SelectorOptionConfig> styleOptions;
+        private SelectorOptionConfig selectedType;
+        private SelectorOptionConfig selectedStyle;
         private int currentTab = TAB_MODEL;
 
         // 类型/风格分类过滤
@@ -185,13 +184,13 @@ namespace TJGenerators
         /// </summary>
         private class OptionCardData : ICardData
         {
-            private readonly VisualSelectorOptionConfig option;
-            private readonly VisualSelectorOptionConfig selectedOption;
-            private readonly Action<VisualSelectorOptionConfig> onSelected;
+            private readonly SelectorOptionConfig option;
+            private readonly SelectorOptionConfig selectedOption;
+            private readonly Action<SelectorOptionConfig> onSelected;
             private readonly TJGeneratorsModelSelectorWindow window;
 
-            public OptionCardData(VisualSelectorOptionConfig option, VisualSelectorOptionConfig selectedOption, 
-                Action<VisualSelectorOptionConfig> onSelected, TJGeneratorsModelSelectorWindow window)
+            public OptionCardData(SelectorOptionConfig option, SelectorOptionConfig selectedOption, 
+                Action<SelectorOptionConfig> onSelected, TJGeneratorsModelSelectorWindow window)
             {
                 this.option = option;
                 this.selectedOption = selectedOption;
@@ -269,9 +268,9 @@ namespace TJGenerators
         /// 打开类型选择器窗口
         /// </summary>
         public static void ShowTypeSelector(
-            List<VisualSelectorOptionConfig> typeOptions,
-            Action<VisualSelectorOptionConfig> onTypeSelected,
-            VisualSelectorOptionConfig currentType = null)
+            List<SelectorOptionConfig> typeOptions,
+            Action<SelectorOptionConfig> onTypeSelected,
+            SelectorOptionConfig currentType = null)
         {
             var window = GetWindow<TJGeneratorsModelSelectorWindow>(true, TJGeneratorsL10n.L("选择类型"), true);
             window.titleContent = new GUIContent(TJGeneratorsL10n.L("选择类型"));
@@ -280,7 +279,7 @@ namespace TJGenerators
             
             window.Clear();
             window.onTypeSelected = onTypeSelected;
-            window.typeOptions = typeOptions ?? new List<VisualSelectorOptionConfig>();
+            window.typeOptions = typeOptions ?? new List<SelectorOptionConfig>();
             window._preferenceKey = PreferenceKey + ".Sprite";
             window.currentTab = TAB_TYPE;
             
@@ -294,9 +293,9 @@ namespace TJGenerators
         /// 打开风格选择器窗口
         /// </summary>
         public static void ShowStyleSelector(
-            List<VisualSelectorOptionConfig> styleOptions,
-            Action<VisualSelectorOptionConfig> onStyleSelected,
-            VisualSelectorOptionConfig currentStyle = null)
+            List<SelectorOptionConfig> styleOptions,
+            Action<SelectorOptionConfig> onStyleSelected,
+            SelectorOptionConfig currentStyle = null)
         {
             var window = GetWindow<TJGeneratorsModelSelectorWindow>(true, TJGeneratorsL10n.L("选择风格"), true);
             window.titleContent = new GUIContent(TJGeneratorsL10n.L("选择风格"));
@@ -305,7 +304,7 @@ namespace TJGenerators
             
             window.Clear();
             window.onStyleSelected = onStyleSelected;
-            window.styleOptions = styleOptions ?? new List<VisualSelectorOptionConfig>();
+            window.styleOptions = styleOptions ?? new List<SelectorOptionConfig>();
             window._preferenceKey = PreferenceKey + ".Sprite";
             window.currentTab = TAB_STYLE;
             
@@ -315,7 +314,7 @@ namespace TJGenerators
             window.ShowUtility();
         }
 
-        private VisualSelectorOptionConfig ResolveSelectedOption(List<VisualSelectorOptionConfig> options, VisualSelectorOptionConfig current)
+        private SelectorOptionConfig ResolveSelectedOption(List<SelectorOptionConfig> options, SelectorOptionConfig current)
         {
             if (current == null || options == null || options.Count == 0)
                 return null;
@@ -647,7 +646,7 @@ namespace TJGenerators
                    text.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-        private static bool MatchesOptionSearch(VisualSelectorOptionConfig option, string keyword)
+        private static bool MatchesOptionSearch(SelectorOptionConfig option, string keyword)
         {
             if (string.IsNullOrEmpty(keyword))
             {
@@ -734,13 +733,6 @@ namespace TJGenerators
             _sidebarSegmentTextStyle.focused.textColor = Color.white;
 
             stylesInitialized = true;
-        }
-
-        protected override void OnBackingScaleFactorChanged()
-        {
-            CommonStyles.HandleBackingScaleChange();
-            stylesInitialized = false;
-            Repaint();
         }
 
         private void OnGUI()
@@ -836,7 +828,7 @@ namespace TJGenerators
                 RightStatusBarHeight));
         }
 
-        private string DrawTypeStyleSidebar(List<VisualSelectorOptionConfig> options, string selectedCategory)
+        private string DrawTypeStyleSidebar(List<SelectorOptionConfig> options, string selectedCategory)
         {
             string newSelectedCategory = selectedCategory;
             var categories = new List<string> { AllTag };
@@ -858,12 +850,12 @@ namespace TJGenerators
             return newSelectedCategory;
         }
 
-        private void DrawTypeStyleCards(List<VisualSelectorOptionConfig> options, ref VisualSelectorOptionConfig selected, Action<VisualSelectorOptionConfig> onSelected, string selectedCategory, float viewHeight)
+        private void DrawTypeStyleCards(List<SelectorOptionConfig> options, ref SelectorOptionConfig selected, Action<SelectorOptionConfig> onSelected, string selectedCategory, float viewHeight)
         {
             if (options == null || options.Count == 0)
             {
-                DrawCardsGrid<VisualSelectorOptionConfig>(
-                    items: new List<VisualSelectorOptionConfig>(),
+                DrawCardsGrid<SelectorOptionConfig>(
+                    items: new List<SelectorOptionConfig>(),
                     drawCardAction: null,
                     viewHeight: viewHeight
                 );
@@ -893,7 +885,7 @@ namespace TJGenerators
             selected = currentSelected;
         }
 
-        private void DrawTypeStyleCard(VisualSelectorOptionConfig option, float cardWidth, VisualSelectorOptionConfig selected, Action<VisualSelectorOptionConfig> onSelected)
+        private void DrawTypeStyleCard(SelectorOptionConfig option, float cardWidth, SelectorOptionConfig selected, Action<SelectorOptionConfig> onSelected)
         {
             var cardData = new OptionCardData(option, selected, onSelected, this);
             DrawCard(cardData, cardWidth);
@@ -902,7 +894,7 @@ namespace TJGenerators
         /// <summary>
         /// 加载选项图标：优先本地 -> 远程 URL -> 返回 null（由调用方 fallback）
         /// </summary>
-        private Texture2D LoadOptionIcon(VisualSelectorOptionConfig option)
+        private Texture2D LoadOptionIcon(SelectorOptionConfig option)
         {
             if (!string.IsNullOrEmpty(option.iconPath))
             {
@@ -952,7 +944,7 @@ namespace TJGenerators
                 request.timeout = 30;
                 yield return request.SendWebRequest();
 
-                if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+                if (UnityWebRequestCompat.IsSuccess(request))
                 {
                     var texture = ((UnityEngine.Networking.DownloadHandlerTexture)request.downloadHandler).texture;
                     if (texture != null)
@@ -1265,7 +1257,7 @@ namespace TJGenerators
             GUI.Label(textRect, text.ToUpperInvariant(), style);
         }
 
-        private int GetFilteredOptionCount(List<VisualSelectorOptionConfig> options, string selectedCategory)
+        private int GetFilteredOptionCount(List<SelectorOptionConfig> options, string selectedCategory)
         {
             if (options == null || options.Count == 0)
                 return 0;

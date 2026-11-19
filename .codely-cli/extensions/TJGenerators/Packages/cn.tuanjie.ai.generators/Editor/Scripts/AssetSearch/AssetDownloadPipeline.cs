@@ -11,8 +11,8 @@ using UnityEngine.Networking;
 namespace TJGenerators.AssetSearch
 {
     /// <summary>
-    /// 下载 → 导入 → 后处理的核心协程与调度入口。原 <c>SearchAssetsTool.DownloadPackageCoroutine</c>
-    /// 与 <c>ProcessImportQueue</c> 搬迁至此；逻辑保持一致，对外只公开 <see cref="Run"/> 与
+    /// 下载 → 导入 → 后处理的核心协程与调度入口。原 CustomTool 侧内联实现
+    /// 搬迁至此（该工具已移除，资产库搜索/下载改由后端提供）；对外只公开 <see cref="Run"/> 与
     /// <see cref="ProcessImportQueue"/>。
     /// </summary>
     public static class AssetDownloadPipeline
@@ -42,6 +42,7 @@ namespace TJGenerators.AssetSearch
 
         /// <summary>
         /// 核心下载协程：UnityWebRequest 下载 → 解析包文件列表 → 加入导入队列。
+        /// 入口对 URL 做反斜杠规范化（<see cref="PathUtils.NormalizeRemoteUrl"/>），不做 Uri 完整规范化。
         /// </summary>
         public static IEnumerator Run(
             string taskId,
@@ -55,8 +56,10 @@ namespace TJGenerators.AssetSearch
             // 清理上次中断可能遗留的临时文件（DownloadHandlerFile 虽会覆盖写入，但显式清理保证幂等）
             try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { /* ignore */ }
 
-            // 直接使用原始 URL，不做任何规范化——Uri.AbsoluteUri 会对已编码字符二次处理，
-            // 可能导致 %2F 变为 %252F 或路径段被重新解析，引起签名校验失败。
+            url = PathUtils.NormalizeRemoteUrl(url);
+
+            // 仅将 URL 中的反斜杠替换为正斜杠（见 NormalizeRemoteUrl）；不做 Uri.AbsoluteUri 等完整规范化，
+            // 否则会对已编码字符二次处理（如 %2F → %252F）或重解析路径段，导致签名校验失败。
             bool   downloadOk = false;
             string finalError = null;
 
@@ -99,7 +102,7 @@ namespace TJGenerators.AssetSearch
                     continue;
                 }
 
-                if (req.result == UnityWebRequest.Result.Success)
+                if (UnityWebRequestCompat.IsSuccess(req))
                 {
                     req.Dispose();
                     downloadOk = true;
@@ -116,7 +119,7 @@ namespace TJGenerators.AssetSearch
                 {
                     // 签名 URL 已过期，重试无意义
                     finalError = "URL_EXPIRED: Download URL returned HTTP 400 (signed URL likely expired). " +
-                                 "Re-call search_assets with the same query to get a fresh URL, then retry download_asset.";
+                                 "Re-run the asset library search to get a fresh URL, then retry the download.";
                     TJLog.LogError(
                         $"{LogTag} 下载失败（HTTP 400，URL 已过期，不再重试）" +
                         $" taskId={taskId} httpCode={httpCode} error={httpError} url={url}");
@@ -184,6 +187,14 @@ namespace TJGenerators.AssetSearch
         {
             var entry = AssetImportQueue.PeekImportQueue();
             if (entry == null) return;
+
+            // Unity 禁止 Play 模式下 ImportPackage：保留队首，退出 Play 后再导入。
+            if (TJGeneratorsPlayModeGuard.IsActive)
+            {
+                EnsureResumeImportAfterPlayMode();
+                TJLog.Log($"{LogTag} Play 模式中，推迟 ImportPackage，task={entry.TaskId}");
+                return;
+            }
 
             if (entry.HasScripts && AssetDownloadTracker.GetInFlight() > 0)
             {
@@ -330,6 +341,25 @@ namespace TJGenerators.AssetSearch
                 if (p.EndsWith(".rsp",     StringComparison.OrdinalIgnoreCase)) return true;
             }
             return false;
+        }
+
+        static bool s_resumeImportHooked;
+
+        static void EnsureResumeImportAfterPlayMode()
+        {
+            if (s_resumeImportHooked)
+                return;
+            s_resumeImportHooked = true;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChangedForImport;
+        }
+
+        static void OnPlayModeStateChangedForImport(PlayModeStateChange state)
+        {
+            if (state != PlayModeStateChange.EnteredEditMode)
+                return;
+            s_resumeImportHooked = false;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChangedForImport;
+            EditorApplication.delayCall += ProcessImportQueue;
         }
     }
 

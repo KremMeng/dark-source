@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
-using UnityEditor.PackageManager;
 using UnityEditor;
 using UnityEngine;
 using TJGenerators.Config;
@@ -38,19 +37,6 @@ namespace TJGenerators.Utils
         }
 
         /// <summary>
-        /// 将项目相对路径转换为绝对路径
-        /// </summary>
-        /// <param name="projectRelativePath">项目相对路径（可以是 "Assets/..." 或其他相对路径）</param>
-        /// <returns>绝对路径</returns>
-        /// <remarks>
-        /// - 如果路径为空或已经是绝对路径，直接返回原路径
-        /// - "Packages/..." 解析到项目根下的 Packages（与 Assets 同级），不会错误落到 Assets/Packages
-        /// - "Assets/..." 会转换为 Application.dataPath 下的绝对路径
-        /// - "Editor/..." 解析为当前 TJGenerators 包根下的相对路径（便于随包分发、不依赖 UPM 文件夹名）
-        /// - 其他相对路径按「位于 Assets 目录下」与 Application.dataPath 组合（兼容旧用法）
-        /// - 会自动规范化路径中的反斜杠为正斜杠
-        /// </remarks>
-        /// <summary>
         /// 若绝对路径位于本工程 Assets 下，返回 Assets 相对路径；否则返回 null。
         /// </summary>
         public static string TryGetAssetsRelativePathFromAbsolute(string absolutePath)
@@ -68,8 +54,16 @@ namespace TJGenerators.Utils
             return "Assets/" + tail.Replace('\\', '/');
         }
 
+        // Path.GetInvalidFileNameChars() is OS-specific (Linux allows : | * ? " < >).
+        // Unity Assets are shared across platforms, so always strip Windows-invalid chars too.
+        private static readonly char[] CrossPlatformInvalidFileNameChars =
+        {
+            '/', '\\', ':', '*', '?', '"', '<', '>', '|',
+        };
+
         /// <summary>
         /// 将名称规范为可作为 Assets 下文件夹名的片段（去除非法文件名字符）。
+        /// 使用跨平台字符集（含 Windows 非法字符），避免 Linux 上保留 <c>:|</c> 等导致工程在 Windows 上无法打开。
         /// </summary>
         public static string SanitizeAssetFolderName(string name)
         {
@@ -78,35 +72,85 @@ namespace TJGenerators.Utils
 
             foreach (char c in Path.GetInvalidFileNameChars())
                 name = name.Replace(c, '_');
+            foreach (char c in CrossPlatformInvalidFileNameChars)
+                name = name.Replace(c, '_');
 
             name = name.Trim();
             return string.IsNullOrEmpty(name) ? "Model" : name;
         }
 
+        /// <summary>
+        /// 规范化模型目录路径：去掉 Assets/Assets/ 多余前缀，并统一斜杠方向。
+        /// </summary>
+        public static string NormalizeModelDirectory(string modelDir)
+        {
+            const string assetsPrefix = "Assets/";
+            if (modelDir != null && modelDir.StartsWith(assetsPrefix + assetsPrefix, StringComparison.OrdinalIgnoreCase))
+                modelDir = modelDir.Substring(assetsPrefix.Length);
+            return modelDir?.Replace("\\", "/") ?? "";
+        }
+
+        /// <summary>
+        /// 将 CDN / HTTP(S) URL 中的 Windows 反斜杠统一为正斜杠，避免路径拼接混入 <c>\</c> 导致下载失败。
+        /// </summary>
+        public static string NormalizeRemoteUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return url;
+            return url.IndexOf('\\') >= 0 ? url.Replace('\\', '/') : url;
+        }
+
+        /// <summary>
+        /// 对 URL 数组逐元素调用 <see cref="NormalizeRemoteUrl"/>；null 或空数组原样返回。
+        /// </summary>
+        public static string[] NormalizeUrlArray(string[] urls)
+        {
+            if (urls == null || urls.Length == 0)
+                return urls;
+
+            var result = new string[urls.Length];
+            for (int i = 0; i < urls.Length; i++)
+                result[i] = NormalizeRemoteUrl(urls[i]);
+            return result;
+        }
+
+        /// <summary>
+        /// 将项目相对路径转换为绝对路径。
+        /// </summary>
+        /// <param name="projectRelativePath">项目相对路径（可以是 "Assets/..." 或其他相对路径）</param>
+        /// <returns>绝对路径</returns>
+        /// <remarks>
+        /// - 如果路径为空或已经是绝对路径，直接返回原路径
+        /// - "Packages/..." 解析到项目根下的 Packages（与 Assets 同级），不会错误落到 Assets/Packages
+        /// - "Assets/..." 会转换为 Application.dataPath 下的绝对路径
+        /// - "Editor/..." 解析为当前 TJGenerators 包根下的相对路径（便于随包分发、不依赖 UPM 文件夹名）
+        /// - 其他相对路径按「位于 Assets 目录下」与 Application.dataPath 组合（兼容旧用法）
+        /// - 会自动规范化路径中的反斜杠为正斜杠
+        /// </remarks>
         public static string ToAbsoluteAssetPath(string projectRelativePath)
         {
             if (string.IsNullOrEmpty(projectRelativePath)) return projectRelativePath;
-            if (Path.IsPathRooted(projectRelativePath)) return projectRelativePath;
+            if (Path.IsPathRooted(projectRelativePath)) return projectRelativePath.Replace('\\', '/');
 
             projectRelativePath = projectRelativePath.Replace("\\", "/");
 
-            string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..")).Replace('\\', '/');
 
             if (projectRelativePath.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase))
-                return Path.GetFullPath(Path.Combine(projectRoot, projectRelativePath));
+                return Path.GetFullPath(Path.Combine(projectRoot, projectRelativePath)).Replace('\\', '/');
 
             const string assetsPrefix = "Assets/";
             if (projectRelativePath.StartsWith(assetsPrefix, StringComparison.OrdinalIgnoreCase))
-                return Path.Combine(Application.dataPath, projectRelativePath.Substring(assetsPrefix.Length));
+                return Path.Combine(Application.dataPath, projectRelativePath.Substring(assetsPrefix.Length)).Replace('\\', '/');
 
             if (projectRelativePath.StartsWith("Editor/", StringComparison.OrdinalIgnoreCase))
             {
                 string pkgRoot = TryGetTjGeneratorsPackageRoot();
                 if (!string.IsNullOrEmpty(pkgRoot))
-                    return Path.GetFullPath(Path.Combine(pkgRoot, projectRelativePath));
+                    return Path.GetFullPath(Path.Combine(pkgRoot, projectRelativePath)).Replace('\\', '/');
             }
 
-            return Path.Combine(Application.dataPath, projectRelativePath);
+            return Path.Combine(Application.dataPath, projectRelativePath).Replace('\\', '/');
         }
 
         /// <summary>
@@ -124,6 +168,109 @@ namespace TJGenerators.Utils
             if (normalized.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase))
                 return "Assets" + normalized.Substring(dataPath.Length);
             return absolutePath;
+        }
+
+        /// <summary>
+        /// 判断磁盘绝对路径是否落在本工程 Assets 目录下（含 Assets 根本身）。
+        /// </summary>
+        public static bool IsAbsolutePathUnderAssets(string absolutePath)
+        {
+            if (string.IsNullOrEmpty(absolutePath))
+                return false;
+
+            string normalized = Path.GetFullPath(absolutePath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string dataPath = Path.GetFullPath(Application.dataPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (string.Equals(normalized, dataPath, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            string prefix = dataPath + Path.DirectorySeparatorChar;
+            return normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// 将 CustomTool 的 <c>output_path</c> 规范为 Unity Assets 相对路径（正斜杠）。
+        /// 接受 <c>Assets/...</c>，或落在本工程 Assets 下的绝对路径；拒绝工程外路径与非 Assets 相对路径。
+        /// </summary>
+        public static bool TryNormalizeOutputAssetPath(
+            string outputPath, out string normalizedAssetPath, out string errorMessage)
+        {
+            normalizedAssetPath = null;
+            errorMessage = null;
+
+            if (string.IsNullOrWhiteSpace(outputPath))
+            {
+                errorMessage = TJGeneratorsL10n.L("'output_path' 不能为空。");
+                return false;
+            }
+
+            string trimmed = outputPath.Trim().Replace('\\', '/');
+            string absolute;
+            if (Path.IsPathRooted(trimmed))
+            {
+                absolute = Path.GetFullPath(trimmed);
+            }
+            else
+            {
+                if (!trimmed.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(trimmed, "Assets", StringComparison.OrdinalIgnoreCase))
+                {
+                    errorMessage = TJGeneratorsL10n.L(
+                        "'output_path' 必须是 Assets 相对路径（Assets/...），或位于工程 Assets 目录下的绝对路径。收到：'{0}'",
+                        outputPath);
+                    return false;
+                }
+
+                absolute = Path.GetFullPath(ToAbsoluteAssetPath(trimmed));
+            }
+
+            if (!IsAbsolutePathUnderAssets(absolute))
+            {
+                errorMessage = TJGeneratorsL10n.L(
+                    "'output_path' 必须解析到工程 Assets 目录下。收到：'{0}'",
+                    outputPath);
+                return false;
+            }
+
+            string relative = AbsolutePathToAssetsRelative(absolute)?.Replace('\\', '/');
+            if (string.IsNullOrEmpty(relative)
+                || (!relative.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(relative, "Assets", StringComparison.OrdinalIgnoreCase)))
+            {
+                errorMessage = TJGeneratorsL10n.L(
+                    "'output_path' 无法转换为 Assets 相对路径。收到：'{0}'",
+                    outputPath);
+                return false;
+            }
+
+            normalizedAssetPath = relative;
+            return true;
+        }
+
+        /// <summary>
+        /// 调用 <see cref="AssetDatabase.GenerateUniqueAssetPath"/>，并校验返回值仍是合法 Assets 路径；
+        /// 空/非法时回退到 <paramref name="fallbackAssetPath"/>（再不行则用 preferred）。
+        /// </summary>
+        public static string GenerateUniqueAssetPathChecked(string preferredAssetPath, string fallbackAssetPath = null)
+        {
+            if (string.IsNullOrEmpty(preferredAssetPath))
+                preferredAssetPath = fallbackAssetPath;
+
+            if (string.IsNullOrEmpty(preferredAssetPath))
+                return preferredAssetPath;
+
+            preferredAssetPath = preferredAssetPath.Replace('\\', '/');
+            string unique = AssetDatabase.GenerateUniqueAssetPath(preferredAssetPath);
+            if (!string.IsNullOrEmpty(unique)
+                && TryNormalizeOutputAssetPath(unique, out string normalized, out _))
+                return normalized;
+
+            if (!string.IsNullOrEmpty(fallbackAssetPath)
+                && TryNormalizeOutputAssetPath(fallbackAssetPath, out string fallbackNormalized, out _))
+                return fallbackNormalized;
+
+            return preferredAssetPath;
         }
 
         /// <summary>
@@ -247,26 +394,22 @@ namespace TJGenerators.Utils
         }
 
         /// <summary>
-        /// 同 <see cref="GetRaw"/>；若结果为数组则取首元素再 ToString，否则直接 ToString。
+        /// 从响应对象按点路径读取远程 URL 字符串：同 <see cref="GetRaw"/> 取值后 ToString，
+        /// 数组取首元素；返回值经 <see cref="NormalizeRemoteUrl"/> 将反斜杠转为正斜杠。
         /// </summary>
-        public static string GetString(object obj, string path)
+        public static string GetUrlString(object obj, string path)
         {
             object current = GetRaw(obj, path);
             if (current == null)
                 return null;
 
-            if (current is Array arr && arr.Length > 0)
-                return arr.GetValue(0)?.ToString();
-            return current.ToString();
-        }
+            string value;
+            if (current is Array arr)
+                value = arr.Length > 0 ? arr.GetValue(0)?.ToString() : null;
+            else
+                value = current.ToString();
 
-        /// <summary>
-        /// 下载包目录命名规则：直接使用 asset_id（slug），与后端保持一致。
-        /// 入参为空时返回空字符串，由调用方自行处理。
-        /// </summary>
-        public static string BuildPackageDirName(string assetId)
-        {
-            return string.IsNullOrEmpty(assetId) ? string.Empty : assetId;
+            return NormalizeRemoteUrl(value);
         }
 
         /// <summary>
@@ -285,9 +428,55 @@ namespace TJGenerators.Utils
             AssetDatabase.CreateFolder(parent, name);
         }
 
+        private static readonly string[] ModelAssetExtensions =
+        {
+            ".fbx", ".obj",
+        };
+
+        /// <summary>
+        /// 是否为 Unity ModelImporter 支持的网格资产路径。
+        /// </summary>
+        public static bool IsModelAssetPath(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath))
+                return false;
+
+            string ext = Path.GetExtension(assetPath);
+            if (string.IsNullOrEmpty(ext))
+                return false;
+
+            foreach (string modelExt in ModelAssetExtensions)
+            {
+                if (ext.Equals(modelExt, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 确保 ModelImporter 开启 Read/Write，避免 Player 运行时网格不可读导致模型不可见。
+        /// </summary>
+        /// <returns>是否触发了重新导入。</returns>
+        public static bool EnsureModelImporterReadable(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath) || !IsModelAssetPath(assetPath))
+                return false;
+
+            assetPath = assetPath.Replace('\\', '/');
+            var importer = AssetImporter.GetAtPath(assetPath) as ModelImporter;
+            if (importer == null || importer.isReadable)
+                return false;
+
+            importer.isReadable = true;
+            importer.SaveAndReimport();
+            return true;
+        }
+
         /// <summary>
         /// 磁盘写入后导入指定资产。优先 <see cref="AssetDatabase.ImportAsset"/>，
-        /// 仅在资产仍不可加载时做一次全量 <see cref="AssetDatabase.Refresh"/> 兜底。
+        /// 仅在资产仍不可加载时做一次全量 <see cref="SafeRefresh"/> 兜底。
+        /// 模型资产会额外确保 <see cref="ModelImporter.isReadable"/> 为 true。
         /// </summary>
         public static void ImportAssetAfterDiskWrite(string assetPath)
         {
@@ -296,9 +485,41 @@ namespace TJGenerators.Utils
 
             assetPath = assetPath.Replace('\\', '/');
             AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            EnsureModelImporterReadable(assetPath);
             if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath) != null)
                 return;
 
+            SafeRefresh();
+            EnsureModelImporterReadable(assetPath);
+        }
+
+        /// <summary>
+        /// Guards <see cref="AssetDatabase.Refresh"/> against being called during script
+        /// compilation. When <see cref="EditorApplication.isCompiling"/> is true, defers
+        /// the Refresh to after compilation completes. This breaks the cycle:
+        /// Domain Reload → recovery → Refresh → detect .cs changes → recompile → repeat.
+        /// </summary>
+        private static bool s_refreshPending;
+
+        public static void SafeRefresh(ImportAssetOptions options = ImportAssetOptions.Default)
+        {
+            if (EditorApplication.isCompiling)
+            {
+                if (!s_refreshPending)
+                {
+                    s_refreshPending = true;
+                    EditorApplication.update += FlushPendingRefresh;
+                }
+                return;
+            }
+            AssetDatabase.Refresh(options);
+        }
+
+        private static void FlushPendingRefresh()
+        {
+            if (EditorApplication.isCompiling) return;
+            EditorApplication.update -= FlushPendingRefresh;
+            s_refreshPending = false;
             AssetDatabase.Refresh();
         }
 
@@ -317,10 +538,15 @@ namespace TJGenerators.Utils
 
             foreach (string file in Directory.GetFiles(absFolder, "*", SearchOption.AllDirectories))
             {
+                // Unity imports metadata with its source asset. Importing .meta directly can
+                // delete/recreate importer settings and invalidate Sprite sub-asset references.
+                if (file.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 string rel = AbsolutePathToAssetsRelative(file);
                 if (string.IsNullOrEmpty(rel) || !rel.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
                     continue;
                 AssetDatabase.ImportAsset(rel, ImportAssetOptions.ForceUpdate);
+                EnsureModelImporterReadable(rel);
             }
         }
 

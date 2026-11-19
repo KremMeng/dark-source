@@ -29,14 +29,5 @@ namespace TJGenerators.Config
             }
             return fallback == default ? new Vector3(0f, 0f, 0f) : fallback;
         }
-
-        /// <summary>
-        /// 从配置加载API端点
-        /// </summary>
-        public static string LoadEndpoint(string generatorId, string key, string fallback)
-        {
-            var genConfig = ConfigManager.GetGeneratorConfig(ConfigType.Generator, generatorId);
-            return genConfig?.GetEndpoint(key) ?? fallback;
-        }
     }
 }

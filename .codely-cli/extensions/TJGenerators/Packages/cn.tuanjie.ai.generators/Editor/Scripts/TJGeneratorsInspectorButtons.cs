@@ -55,8 +55,13 @@ namespace TJGenerators
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            if (GUILayout.Button(new GUIContent(TJGeneratorsL10n.L("✦ AI 生成"), tooltip)))
-                onClick();
+            bool playBlocked = TJGeneratorsPlayModeGuard.IsActive;
+            string tip = playBlocked ? TJGeneratorsPlayModeGuard.ShortHint : tooltip;
+            using (new EditorGUI.DisabledScope(playBlocked))
+            {
+                if (GUILayout.Button(new GUIContent(TJGeneratorsL10n.L("✦ AI 生成"), tip)))
+                    onClick();
+            }
 
             DrawHeaderDocLink();
             EditorGUILayout.EndHorizontal();
@@ -77,13 +82,21 @@ namespace TJGenerators
 
         private static bool TryGetTextureAssetPath(Editor editor, out string texturePath)
         {
-            texturePath = editor.target switch
+            switch (editor.target)
             {
-                Texture2D texture => AssetDatabase.GetAssetPath(texture),
-                Sprite sprite => AssetDatabase.GetAssetPath(sprite),
-                TextureImporter textureImporter => textureImporter.assetPath,
-                _ => null
-            };
+                case Texture2D texture:
+                    texturePath = AssetDatabase.GetAssetPath(texture);
+                    break;
+                case Sprite sprite:
+                    texturePath = AssetDatabase.GetAssetPath(sprite);
+                    break;
+                case TextureImporter textureImporter:
+                    texturePath = textureImporter.assetPath;
+                    break;
+                default:
+                    texturePath = null;
+                    break;
+            }
 
             return !string.IsNullOrEmpty(texturePath);
         }
@@ -107,7 +120,7 @@ namespace TJGenerators
             if (importer.textureType == TextureImporterType.Sprite)
             {
                 var spriteAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(texturePath);
-                if (!TJGeneratorsGenerationLabel.HasFrontierLabel(spriteAsset))
+                if (!TJGeneratorsGenerationLabel.HasSpriteSheetLabel(spriteAsset))
                 {
                     DrawAIGenerateHeaderButton(
                         TJGeneratorsL10n.L("使用 TJGenerators AI 生成2D精灵"),
@@ -125,16 +138,16 @@ namespace TJGenerators
                 {
                     DrawAIGenerateHeaderButton(
                         TJGeneratorsL10n.L("使用 TJGenerators AI 生成表面材质"),
-                        () => TJGeneratorsSpriteWindow.OpenForMaterialTextureAsset(texturePath));
+                        () => TJGeneratorsMaterialWindow.OpenForMaterialTextureAsset(texturePath));
                 }
                 else
                 {
                     var imageAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(texturePath);
-                    if (TJGeneratorsGenerationLabel.HasFrontierLabel(imageAsset))
+                    if (TJGeneratorsGenerationLabel.HasSpriteSheetLabel(imageAsset))
                     {
                         DrawAIGenerateHeaderButton(
-                            TJGeneratorsL10n.L("使用 TJGenerators AI 生成序列帧（Frontier）"),
-                            () => TJGeneratorsImageWindow.OpenForAssetAsFrontierSequence(texturePath));
+                            TJGeneratorsL10n.L("使用 TJGenerators AI 生成2D精灵表序列帧"),
+                            () => TJGeneratorsSpriteSheetSequenceWindow.OpenForAsset(texturePath));
                     }
                     else
                     {
@@ -176,12 +189,18 @@ namespace TJGenerators
 
         private static bool TryGetAudioAssetPath(Editor editor, out string audioPath)
         {
-            audioPath = editor.target switch
+            switch (editor.target)
             {
-                UnityEngine.AudioClip audioClip => AssetDatabase.GetAssetPath(audioClip),
-                UnityEditor.AudioImporter audioImporter => audioImporter.assetPath,
-                _ => null
-            };
+                case UnityEngine.AudioClip audioClip:
+                    audioPath = AssetDatabase.GetAssetPath(audioClip);
+                    break;
+                case UnityEditor.AudioImporter audioImporter:
+                    audioPath = audioImporter.assetPath;
+                    break;
+                default:
+                    audioPath = null;
+                    break;
+            }
 
             return !string.IsNullOrEmpty(audioPath);
         }
@@ -203,12 +222,18 @@ namespace TJGenerators
 
         private static bool TryGetVideoAssetPath(Editor editor, out string videoPath)
         {
-            videoPath = editor.target switch
+            switch (editor.target)
             {
-                VideoClip videoClip => AssetDatabase.GetAssetPath(videoClip),
-                AssetImporter assetImporter when IsVideoAssetPath(assetImporter.assetPath) => assetImporter.assetPath,
-                _ => null
-            };
+                case VideoClip videoClip:
+                    videoPath = AssetDatabase.GetAssetPath(videoClip);
+                    break;
+                case AssetImporter assetImporter when IsVideoAssetPath(assetImporter.assetPath):
+                    videoPath = assetImporter.assetPath;
+                    break;
+                default:
+                    videoPath = null;
+                    break;
+            }
 
             return !string.IsNullOrEmpty(videoPath);
         }
@@ -239,31 +264,19 @@ namespace TJGenerators
             {
                 DrawAIGenerateHeaderButton(
                     TJGeneratorsL10n.L("使用 TJGenerators AI 生成表面材质"),
-                    () => TJGeneratorsSpriteWindow.OpenForMaterialAsset(path));
+                    () => TJGeneratorsMaterialWindow.OpenForMaterialAsset(path));
             }
 
             return true;
         }
 
+        /// <summary>
+        /// AnimationClip header no longer offers legacy image2seq generation.
+        /// Still claim the target so Prefab header controls do not mis-apply.
+        /// </summary>
         private static bool TryDrawAnimationClipHeaderControls(Editor editor)
         {
-            if (!(editor.target is AnimationClip animationClip))
-                return false;
-
-            string clipPath = AssetDatabase.GetAssetPath(animationClip);
-            if (!string.IsNullOrEmpty(clipPath)
-                && clipPath.EndsWith(".anim", StringComparison.OrdinalIgnoreCase))
-            {
-                var clipAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(clipPath);
-                if (!TJGeneratorsGenerationLabel.HasFrontierLabel(clipAsset))
-                {
-                    DrawAIGenerateHeaderButton(
-                        TJGeneratorsL10n.L("使用 TJGenerators AI 生成2D序列帧动画"),
-                        () => TJGeneratorsSpriteSequenceWindow.OpenForAsset(clipPath));
-                }
-            }
-
-            return true;
+            return editor.target is AnimationClip;
         }
 
         private static bool TryDrawPrefabHeaderControls(Editor editor)

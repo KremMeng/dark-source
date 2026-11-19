@@ -20,7 +20,7 @@ namespace TJGenerators
     /// <summary>
     /// TJGenerators 天空盒生成窗口 - 使用生成器模型生成天空盒
     /// </summary>
-    public class TJGeneratorsSkyboxWindow : GenerationWindowBase, IGenerationPipelineHost
+    public class TJGeneratorsSkyboxWindow : GenerationWindowBase, IGenerationPipelineHost, IGenerationTriggerHost, IMediaAssetPipelineHost
     {
         // ========== 基类抽象属性实现 ==========
         protected override ConfigType WindowConfigType => ConfigType.Skybox;
@@ -53,6 +53,7 @@ namespace TJGenerators
                 focus: true
             );
             window.titleContent = new GUIContent(TJGeneratorsL10n.L("TJGenerators 天空盒生成"));
+            FinalizeMainWindowShow(window, rect);
         }
         
         /// <summary>
@@ -68,11 +69,27 @@ namespace TJGenerators
                 () =>
                 {
                     var window = CreateInstance<TJGeneratorsSkyboxWindow>();
-                    SetDefaultWindowSize(window);
                     return window;
                 },
                 (w, r) => w.targetSkyboxAsset = r,
                 ShowWindow);
+        }
+
+        protected override void OnBootstrapWindowContent()
+        {
+            if (targetSkyboxAsset != null && !string.IsNullOrEmpty(targetSkyboxAsset.guid))
+                skyboxOpenWindows[targetSkyboxAsset.guid] = this;
+
+            InitializeGeneratorsFromConfig(ConfigType.Skybox);
+            OnRefreshWindowContent();
+        }
+
+        protected override void OnRefreshWindowContent()
+        {
+            if (targetSkyboxAsset == null || !targetSkyboxAsset.IsValid())
+                EnsureTargetSkybox();
+            RefreshHistory();
+            CheckAndRecoverInterruptedTasks();
         }
         
         // ========== 生命周期 ==========
@@ -81,26 +98,8 @@ namespace TJGenerators
         {
             base.OnEnable();
             wantsMouseMove = true;
-            InitializeGeneratorsFromConfig(ConfigType.Skybox);
 
-            // 确保目标天空盒资产存在，保证历史记录使用一致的 assetGuid
-            EnsureTargetSkybox();
-
-            // 延迟加载历史记录
-            EditorApplication.delayCall += () =>
-            {
-                if (this != null)
-                {
-                    generationHistory = TJGeneratorsHistoryManager.LoadHistoryForAsset(GetCurrentSkyboxAssetGuid());
-                    Repaint();
-                }
-            };
-
-            // 初始化时获取用户信息
             EditorCoroutineUtility.StartCoroutineOwnerless(UserInfoHelper.GetUserInfoCoroutine(ConfigManager.GetUserInfoUrl(), OnUserInfoLoaded));
-            
-            // 检查是否有可恢复的任务
-            CheckAndRecoverInterruptedTasks();
         }
         
         protected override void OnDisable()
@@ -305,7 +304,6 @@ namespace TJGenerators
                 showAdvancedSettings,
                 provider,
                 GetCurrentGeneratorParameters());
-            SyncGenerationCostWithCurrentGeneratorState();
         }
         
         private void DrawGenerationSection(LeftPanelBottomDock.Layout layout)
@@ -318,8 +316,7 @@ namespace TJGenerators
                 !string.IsNullOrWhiteSpace(textPrompt),
                 StartGeneration,
                 null,
-                Repaint,
-                currentGenerationCost);
+                Repaint);
         }
         
         private void DrawSkyboxPreview()
@@ -392,96 +389,14 @@ namespace TJGenerators
         
         private void DrawHistoryPanel(float panelWidth)
         {
-            float historyPanelHeight = isVerticalLayout ? position.height * 0.45f : position.height;
-            
-            UIComponents.BeginHistoryPanel(panelWidth, historyPanelHeight, isVerticalLayout);
-
-            Texture2D historyPreviewTex = null;
-            bool showHistoryPreview = false;
-            if (selectedHistoryIndex >= 0 && selectedHistoryIndex < generationHistory.Count)
+            DrawStandardHistoryPanel(panelWidth, new StandardHistoryPanelOptions
             {
-                var selectedItem = generationHistory[selectedHistoryIndex];
-                if (!selectedItem.isGenerating)
-                {
-                    showHistoryPreview = true;
-                    historyPreviewTex = GetPreviewTextureForHistoryItem(selectedItem);
-                }
-            }
-
-            // 使用通用的历史纹理预览绘制逻辑：单列时高度为 historyPanelHeight 的一半
-            float previewBlockHeight = UIComponents.DrawHistoryTexturePreview(
-                historyPreviewTex,
-                showHistoryPreview,
-                isVerticalLayout,
-                panelWidth,
-                historyPanelHeight
-            );
-
-            float scrollHeight = historyPanelHeight - previewBlockHeight - 100f;
-            historyScrollPosition = GUILayout.BeginScrollView(
-                historyScrollPosition,
-                GUIStyle.none,
-                GUI.skin.verticalScrollbar,
-                GUILayout.Height(scrollHeight));
-            
-            if (generationHistory.Count == 0)
-            {
-                UIComponents.DrawHistoryEmptyState();
-            }
-            else
-            {
-                DrawHistoryGrid();
-            }
-            
-            GUILayout.EndScrollView();
-            DrawHistoryActions();
-            UIComponents.EndHistoryPanel();
-        }
-        
-        private void DrawHistoryGrid()
-        {
-            // 与 main 窗口一致：固定长宽（GUILayout.Width/Height），不随面板自适应变长
-            float tileWidth = currentHistoryTileSize;
-            float labelHeight = currentHistoryTileSize >= 100f ? 40f : 32f;
-            float tileHeight = tileWidth + labelHeight;
-            int itemsPerRow = ComputeHistoryItemsPerRow(CommonStyles.HistoryScrollViewLayoutWidth(currentHistoryPanelWidth), tileWidth);
-            
-            for (int i = 0; i < generationHistory.Count; i += itemsPerRow)
-            {
-                GUILayout.BeginHorizontal();
-                for (int j = 0; j < itemsPerRow && (i + j) < generationHistory.Count; j++)
-                {
-                    int index = i + j;
-                    var item = generationHistory[index];
-                    bool isSelected = (selectedHistoryIndex == index);
-                    
-                    GUILayout.BeginVertical(GetScaledHistoryTileStyle(isSelected),
-                        GUILayout.Width(tileWidth), GUILayout.Height(tileHeight));
-                    
-                    float previewSize = GetScaledHistoryPreviewSize(tileWidth);
-                    Rect previewRect = GUILayoutUtility.GetRect(previewSize, previewSize);
-                    DrawSkyboxHistoryPreview(previewRect, item);
-                    
-                    if (!item.isGenerating && Event.current.type == EventType.MouseDown && previewRect.Contains(Event.current.mousePosition))
-                    {
-                        selectedHistoryIndex = index;
-                        Event.current.Use();
-                        Repaint();
-                    }
-                    if (!item.isGenerating && Event.current.type == EventType.ContextClick && previewRect.Contains(Event.current.mousePosition))
-                    {
-                        ShowHistoryContextMenu(index);
-                        Event.current.Use();
-                    }
-                    
-                    GUILayout.Label(item.GetDisplayName(), CommonStyles.HistoryLabelStyle);
-                    string modelLabel = GetSkyboxModelDisplayLabel(item.modelVersion);
-                    GUILayout.Label(modelLabel, CommonStyles.SmallGreyCenterLabelStyle);
-                    
-                    GUILayout.EndVertical();
-                }
-                GUILayout.EndHorizontal();
-            }
+                GetLargePreviewTexture = GetPreviewTextureForHistoryItem,
+                DrawTilePreview = DrawSkyboxHistoryPreview,
+                GetModelLabel = item => GetSkyboxModelDisplayLabel(item.modelVersion),
+                ShowContextMenu = ShowHistoryContextMenu,
+                DrawHistoryActions = DrawHistoryActions,
+            });
         }
         
         /// <summary>
@@ -628,7 +543,7 @@ namespace TJGenerators
             using (var uwr = UnityWebRequestTexture.GetTexture(imageUrl))
             {
                 yield return uwr.SendWebRequest();
-                if (uwr.result == UnityWebRequest.Result.Success && uwr.downloadHandler.data != null)
+                if (UnityWebRequestCompat.IsSuccess(uwr) && uwr.downloadHandler.data != null)
                 {
                     var tex = DownloadHandlerTexture.GetContent(uwr);
                     if (tex != null)
@@ -911,7 +826,7 @@ namespace TJGenerators
             return targetSkyboxAsset?.guid ?? "";
         }
         
-        public void ShowPreviewModel(string assetPath)
+        public void OnGenerationCompleted(string assetPath)
         {
             if (generationHistory != null && !string.IsNullOrEmpty(assetPath))
             {
@@ -927,8 +842,10 @@ namespace TJGenerators
         /// <summary>
         /// 获取纹理资产的保存路径。每次生成使用唯一 .png 路径作为历史记录，便于每条历史对应不同图片。
         /// </summary>
-        public string GetTextureSavePath(ModelGeneratorBase generator)
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator)
         {
+            if (_type != PipelineMediaType.Texture) return null;
+
             if (!AssetDatabase.IsValidFolder("Assets/TJGenerators"))
                 AssetDatabase.CreateFolder("Assets", "TJGenerators");
             if (!AssetDatabase.IsValidFolder("Assets/TJGenerators/History"))
@@ -940,9 +857,11 @@ namespace TJGenerators
         /// <summary>
         /// 纹理下载保存后的回调：savePath 为本次生成的唯一 .png（历史记录用）；同时复制到当前绑定资产并更新预览。
         /// </summary>
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator)
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
         {
-            TJLog.Log($"[TJGeneratorsSkybox] OnTextureSaved: {savePath}");
+            if (_type != PipelineMediaType.Texture) return;
+
+            TJLog.Log($"[TJGeneratorsSkybox] OnAssetSaved: {savePath}");
 
             // 设置为天空盒（TextureCube）
             TextureImporter textureImporter = AssetImporter.GetAtPath(savePath) as TextureImporter;
@@ -1036,12 +955,6 @@ namespace TJGenerators
             isGenerating = false;
         }
 
-        public string GetAudioSavePath(ModelGeneratorBase generator) => null;
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
-
-        public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
-
         private void ApplyToSceneSkybox()
         {
             Material materialToApply = null;
@@ -1114,11 +1027,6 @@ namespace TJGenerators
                 AssetDatabase.SaveAssets();
                 TJLog.Log($"[TJGeneratorsSkybox] 天空盒材质已保存: {savePath}");
             }
-        }
-        
-        void IGenerationPipelineHost.Repaint()
-        {
-            Repaint();
         }
     }
 }

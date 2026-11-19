@@ -15,7 +15,7 @@ namespace TJGenerators.UI
     {
         private const string PickImageDialogTitle = "选择图片";
         private const string DefaultAiActionLabel = "用AI生成";
-        private const string PickImageFileFilter = "jpg,png,jpeg";
+        private const string PickImageFileFilter = TJGeneratorsImageAssetPathUtility.ReferenceImagePickFilter;
 
         private const float LargeFrameHeight = 180f;
         private const float LargeIconSize = 36f;
@@ -30,6 +30,7 @@ namespace TJGenerators.UI
         private const float LargeAiArrowTopInset = 8f;
         private const float LargeAiArrowWidth = 4f;
         private const float LargeAiArrowHeight = 7f;
+        private const float LargeAiTextGap = 6f;
         private const float LargeAiLinkGap = 6f;
         private const float LargePreviewMaxWidth = 420f;
         private const float LargePreviewHeight = 163f;
@@ -286,11 +287,11 @@ namespace TJGenerators.UI
 
             float noImageWidth = CommonStyles.UploadNoImageStyle.CalcSize(new GUIContent(TJGeneratorsL10n.L("没有图片？"))).x;
             float aiGenWidth = CommonStyles.UploadAIGenLinkStyle.CalcSize(new GUIContent(resolvedLabel)).x;
-            float totalWidth = noImageWidth + aiGenWidth + LargeAiLinkGap + LargeAiArrowWidth;
+            float totalWidth = noImageWidth + LargeAiTextGap + aiGenWidth + LargeAiLinkGap + LargeAiArrowWidth;
             float startX = frameRect.x + (frameRect.width - totalWidth) * 0.5f;
 
             Rect noImageRect = new Rect(startX, rowY, noImageWidth, LargeAiRowHeight);
-            Rect aiTextRect = new Rect(noImageRect.xMax, rowY, aiGenWidth, LargeAiRowHeight);
+            Rect aiTextRect = new Rect(noImageRect.xMax + LargeAiTextGap, rowY, aiGenWidth, LargeAiRowHeight);
             Rect arrowRect = new Rect(
                 aiTextRect.xMax + LargeAiLinkGap,
                 rowY + LargeAiArrowTopInset,

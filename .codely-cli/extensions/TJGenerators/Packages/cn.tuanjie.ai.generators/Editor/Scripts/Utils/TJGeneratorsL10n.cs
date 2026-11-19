@@ -69,7 +69,11 @@ namespace TJGenerators.Utils
             if (_languageLoaded)
                 return;
             _languageLoaded = true;
+#if TUANJIE_1 || TUANJIE_2
             _current = (Language)EditorPrefs.GetInt(EditorPrefsKey, (int)Language.Chinese);
+#else
+            _current = (Language)EditorPrefs.GetInt(EditorPrefsKey, (int)Language.English);
+#endif
             EditorApplication.quitting += () =>
             {
                 EditorPrefs.SetInt(EditorPrefsKey, (int)_current);
@@ -147,9 +151,9 @@ namespace TJGenerators.Utils
             _translations["使用 TJGenerators AI 生成表面材质"] = "Use TJGenerators AI to Generate Material";
             _translations["使用 TJGenerators AI 生成2D精灵"] = "Use TJGenerators AI to Generate 2D Sprite";
             _translations["使用 TJGenerators AI 生成图片"] = "Use TJGenerators AI to Generate Image";
-            _translations["使用 TJGenerators AI 生成序列帧（Frontier）"] = "Use TJGenerators AI to Generate Sequence (Frontier)";
+            _translations["使用 TJGenerators AI 生成2D精灵表序列帧"] = "Use TJGenerators AI to Generate 2D Spritesheet Sequence";
             _translations["使用 TJGenerators AI 生成音频"] = "Use TJGenerators AI to Generate Audio";
-            _translations["使用 TJGenerators AI 生成2D序列帧动画"] = "Use TJGenerators AI to Generate 2D Sequence";
+            _translations["使用 TJGenerators AI 生成2D动作序列帧"] = "Use TJGenerators AI to Generate 2D Action Sequence";
             _translations["使用 TJGenerators AI 生成3D模型到对应预制体"] = "Use TJGenerators AI to Generate 3D Model to Prefab";
             _translations["编辑该 TJGenerators 视频并查看历史记录"] = "Edit TJGenerators Video & View History";
             _translations["怎么用？查看使用文档"] = "How to use? View docs";
@@ -162,10 +166,21 @@ namespace TJGenerators.Utils
             _translations["生成中..."] = "Generating...";
             _translations["生成模型"] = "Generate Model";
             _translations["生成中"] = "Generating";
+            _translations["请先退出 Play Mode。\n\nAI 生成只能在编辑模式下使用，Play 模式下的资产变更会在退出后丢失。"] =
+                "Exit Play Mode first.\n\nAI generation is only available in Edit mode. Asset changes made in Play mode are discarded on exit.";
+            _translations["请先退出 Play Mode 再生成"] =
+                "Exit Play Mode to generate";
+            _translations["请先退出 Play Mode 再搜索"] =
+                "Exit Play Mode to search";
+            _translations["请先退出 Play Mode 再下载或放入场景"] =
+                "Exit Play Mode to download or place in scene";
+            _translations["请先退出 Play Mode 再搜索、下载或放入场景"] =
+                "Exit Play Mode to search, download, or place in scene";
             _translations["文本提示词"] = "Prompt";
             _translations["在此处输入文本提示..."] = "Enter prompt here...";
             _translations["参考图片（可选）"] = "Ref Image (Opt.)";
             _translations["参考图片"] = "Ref Image";
+            _translations["输入图片（必填）"] = "Input Image (required)";
             _translations["高级设置"] = "Advanced";
             _translations["未知模型"] = "Unknown Model";
             _translations["选择图片"] = "Select Image";
@@ -224,7 +239,6 @@ namespace TJGenerators.Utils
             _translations["一键生成地形"] = "Generate Terrain";
 
             // ---- 图片窗口 ----
-            _translations["网格规格："] = "Grid Size:";
             _translations["地形高度图（生成后）"] = "Terrain Heightmap";
             _translations["输出最低"] = "Output Min";
             _translations["输出最高"] = "Output Max";
@@ -251,7 +265,6 @@ namespace TJGenerators.Utils
             _translations["生成结果预览"] = "Result Preview";
 
             // ---- DynamicGenerator ----
-            _translations["暂无可减面的OBJ文件"] = "No OBJ available for decimation";
             _translations["刷新模型列表"] = "Refresh Models";
             _translations["已选择文件:"] = "Selected File:";
 
@@ -273,7 +286,6 @@ namespace TJGenerators.Utils
 
             // ---- Config 模型默认值 ----
             _translations["上传模型文件"] = "Upload Model File";
-            _translations["多视图生成（可选）"] = "Multi-View Generation (Opt.)";
             _translations["上传多角度图片生成3D模型，正面必需，至少2张图片"] = "Upload multi-angle images to generate 3D model. Front view required, min 2 images.";
             _translations["选择要减面的OBJ文件"] = "Select OBJ to Decimate";            _translations["支持 FBX、OBJ 格式的3D模型文件"] = "Supports FBX, OBJ 3D model files";
             _translations["资产类型"] = "Asset Type";
@@ -282,9 +294,6 @@ namespace TJGenerators.Utils
             _translations["选择美术风格"] = "Select Art Style";
             _translations["材质模板"] = "Material Template";
             _translations["选择材质纹理模板"] = "Select Material Texture Template";
-
-            // ---- OBJ 选择器提示 ----
-            _translations["提示：此功能用于对OBJ模型进行智能减面处理。列表中只显示可处理的模型（需要先生成OBJ格式的模型）。"] = "Tip: Smart decimation for OBJ models. Only processable models are listed.";
 
             // ---- Test Runner ----
             _translations["测试参数"] = "Test Parameters";
@@ -324,10 +333,16 @@ namespace TJGenerators.Utils
             _translations["图片切割"] = "Image Slice";
             _translations["无法读取图片像素，请确保图片不是压缩格式。"] = "Cannot read image pixels. Ensure the image is not compressed.";
             _translations["无法读取图片像素。"] = "Cannot read image pixels.";
+            _translations["无法读取图片文件。"] = "Cannot read the image file.";
+            _translations["不支持的图片格式"] = "Unsupported Image Format";
+            _translations["仅支持 png、jpg、jpeg 格式的图片。"] = "Only png, jpg, and jpeg images are supported.";
             _translations["未检测到可切割的区域，请调整参数后重试。"] = "No areas detected for slicing. Adjust parameters and retry.";
             _translations["确认替换"] = "Confirm Replace";
             _translations["清空历史记录"] = "Clear History";
             _translations["确定要清空所有 TJGenerators 生成历史记录吗？此操作不可撤销。"] = "Are you sure you want to clear all TJGenerators history? This cannot be undone.";
+            _translations["清除轮询任务记录"] = "Clear Polling Task Records";
+            _translations["确定要清除所有轮询中的生成任务记录吗？将清空本地中断任务与「生成中」占位符，并停止本地继续轮询。后端暂无取消接口，服务器上的任务可能仍会继续运行。"] =
+                "Clear all in-progress polling task records? This removes local interrupted tasks and generating placeholders, and stops further local polling. There is no backend cancel API, so server-side jobs may keep running.";
             _translations["场景中没有该预制体的实例。"] = "No instances of this prefab in the scene.";
             _translations["请先选择一个目标预制体。"] = "Please select a target prefab first.";
 
@@ -355,13 +370,13 @@ namespace TJGenerators.Utils
             _translations["错误:"] = "Error:";
 
             // ---- 窗口标题 ----
-            _translations["TJGenerators 参考图生成 (多视图)"] = "TJGenerators Ref Image (Multi-View)";
-            _translations["TJGenerators 参考图生成"] = "TJGenerators Ref Image";
+            _translations["TJGenerators 参考图生成 (多视图)"] = "TJGenerators Reference Image (Multi-View)";
+            _translations["TJGenerators 参考图生成"] = "TJGenerators Reference Image";
             _translations["TJGenerators 3D模型"] = "TJGenerators 3D Model";
             _translations["TJGenerators 图片生成"] = "TJGenerators Image";
             _translations["TJGenerators 音频生成"] = "TJGenerators Audio";
             _translations["TJGenerators 天空盒生成"] = "TJGenerators Skybox";
-            _translations["TJGenerators 序列帧生成"] = "TJGenerators Sequence";
+            _translations["TJGenerators 2D动作序列帧"] = "TJGenerators 2D Action Sequence";
             _translations["TJGenerators 精灵生成"] = "TJGenerators Sprite";
             _translations["TJGenerators 材质生成"] = "TJGenerators Material";
             _translations["TJGenerators 视频生成"] = "TJGenerators Video";
@@ -379,21 +394,17 @@ namespace TJGenerators.Utils
             _translations["输入动作，如：walk、run、jump..."] = "Enter motion, e.g.: walk, run, jump...";
             _translations["文本提示词（可选）"] = "Prompt (Opt.)";
             _translations["生成参考图"] = "Generate Reference Image";
-            _translations["源OBJ文件"] = "Source OBJ";
-            _translations["选择要减面的OBJ文件，将混元生成的OBJ模型进行智能减面处理"] = "Select OBJ to decimate";
-            _translations["列表中只显示可减面的模型（需要先用混元3D生成OBJ格式的模型）"] = "Only processable models are listed";
             _translations["绑骨模型"] = "Rigged Model";
             _translations["从当前工程的 Assets 中选择 FBX / OBJ。"] = "Select FBX/OBJ from Assets";
             _translations["Assets 内未找到 FBX / OBJ，请将模型导入工程后刷新本窗口。"] = "No FBX/OBJ found in Assets. Import models and refresh.";
             _translations["支持 FBX、OBJ 格式的 3D 模型文件"] = "Supports FBX, OBJ 3D model files";
             _translations["正面图片是必需的，且文件必须存在。"] = "Front image is required and must exist.";
             _translations["请上传多视图图片"] = "Please upload multi-view images";
+            _translations["请上传输入图片。"] = "Please upload an input image.";
             _translations["选择{0}图片"] = "Select {0} Image";
             _translations["至少需要{0}张图片进行多视图生成"] = "At least {0} images required for multi-view";
             _translations["多视图至少需要{0}张图片"] = "Multi-view needs at least {0} images";
             _translations["已勾选添加动作，请输入动作描述"] = "Motion is enabled, please enter motion description";
-            _translations["请选择源OBJ文件"] = "Please select source OBJ file";
-            _translations["未找到该OBJ文件的服务器URL，只有通过AI生成的OBJ模型才能减面"] = "Server URL not found for this OBJ. Only AI-generated OBJ models can be decimated.";
             _translations["请选择要绑骨的模型文件"] = "Please select a model file for rigging";
             _translations["选择的文件不存在"] = "Selected file does not exist";
             _translations["请输入提示词"] = "Please enter a prompt";
@@ -425,6 +436,7 @@ namespace TJGenerators.Utils
 
             // ---- Skybox 窗口补充 ----
             _translations["错误"] = "Error";
+            _translations["当前宿主不支持触发生成。"] = "The current host does not support triggering generation.";
             _translations["该历史记录的纹理文件不存在，可能已被删除。"] = "The texture file for this history record does not exist.";
             _translations["请先绑定或创建目标天空盒资产。"] = "Please bind or create a target skybox asset first.";
             _translations["确定要将选中的历史天空盒应用到 {0} 吗？"] = "Apply selected skybox to {0}?";
@@ -472,7 +484,7 @@ namespace TJGenerators.Utils
             _translations["TJGenerators 图片 - {0}"] = "TJGenerators Image - {0}";
             _translations["TJGenerators 音频 - {0}"] = "TJGenerators Audio - {0}";
             _translations["TJGenerators 天空盒 - {0}"] = "TJGenerators Skybox - {0}";
-            _translations["TJGenerators 序列帧 - {0}"] = "TJGenerators Sequence - {0}";
+            _translations["TJGenerators 2D动作序列帧 - {0}"] = "TJGenerators 2D Action Sequence - {0}";
             _translations["TJGenerators 序列帧"] = "TJGenerators Sequence";
             _translations["TJGenerators 精灵 - {0}"] = "TJGenerators Sprite - {0}";
             _translations["TJGenerators 材质 - {0}"] = "TJGenerators Material - {0}";
@@ -536,9 +548,6 @@ namespace TJGenerators.Utils
             _translations["自定义"] = "Custom";
             _translations["参数设置"] = "Parameters";
             _translations["预览"] = "Preview";
-            _translations["帧网格"] = "Frame Grid";
-            _translations["模型转换"] = "Model Conversion";
-            _translations["智能减面"] = "Smart Decimate";
             _translations["语音角色"] = "Voice Character";
             _translations["无波形预览"] = "No Waveform Preview";
             _translations["抠图与切割"] = "Cutout & Slice";
@@ -592,31 +601,31 @@ namespace TJGenerators.Utils
             _translations["点击选择图片或将图片拖入此区域"] = "Click to select or drag image here";
 
             // ---- 图片窗口补充 ----
-            _translations["TJGenerators 序列帧（Frontier）"] = "TJGenerators Sequence (Frontier)";
+            _translations["TJGenerators 2D精灵表序列帧"] = "TJGenerators 2D Spritesheet Sequence";
             _translations["提示词模板不可用"] = "Prompt Template Unavailable";
             _translations["当前模型未配置提示词模板选项（options 为空）"] = "Current model has no prompt template options configured.";
             _translations["选择提示词"] = "Select Prompt";
             _translations["提示词模板"] = "Prompt Template";
             _translations["模糊强度 (σ)"] = "Blur Strength (σ)";
-            _translations["绿幕容差"] = "Chroma Key Tolerance";
+            _translations["绿幕容差"] = "Chroma Tolerance";
             _translations["边缘羽化"] = "Edge Feather";
             _translations["切割列数"] = "Slice Columns";
             _translations["切割行数"] = "Slice Rows";
             _translations["动画 FPS"] = "Animation FPS";
             _translations["动画循环 (Loop)"] = "Loop";
             _translations["预览图中的红色线条为切割线。"] = "Red lines in the preview indicate slice boundaries.";
-            _translations["未找到模板配置，请检查 package 内 Editor/Config/FrontierSequenceProfiles.json"] = "Template config not found. Check Editor/Config/FrontierSequenceProfiles.json";
-            _translations["未找到可用模板，配置文件：{0}"] = "No available template. Config file: {0}";
-            _translations["未找到或无法读取 FrontierSequenceProfiles.json。\n\n请确认包内含 Editor/Config/FrontierSequenceProfiles.json，或通过 Package Manager 正确安装 cn.tuanjie.ai.generators。"] = "Cannot find or read FrontierSequenceProfiles.json.\n\nEnsure the package contains Editor/Config/FrontierSequenceProfiles.json.";
-            _translations["序列帧模板不可用：请检查 FrontierSequenceProfiles.json 中的 profiles 与 defaultProfileId 是否有效。"] = "Sequence template unavailable: check profiles and defaultProfileId in FrontierSequenceProfiles.json.";
+            _translations["未找到或无法读取 SpriteSheetSequenceProfiles.json。\n\n请确认包内含 Editor/Config/SpriteSheetSequenceProfiles.json，或通过 Package Manager 正确安装 cn.tuanjie.ai.generators。"] = "Cannot find or read SpriteSheetSequenceProfiles.json.\n\nEnsure the package contains Editor/Config/SpriteSheetSequenceProfiles.json.";
+            _translations["序列帧模板不可用：请检查 SpriteSheetSequenceProfiles.json 中的 profiles 与 defaultProfileId 是否有效。"] = "Sequence template unavailable: check profiles and defaultProfileId in SpriteSheetSequenceProfiles.json.";
             _translations["无法根据当前模板构建序列帧指令包（frontier_sequence_envelope），请检查配置文件。"] = "Cannot build sequence instruction package from the current template. Check config.";
-            _translations["当前 profile 的 instructions 为空或缺失，请编辑 FrontierSequenceProfiles.json 填写完整指令。"] = "Current profile's instructions are empty or missing. Edit FrontierSequenceProfiles.json.";
+            _translations["当前 profile 的 instructions 为空或缺失，请编辑 SpriteSheetSequenceProfiles.json 填写完整指令。"] = "Current profile's instructions are empty or missing. Edit SpriteSheetSequenceProfiles.json.";
             _translations["仅支持绑定 .jpg / .jpeg / .png 的图片资产。\r\n\r\n建议先创建「生成图片」新资产。"] = "Only supports .jpg / .jpeg / .png image assets.\n\nCreate a new \"Generate Image\" asset first.";
             _translations["仅支持绑定 .jpg / .jpeg / .png 的图片资产。\r\n\r\n建议先通过菜单创建新图片资产。"] = "Only supports .jpg / .jpeg / .png image assets.\n\nCreate a new image asset via menu first.";
 
             // ---- Sprite 窗口补充 ----
             _translations["请输入文本提示词，或选择纹理走势 / 上传材质模板图片"] = "Enter a prompt, or select a texture pattern / upload a material template image";
             _translations["请先选择模型，并输入文本提示词或选择纹理走势 / 上传材质模板图片。"] = "Please select a model and enter a prompt or select a texture pattern / upload a material template image.";
+            _translations["请先选择模型，并输入文本提示词或上传参考图片。"] = "Please select a model and enter a prompt or upload a reference image.";
+            _translations["选择参考图片"] = "Select Reference Image";
             _translations["未找到可用的 Material 生成器，请检查 GeneratorConfig.json 中的 materialGenerators"] = "No material generator found. Check materialGenerators in config.";
             _translations["未找到可用的 Sprite 生成器，请检查 GeneratorConfig.json 中的 spriteGenerators"] = "No sprite generator found. Check spriteGenerators in config.";
             _translations["纹理图片不存在"] = "Texture Image Not Found";
@@ -634,11 +643,10 @@ namespace TJGenerators.Utils
             _translations["左侧"] = "Left";
             _translations["背面"] = "Back";
             _translations["右侧"] = "Right";
-            _translations["没有可用的图片生成器配置"] = "No image generator config available";
+            _translations["没有可用的图片生成器配置"] = "No available image generator configuration";
             _translations["(无可用模型)"] = "(No model available)";
-            _translations["输入提示词生成多视图参考图"] = "Enter prompt to generate multi-view ref images";
-            _translations["输入提示词生成参考图"] = "Enter prompt to generate ref image";
-            _translations["正在生成多视图图片 ({0}/{1})..."] = "Generating multi-view images ({0}/{1})...";
+            _translations["输入提示词生成多视图参考图"] = "Enter a prompt to generate multi-view reference images";
+            _translations["输入提示词生成参考图"] = "Enter a prompt to generate a reference image";
             _translations["正在生成图片，请稍候..."] = "Generating image, please wait...";
             _translations["描述你想要生成的音乐风格、情绪或场景..."] = "Describe the music style, mood or scene to generate...";
 
@@ -646,17 +654,20 @@ namespace TJGenerators.Utils
             _translations["已导出 {0} 张 Sprite。\n路径：{1}"] = "Exported {0} Sprites.\nPath: {1}";
             _translations["已导出 {0} 张 Sprite，并创建动画文件。\nSprite路径：{1}\n动画路径：{2}"] = "Exported {0} Sprites and created animation.\nSprite path: {1}\nAnimation path: {2}";
 
-            // ---- AIReferenceImageWindow 补充 ----
+            // ---- AIReferenceImageWindow ----
             _translations["将按顺序自动生成：{0}（共{1}张）"] = "Will auto-generate in order: {0} ({1} images)";
             _translations["正在生成多视图图片 ({0}/{1}) - {2}..."] = "Generating multi-view ({0}/{1}) - {2}...";
             _translations["请求失败: {0}"] = "Request failed: {0}";
+            _translations["图片下载失败: {0}"] = "Image download failed: {0}";
             _translations["生成失败: {0}"] = "Generation failed: {0}";
             _translations["生成失败: 无法从响应中提取图片URL"] = "Generation failed: cannot extract image URL from response";
-            _translations["图片下载失败: {0}"] = "Image download failed: {0}";
             _translations["未知错误"] = "Unknown error";
-            _translations["缺少可用的参考图（本地文件或图片 URL），无法继续生成侧视/背视。请确认正面已生成成功且接口返回了地址。"] = "Missing reference image (local file or URL). Cannot continue side/back view generation. Ensure the front view was generated successfully and the API returned a URL.";
-            _translations["正面图未返回可用的图片 URL，无法与后续视角对齐，已中止。"] = "Front view did not return a valid image URL. Cannot align with subsequent views. Aborted.";
-            _translations["当前视角未返回图片 URL，多视图链已中止。"] = "Current view did not return an image URL. Multi-view chain aborted.";
+            _translations["缺少可用的参考图（本地文件或图片 URL），无法继续生成侧视/背视。请确认正面已生成成功且接口返回了地址。"] =
+                "Missing reference image (local file or URL). Cannot continue side/back views. Ensure the front view succeeded and the API returned a URL.";
+            _translations["正面图未返回可用的图片 URL，无法与后续视角对齐，已中止。"] =
+                "Front view did not return a valid image URL. Cannot align subsequent views. Aborted.";
+            _translations["当前视角未返回图片 URL，多视图链已中止。"] =
+                "Current view did not return an image URL. Multi-view chain aborted.";
 
             // ---- MaterialTemplate 状态补充 ----
             _translations["等待 {0} 秒后继续..."] = "Waiting {0}s before continuing...";
@@ -679,7 +690,7 @@ namespace TJGenerators.Utils
             _translations["请求失败 ({0}): {1}"] = "Request failed ({0}): {1}";
             _translations["生成中 ({0}/{1}) - {2}"] = "Generating ({0}/{1}) - {2}";
             _translations["重试中 ({0}/{1})，等待 {2} 秒..."] = "Retrying ({0}/{1}), waiting {2}s...";
-            _translations["纹理走势 '{0}' 的图片尚未生成。\r\n\r\n请通过菜单 'AI/开发/生成纹理走势模板图' 生成纹理图片。"] = "Texture pattern '{0}' image not yet generated.\n\nGenerate via menu 'AI/开发/生成纹理走势模板图'.";
+            _translations["纹理走势 '{0}' 的图片尚未生成。\r\n\r\n请通过菜单 'AI/开发/生成纹理走势模板图' 生成纹理图片。"] = "Texture pattern '{0}' image not yet generated.\n\nGenerate via menu 'AI/Dev/Generate Texture Pattern Templates'.";
             _translations["拖拽旋转 | 滚轮缩放 | 双击重置"] = "Drag to rotate | Scroll to zoom | Double-click to reset";
             _translations["点击上传图片"] = "Click to upload image";
             _translations["点击上传图片（支持JPG、PNG格式）"] = "Click to upload (JPG, PNG supported)";
@@ -692,9 +703,6 @@ namespace TJGenerators.Utils
             _translations["提交动作生成..."] = "Submitting motion generation...";
             _translations["下载动作模型..."] = "Downloading motion model...";
             _translations["创建动画控制器..."] = "Creating animator...";
-            _translations["下载动画..."] = "Downloading animation...";
-            _translations["下载行走动画..."] = "Downloading walk anim...";
-            _translations["下载奔跑动画..."] = "Downloading run anim...";
             _translations["获取认证token失败: {0}"] = "Failed to get auth token: {0}";
             _translations["未登录，请通过Unity编辑器左上角或Unity Hub登录后重试"] = "Not signed in. Please sign in via the Editor or Hub.";
             _translations["认证失败，请重新登录Unity账号"] = "Auth failed. Please re-sign in to Unity.";
@@ -704,6 +712,9 @@ namespace TJGenerators.Utils
             _translations["任务已取消: {0}"] = "Task cancelled: {0}";
             _translations["任务已取消"] = "Task cancelled";
             _translations["任务失败: {0}"] = "Task failed: {0}";
+            // Domain reload / 任务中断错误
+            _translations["生成因域重载中断且后端任务记录已丢失，请重新生成。"] =
+                "Generation was interrupted (domain reload) and the backend task record was lost. Please re-generate.";
             _translations["生成器 '{0}' 未配置 API endpoint"] = "Generator '{0}' has no API endpoint configured";
             _translations["服务器响应格式异常: {0}"] = "Invalid server response: {0}";
             _translations["提交失败 (HTTP {0}): {1}"] = "Submit failed (HTTP {0}): {1}";
@@ -722,14 +733,23 @@ namespace TJGenerators.Utils
             _translations["输入错误"] = "Input Error";
             _translations["响应数据无效"] = "Invalid response data";
             _translations["生成内容可能涉及敏感信息，请修改后重试"] = "Generated content may contain sensitive info. Please modify and retry.";
+            _translations["拦截原因"] = "Rejection reason";
             _translations["未找到模型下载URL"] = "Model download URL not found";
             _translations["未找到纹理资产下载URL"] = "Texture asset download URL not found";
             _translations["无法确定纹理资产保存路径"] = "Cannot determine texture asset save path";
+            _translations["'output_path' 不能为空。"] = "'output_path' is empty.";
+            _translations["'output_path' 必须是 Assets 相对路径（Assets/...），或位于工程 Assets 目录下的绝对路径。收到：'{0}'"] =
+                "'output_path' must be an Assets-relative path (Assets/...) or an absolute path under the project Assets folder. Got: '{0}'";
+            _translations["'output_path' 必须解析到工程 Assets 目录下。收到：'{0}'"] =
+                "'output_path' must resolve under the project Assets folder. Got: '{0}'";
+            _translations["'output_path' 无法转换为 Assets 相对路径。收到：'{0}'"] =
+                "'output_path' could not be converted to an Assets-relative path. Got: '{0}'";
             _translations["下载的纹理数据为空"] = "Downloaded texture data is empty";
             _translations["未找到序列帧下载URL"] = "Sequence frame download URL not found";
             _translations["下载的帧数据为空"] = "Downloaded frame data is empty";
             _translations["未生成任何帧图片"] = "No frame images generated";
             _translations["导入帧图片失败（未加载到 Sprite）"] = "Failed to import frame images (Sprite not loaded)";
+            _translations["创建 AnimationClip 失败"] = "Failed to create AnimationClip";
             _translations["未找到音频下载URL"] = "Audio download URL not found";
             _translations["无法确定音频保存路径（占位未创建）"] = "Cannot determine audio save path (placeholder not created)";
             _translations["下载的音频数据为空"] = "Downloaded audio data is empty";
@@ -752,7 +772,6 @@ namespace TJGenerators.Utils
             _translations["下载模型失败"] = "Model Download Failed";
             _translations["源文件不存在"] = "Source file does not exist";
             _translations["无法启动 ffmpeg 进程"] = "Cannot start ffmpeg process";
-            _translations["转换"] = "Convert";
             _translations["支持png/jpg/jpeg，文件大小最大不超过10M，分辨率最低要求128*128，最高限制4096*4096"] = "Supports png/jpg/jpeg, max 10M, min 128x128, max 4096x4096";
             _translations["最多可选择 {0} 张参考图片"] = "Max {0} reference images allowed";
 
@@ -760,23 +779,17 @@ namespace TJGenerators.Utils
             _translations["0 - Idle 待机"] = "0 - Idle";
             _translations["0 表示不裁剪"] = "0 = no crop";
             _translations["1 - Walking 行走"] = "1 - Walking";
-            _translations["100000（中低）"] = "100000 (Med-Low)";
-            _translations["1000000（高）"] = "1000000 (High)";
             _translations["105 - Triple Combo 三连击"] = "105 - Triple Combo";
             _translations["125 - Spell Cast 施法"] = "125 - Spell Cast";
-            _translations["1500000（超高）"] = "1500000 (Ultra)";
             _translations["156 - Stand Dodge 闪避"] = "156 - Dodge";
             _translations["16 - Run Fast 快跑"] = "16 - Fast Run";
             _translations["207 - Roundhouse Kick 回旋踢"] = "207 - Roundhouse Kick";
             _translations["22 - Funny Dance 搞笑舞"] = "22 - Funny Dance";
             _translations["224 - Archery Shot 射箭"] = "224 - Archery Shot";
             _translations["242 - Charged Slash 蓄力劈"] = "242 - Charged Slash";
-            _translations["300000（中）"] = "300000 (Med)";
             _translations["4 - Attack 攻击"] = "4 - Attack";
             _translations["452 - Backflip 后空翻"] = "452 - Backflip";
             _translations["466 - Jump 跳跃"] = "466 - Jump";
-            _translations["50000（低）"] = "50000 (Low)";
-            _translations["500000（中高）"] = "500000 (Med-High)";
             _translations["509 - Sprint 冲刺"] = "509 - Sprint";
             _translations["568 - Swim 游泳"] = "568 - Swim";
             _translations["7 - Be Hit Fly Up 击飞"] = "7 - Knockback";
@@ -786,8 +799,6 @@ namespace TJGenerators.Utils
             _translations["A/T姿势"] = "A/T Pose";
             _translations["AI模型"] = "AI Model";
             _translations["CFG强度"] = "CFG Strength";
-            _translations["meshy-5 (稳定)"] = "meshy-5 (Stable)";
-            _translations["meshy-6 (最新)"] = "meshy-6 (Latest)";
             _translations["Normal（带纹理几何模型）"] = "Normal (Textured Geometry)";
             _translations["P1 建议范围：48~20000"] = "P1 recommended: 48~20000";
             _translations["P1 支持：geometry。空表示默认(meshopt)。"] = "P1 supports: geometry. Empty = default (meshopt).";
@@ -816,7 +827,6 @@ namespace TJGenerators.Utils
             _translations["毒液"] = "Venom";
             _translations["对称模式"] = "Symmetry Mode";
             _translations["对齐图像"] = "Align to Image";
-            _translations["多边形类型"] = "Polygon Type";
             _translations["返回末帧"] = "Return Last Frame";
             _translations["方向"] = "Orientation";
             _translations["高分辨率"] = "High Resolution";
@@ -841,7 +851,6 @@ namespace TJGenerators.Utils
             _translations["模型分割"] = "Model Segmentation";
             _translations["目标多边形数量，范围100-300000"] = "Target polygon count, range 100-300000";
             _translations["目标面数"] = "Target Face Count";
-            _translations["目标面数，范围[50000, 1500000]"] = "Target face count, range [50000, 1500000]";
             _translations["目标面数，范围100-300000"] = "Target face count, range 100-300000";
             _translations["内容审核"] = "Content Moderation";
             _translations["攀爬 (Climb)"] = "Climb";
@@ -865,7 +874,7 @@ namespace TJGenerators.Utils
             _translations["生成宽高比（auto 或指定比例）"] = "Aspect ratio (auto or specified)";
             _translations["生成任务类型：Normal可生成带纹理的几何模型"] = "Task type: Normal can generate textured geometry model";
             _translations["生成图片尺寸"] = "Image size";
-            _translations["生成图片格式（png/jpeg）"] = "Image format (png/jpeg)";
+            _translations["生成图片格式"] = "Image format";
             _translations["生成种子，0表示随机"] = "Seed, 0 = random";
             _translations["圣诞"] = "Christmas";
             _translations["时长(秒)"] = "Duration (s)";
@@ -876,10 +885,12 @@ namespace TJGenerators.Utils
             _translations["是否生成A/T姿势"] = "Generate A/T pose";
             _translations["是否生成可循环音效"] = "Generate loopable audio";
             _translations["是否使用模型改写输入 prompt"] = "Use model to rewrite input prompt";
-            _translations["是否严格按目标面数生成"] = "Strictly follow target face count";
             _translations["是否自动抠图去除背景"] = "Auto cutout (remove background)";
             _translations["受伤 (Hurt)"] = "Hurt";
             _translations["输出格式"] = "Output Format";
+            _translations["图层数量"] = "Layer Count";
+            _translations["生成的图层数量（1–8），默认 4"] = "Number of layers to generate (1–8), default 4";
+            _translations["图层文件格式"] = "Layer file format";
             _translations["输出中是否包含几何体"] = "Include geometry in output";
             _translations["四边网格"] = "Quad Mesh";
             _translations["四边形"] = "Quads";
@@ -898,16 +909,13 @@ namespace TJGenerators.Utils
             _translations["文生视频"] = "Text-to-Video";
             _translations["纹理提示词"] = "Texture Prompt";
             _translations["纹理提示词（最多600字符）"] = "Texture prompt (max 600 chars)";
-            _translations["纹理压缩"] = "Texture Compression";
+            _translations["纹理压缩"] = "Tex Compression";
             _translations["纹理质量"] = "Texture Quality";
             _translations["向后跑"] = "Run Backward";
             _translations["向前跑"] = "Run Forward";
             _translations["行走 (Walk)"] = "Walk";
-            _translations["选择动画动作，完整列表见 Editor/Config/MeshyAnimationIds.json"] = "Select animation action. See Editor/Config/MeshyAnimationIds.json";
             _translations["循环播放"] = "Loop";
-            _translations["压缩质量"] = "Compression Quality";
-            _translations["严格按面数"] = "Strict Face Count";
-            _translations["严格按目标面数"] = "Strict Target Face Count";
+            _translations["压缩质量"] = "Compress Quality";
             _translations["音效时长（秒）"] = "Audio Duration (s)";
             _translations["用于绑骨的姿势，T-Pose更适合动画"] = "Pose for rigging. T-Pose is better for animation.";
             _translations["预设动画"] = "Preset Animation";
@@ -945,9 +953,10 @@ namespace TJGenerators.Utils
             _translations["输入动作描述，如：walk、run、jump..."] = "Enter motion description, e.g.: walk, run, jump...";
             _translations["描述你想要生成的游戏图片..."] = "Describe the game image you want to generate...";
             _translations["描述你想要生成的图片..."] = "Describe the image you want to generate...";
+            _translations["描述图片内容，辅助图层分离..."] = "Describe the image to guide layer separation...";
             _translations["描述你想要生成的天空盒场景..."] = "Describe the skybox scene you want to generate...";
             _translations["描述你想要生成的游戏精灵图标..."] = "Describe the game sprite icon you want to generate...";
-            _translations["描述材质效果（与纹理走势二选一，或两者都填）..."] = "Describe material effect (either this or texture pattern, or both)...";
+            _translations["描述材质效果..."] = "Describe the material effect...";
             _translations["用英文描述你想要生成的音效，例如：雷声、爆炸、鸟鸣..."] = "Describe the sound effect in English, e.g.: thunder, explosion, birdsong...";
             _translations["输入要合成语音的文本内容..."] = "Enter text content for speech synthesis...";
             _translations["描述你想要生成的视频内容..."] = "Describe the video content you want to generate...";
@@ -1027,7 +1036,8 @@ namespace TJGenerators.Utils
             _translations["火山 SeeDream"] = "Volcengine SeeDream";
             _translations["火山 SeeDream 表面材质"] = "Volcengine SeeDream Material";
             _translations["Seedance 2"] = "Seedance 2";
-            _translations["火山 文生音频"] = "Volcengine Audio Generation";
+            _translations["Sonilo 音乐生成"] = "Sonilo Music Generation";
+            _translations["Sonilo 音效生成"] = "Sonilo Sound Effect Generation";
             _translations["极简主义"] = "Minimalism";
             _translations["极简主义风格"] = "Minimalist Style";
             _translations["家具"] = "Furniture";
@@ -1110,6 +1120,15 @@ namespace TJGenerators.Utils
             _translations["玩家角色头像"] = "Player Avatar";
             _translations["文生视频、图生视频"] = "Text-to-Video / Image-to-Video";
             _translations["文生图、图生图"] = "Text-to-Image / Image-to-Image";
+            _translations["图片分层"] = "Image Layering";
+            _translations["一张图片 → 多个独立 RGBA 图层"] = "One image → multiple independent RGBA layers";
+            _translations["Seedream 图片分层"] = "Seedream Image Layering";
+            _translations["一张图片 → 底图 + 最多 16 个透明图层（自动分层）"] = "One image → base + up to 16 transparent layers (auto)";
+            _translations["输入图片（必填，仅 1 张）"] = "Input Image (required, exactly 1)";
+            _translations["拆分提示词（可选）"] = "Split Prompt (optional)";
+            _translations["留空自动拆分全部主体；也可指定要拆分的元素..."] = "Leave empty to auto-split all main elements; or specify elements to split...";
+            _translations["分辨率档位"] = "Resolution Tier";
+            _translations["输出分辨率档位；auto 跟随输入图尺寸（1K/1.5K/2K）"] = "Output resolution tier; auto follows the input image size (1K/1.5K/2K)";
             _translations["文生音频、背景音乐"] = "Text-to-Audio / BGM";
             _translations["文生音效"] = "Text to SFX";
             _translations["文生语音、TTS"] = "Text-to-Speech / TTS";
@@ -1191,13 +1210,7 @@ namespace TJGenerators.Utils
             _translations["已导出 {0} 张 Sprite，并创建动画文件。\\nSprite路径：{1}\\n动画路径：{2}"] = "Exported {0} Sprites and created animation.\\nSprite path: {1}\\nAnimation path: {2}";
 
             // ---- GeneratorConfig.json displayName 补充 ----
-            _translations["混元3D"] = "Hy 3D";
             _translations["混元3.1"] = "Hy 3.1";
-            _translations["混元智能减面"] = "Hy Smart Decimate";
-            _translations["Meshy 动画模型"] = "Meshy Animated Model";
-            _translations["Meshy 图生3D"] = "Meshy Image-to-3D";
-            _translations["Meshy 多图生3D"] = "Meshy Multi-Image-to-3D";
-            _translations["混元多视图生3D"] = "Hy Multi-View-to-3D";
             _translations["混元Motion"] = "Hy Motion";
             _translations["UniRig 绑骨"] = "UniRig";
             _translations["（无提示词）"] = "(No Prompt)";
@@ -1344,6 +1357,46 @@ namespace TJGenerators.Utils
             _translations["古典"] = "Classical";
             _translations["历史"] = "Historical";
             _translations["宗教"] = "Religious";
+
+            // ---- 视频生成补充 ----
+            _translations["创建特效播放器"] = "Create Effect Player";
+            _translations["特效视频（生图+生视频）"] = "Effect Video (Image + Video)";
+            _translations["特效视频"] = "Effect Video";
+            _translations["输入特效描述，自动生成原画+绿幕特效视频"] = "Enter an effect description to auto-generate key art and a green-screen effect video";
+            _translations["特效"] = "VFX";
+            _translations["绿幕视频"] = "Green-Screen Video";
+            _translations["特效描述"] = "Effect Description";
+            _translations["描述你想要的特效，例如：fire explosion, magic glow, lightning strike...（绿幕背景自动添加）"] = "Describe the effect you want, e.g.: fire explosion, magic glow, lightning strike... (green-screen background added automatically)";
+            _translations["视频时长(秒)"] = "Video duration (s)";
+            _translations["特效视频时长（4-15秒）"] = "Effect video duration (4-15 seconds)";
+            _translations["视频比例"] = "Aspect ratio";
+
+            // ---- 世界生成补充 ----
+            _translations["TJGenerators 世界生成"] = "TJGenerators World";
+            _translations["TJGenerators 世界 - {0}"] = "TJGenerators World - {0}";
+            _translations["目标世界"] = "Target World";
+            _translations["应用到当前世界"] = "Apply to World";
+            _translations["请先绑定或创建目标世界资产。"] = "Please bind or create a target world asset first.";
+            _translations["确定要将选中的历史世界应用到 {0} 吗？"] = "Apply selected world to {0}?";
+            _translations["下载 Collider Mesh..."] = "Download Collider Mesh...";
+            _translations["创建 Gaussian Splat 资产..."] = "Create Gaussian Splat Asset...";
+            _translations["下载 Gaussian Splatting 数据 ({0})..."] = "Download Gaussian Splatting data ({0})...";
+
+            // ---- UnityGaussianSplattingPackage 补充 ----
+            _translations["安装依赖包"] = "Install Dependency";
+            _translations["世界生成功能需要安装 UnityGaussianSplatting 依赖包。\n\n来源：https://github.com/Liuweixian/UnityGaussianSplatting.git\n子目录：package\n\n如果网络无法访问 GitHub，可选择「使用代理安装」。"] = "World generation requires the UnityGaussianSplatting package.\n\nSource: https://github.com/Liuweixian/UnityGaussianSplatting.git\nSubdirectory: package\n\nIf you cannot access GitHub, choose \"Install via Proxy\".";
+            _translations["直接安装"] = "Install Directly";
+            _translations["使用代理安装"] = "Install via Proxy";
+            _translations["正在安装 UnityGaussianSplatting...\n这可能需要几分钟，请耐心等待。"] = "Installing UnityGaussianSplatting...\nThis may take a few minutes, please wait.";
+            _translations["安装失败"] = "Installation Failed";
+            _translations["UnityGaussianSplatting 安装失败：{0}\n\n你也可以手动克隆仓库后通过 Package Manager 从本地磁盘安装：\n1. git clone https://github.com/Liuweixian/UnityGaussianSplatting.git\n2. Window → Package Manager → + → Add package from disk\n3. 选择克隆下来的 package 目录中的 package.json"] = "UnityGaussianSplatting installation failed: {0}\n\nYou can also manually clone the repo and install via Package Manager:\n1. git clone https://github.com/Liuweixian/UnityGaussianSplatting.git\n2. Window → Package Manager → + → Add package from disk\n3. Select package.json in the cloned package directory";
+
+            // ---- ImageSliceWindow 补充 ----
+            _translations["切割并导出"] = "Slice & Export";
+            _translations["正在导出..."] = "Exporting...";
+
+            // ---- TerrainCreationUtils 补充 ----
+            _translations["originalHeightmapAssetPath 为空"] = "originalHeightmapAssetPath is empty";
         }
     }
 }

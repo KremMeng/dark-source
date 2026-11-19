@@ -215,16 +215,16 @@ namespace TJGenerators.Utils
                 string terrainGoName = "TJGenerators Terrain")
         {
             if (string.IsNullOrEmpty(originalHeightmapAssetPath))
-                return (null, null, null, "originalHeightmapAssetPath 为空");
+                return (null, null, null, TJGeneratorsL10n.L("originalHeightmapAssetPath 为空"));
 
             string originalPath = originalHeightmapAssetPath.Replace('\\', '/');
             string absOriginal = PathUtils.ToAbsoluteAssetPath(originalPath);
             if (!File.Exists(absOriginal))
-                return (null, null, null, $"高度图文件不存在: {absOriginal}");
+                return (null, null, null, string.Format(TJGeneratorsL10n.L("高度图文件不存在: {0}"), absOriginal));
 
             string processedAssetPath = GenerateProcessedHeightmapAssetPath(originalPath);
             if (string.IsNullOrEmpty(processedAssetPath))
-                return (null, null, null, "无法生成后处理文件路径");
+                return (null, null, null, TJGeneratorsL10n.L("无法生成后处理文件路径"));
 
             string absProcessed = PathUtils.ToAbsoluteAssetPath(processedAssetPath);
             string processedDir = Path.GetDirectoryName(absProcessed);
@@ -237,11 +237,11 @@ namespace TJGenerators.Utils
             }
             catch (Exception e)
             {
-                return (null, null, null, "复制高度图失败: " + e.Message);
+                return (null, null, null, string.Format(TJGeneratorsL10n.L("复制高度图失败: {0}"), e.Message));
             }
 
             if (!TerrainHeightmapPostProcessor.TryPostProcessHeightmapImage(absProcessed, out string hmErr, options))
-                return (null, null, null, hmErr ?? "后处理失败（未知错误）");
+                return (null, null, null, hmErr ?? TJGeneratorsL10n.L("后处理失败（未知错误）"));
 
             AssetDatabase.ImportAsset(processedAssetPath, ImportAssetOptions.ForceUpdate);
 

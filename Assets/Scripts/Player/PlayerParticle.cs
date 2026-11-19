@@ -19,8 +19,8 @@ public class PlayerParticle : MonoBehaviour {
     }
     protected void InitializePlayer() => m_player = GetComponent<Player>();
     //实例化特效
-    public GameObject InstantiateEffect(GameObject effectPrefab,Vector3 position){
-        GameObject effectInstance = Instantiate(effectPrefab, position, Quaternion.identity);
+    public GameObject InstantiateEffect(GameObject effectPrefab){
+        GameObject effectInstance = Instantiate(effectPrefab);
         return effectInstance;
     }
     
@@ -41,19 +41,19 @@ public class PlayerParticle : MonoBehaviour {
     protected virtual void HandleSwordSlash(){
         Vector3 position = Vector3.zero;
         Vector3 height = new Vector3(0, 0.5f, 0);
-        position = m_player.transform.position + 0.5f * m_player.transform.forward + height;
+        //position = m_player.transform.position + 0.5f * m_player.transform.forward + height;
         if (m_player.comboCount == 1) {
-            Play(swordSlashA,position);
+            Play(swordSlashA,swordSlashA.transform.position);
             Debug.Log("播放攻击一段特效");
         }
 
         if (m_player.comboCount == 2) {
-            Play(swordSlashB,position);
+            Play(swordSlashB,swordSlashB.transform.position);
             Debug.Log("播放攻击二段特效");
         }
         
         if (m_player.comboCount == 3) {
-            Play(swordSlashC,position);
+            Play(swordSlashC,swordSlashC.transform.position);
             Debug.Log("播放攻击三段特效");
         }
     }

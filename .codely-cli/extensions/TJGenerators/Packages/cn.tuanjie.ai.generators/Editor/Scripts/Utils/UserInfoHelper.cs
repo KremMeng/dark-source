@@ -34,6 +34,7 @@ namespace TJGenerators.Utils
                 string token = UnityConnectSession.instance.GetAccessToken();
                 if (!string.IsNullOrEmpty(token))
                     uwr.SetRequestHeader("Authorization", $"Bearer {token}");
+                uwr.SetRequestHeader("orgId", UnityConnectSession.instance.GetOrgId());
                 uwr.SetRequestHeader("source", "codely");
 
                 yield return uwr.SendWebRequest();
@@ -42,7 +43,7 @@ namespace TJGenerators.Utils
                 float timeElapsed = 0f;
                 float interval = 0.5f;
 
-                while (uwr.result == UnityWebRequest.Result.InProgress && timeElapsed < timeout)
+                while (UnityWebRequestCompat.IsInProgress(uwr) && timeElapsed < timeout)
                 {
                     double startWait = EditorApplication.timeSinceStartup;
                     while (EditorApplication.timeSinceStartup - startWait < interval)
@@ -50,7 +51,7 @@ namespace TJGenerators.Utils
                     timeElapsed += interval;
                 }
 
-                if (uwr.result != UnityWebRequest.Result.Success || uwr.downloadHandler == null)
+                if (UnityWebRequestCompat.IsNotSuccess(uwr) || uwr.downloadHandler == null)
                 {
                     onComplete?.Invoke(null);
                     yield break;
@@ -75,10 +76,11 @@ namespace TJGenerators.Utils
         }
 
         /// <summary>
-        /// 请求用户信息协程。成功时通过 onComplete 回传当前积分，失败或解析错误时传 null。
+        /// 请求用户信息协程。成功时通过 onComplete 回传当前积分（若有），失败或解析错误时传 null。
+        /// 无论积分是否存在，成功解析时都会更新 <see cref="LastUserInfo"/>（含邮箱）。
         /// </summary>
         /// <param name="userInfoUrl">用户信息接口 URL </param>
-        /// <param name="onComplete">回调：成功时为当前积分，失败时为 null</param>
+        /// <param name="onComplete">回调：成功且含积分时为当前积分，否则为 null</param>
         /// <param name="logTag">日志前缀，用于区分调用方（如 "[TJGeneratorsSkybox] GetUserInfo"）</param>
         public static IEnumerator GetUserInfoCoroutine(string userInfoUrl, Action<int?> onComplete)
         {

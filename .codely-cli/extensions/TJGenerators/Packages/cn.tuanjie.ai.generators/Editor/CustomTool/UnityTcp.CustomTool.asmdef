@@ -2,9 +2,10 @@
     "name": "UnityTcp.CustomTool",
     "rootNamespace": "UnityTcp.CustomTool",
     "references": [
-        "GUID:7d5abdf9527d3f24fae9fffd53879b25",
-        "GUID:0939af519db78b345b6219b59e96546d",
-        "Unity.EditorCoroutines.Editor"
+        "tjgenerators.Editor",
+        "UnityTcp.Editor",
+        "Unity.EditorCoroutines.Editor",
+        "TJGenerators.Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -19,9 +20,9 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-            "name": "cn.tuanjie.ai.generators",
-            "expression": "",
-            "define": "TJGEN_PKG_INSTALLED"
+            "name": "cn.tuanjie.codely.bridge",
+            "expression": "1.0.40",
+            "define": "CODELY_BRIDGE_HAS_NOTIFY_ALL"
         }
     ],
     "noEngineReferences": false

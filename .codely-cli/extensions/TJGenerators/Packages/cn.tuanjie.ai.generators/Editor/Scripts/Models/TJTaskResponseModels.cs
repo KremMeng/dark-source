@@ -59,6 +59,39 @@ namespace TJGenerators
         public string genre;
         public string lyrics;
         public string mood;
+
+        /// <summary>Voice clone output: the cloned voice ID for use with generate_tts.</summary>
+        public string customVoiceId;
+        /// <summary>Voice clone output: preview audio URL.</summary>
+        public string previewAudioUrl;
+
+        /// <summary>WorldLabs 世界生成输出：output.data.assets</summary>
+        public WorldAssets assets;
+    }
+
+    /// <summary>
+    /// WorldLabs Marble 世界生成输出资产
+    /// </summary>
+    [Serializable]
+    public class WorldAssets
+    {
+        public string thumbnailUrl;
+        public string caption;
+        public string panoUrl;
+        public string colliderMeshUrl;
+        public SpzUrls spzUrls;
+    }
+
+    /// <summary>
+    /// Gaussian Splatting 数据文件 URL（不同精度级别）
+    /// </summary>
+    [Serializable]
+    public class SpzUrls
+    {
+        public string full_res;
+        public string _100k;
+        public string _150k;
+        public string _500k;
     }
 
     [Serializable]
@@ -82,19 +115,6 @@ namespace TJGenerators
         public string texture_pbr;
         public string texture_roughness;
 
-        // Hunyuan 3D 特有字段
-        public string glb_url;
-        public string image_url;
-        public string mtl_url;
-        public string obj_url;
-        public string obj_zip_url;
-        public string pbr_image_url;
-        public string pbr_metallic_image_url;
-        public string pbr_normal_image_url;
-        public string pbr_roughness_image_url;
-        public string texture_image_url;
-        public string fbx_url;
-
         // 天空盒（Rodin Skybox 等）
         public string skybox_basic;
 
@@ -114,17 +134,10 @@ namespace TJGenerators
         // 混元 Motion 动画结果
         public string[] urls;
 
-        // Tencent Generation（腾讯混元 3D / tencent-generation）
+        // 混元3.1（tencent-generation）
         public TencentResultFile3D[] resultFiles;
 
-        // Meshy 动画模型字段（新结构）
-        public MeshyAnimationResult animation_result;
-        public MeshyRigResult rig_result;
-        public MeshyModelUrls model_urls;  // Meshy 图生3D/文生3D 返回的模型URL
-        public MeshyModelUrls preview_model_urls;
-        public MeshyModelUrls refine_model_urls;
-        public MeshyTextureUrl[] texture_urls;  // Meshy 贴图URL数组
-        public string thumbnail_url;  // Meshy 缩略图URL
+        public string thumbnail_url;
         public string preview_url;
         public int seed;
     }
@@ -135,62 +148,6 @@ namespace TJGenerators
         public string type; // FBX / OBJ / STL ...
         public string url;
         public string previewImageUrl;
-    }
-
-    /// <summary>
-    /// Meshy 动画结果
-    /// </summary>
-    [Serializable]
-    public class MeshyAnimationResult
-    {
-        public string animation_fbx_url;
-        public string animation_glb_url;
-    }
-
-    /// <summary>
-    /// Meshy 绑骨结果
-    /// </summary>
-    [Serializable]
-    public class MeshyRigResult
-    {
-        public MeshyBasicAnimations basic_animations;
-        public string rigged_character_fbx_url;
-        public string rigged_character_glb_url;
-    }
-
-    /// <summary>
-    /// Meshy 模型URL结构
-    /// </summary>
-    [Serializable]
-    public class MeshyModelUrls
-    {
-        public string glb;
-        public string fbx;
-        public string obj;
-        public string mtl;
-    }
-
-    /// <summary>
-    /// Meshy 贴图URL结构
-    /// </summary>
-    [Serializable]
-    public class MeshyTextureUrl
-    {
-        public string base_color;
-    }
-
-    /// <summary>
-    /// Meshy 基础动画URL结构
-    /// </summary>
-    [Serializable]
-    public class MeshyBasicAnimations
-    {
-        public string walking_glb_url;
-        public string walking_fbx_url;
-        public string running_glb_url;
-        public string running_fbx_url;
-        public string walking_armature_glb_url;
-        public string running_armature_glb_url;
     }
 }
 #endif

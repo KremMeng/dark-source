@@ -11,7 +11,8 @@
         "UnityEngine",
         "UnityEngine.Events",
         "UnityEngine.Networking",
-        "Unity.EditorCoroutines.Editor"
+        "Unity.EditorCoroutines.Editor",
+        "TJGenerators.Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -20,12 +21,12 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "Codely.Newtonsoft.Json.dll"
+        "Codely.Newtonsoft.Json.dll",
+        "System.IO.Compression.dll",
+        "System.IO.Compression.FileSystem.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

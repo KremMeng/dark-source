@@ -11,6 +11,7 @@ namespace Unity.UniAsset.Manager.Editor.InternalBridge
         static UnityConnectSession _instance = new UnityConnectSession();
         private const string CodelyCliDir = ".codely-cli";
         private const string OAuthCredsFile = "oauth_creds.json";
+        private const string OrgFile = "org.json";
         
         public static UnityConnectSession instance
         {
@@ -24,13 +25,7 @@ namespace Unity.UniAsset.Manager.Editor.InternalBridge
             if (!string.IsNullOrEmpty(cachedToken))
                 return cachedToken;
 
-            // 使用反射获取UnityConnect的访问令牌
-            string rawToken = GetRawAccessToken();
-
-            // Fallback: Unity Connect token 不可用时，读取 ~/.codely-cli/oauth_creds.json 中的 JWT token
-            if (!string.IsNullOrEmpty(rawToken))
-                return rawToken;
-
+            // Fallback: 优先读取 ~/.codely-cli/oauth_creds.json 中的 JWT token
             string fallbackToken = ReadFallbackToken();
             if (!string.IsNullOrEmpty(fallbackToken))
             {
@@ -38,6 +33,26 @@ namespace Unity.UniAsset.Manager.Editor.InternalBridge
                 UnityEngine.Debug.Log($"[UnityConnectSession] Using fallback JWT token from ~/.codely-cli/oauth_creds.json, token: {fallbackToken}");
 #endif
                 return fallbackToken;
+            }
+
+            // 最后兜底：使用反射获取 UnityConnect 的访问令牌
+            string rawToken = GetRawAccessToken();
+            if (!string.IsNullOrEmpty(rawToken))
+                return rawToken;
+
+            return "";
+        }
+
+        public string GetOrgId()
+        {
+            // Fallback: 读取 ~/.codely-cli/oauth_creds.json 中的 user_id，再从 org.json 获取 currentOrgId
+            string fallbackOrgId = ReadFallbackOrgId();
+            if (!string.IsNullOrEmpty(fallbackOrgId))
+            {
+#if TJGENERATORS_DEBUG
+                UnityEngine.Debug.Log($"[UnityConnectSession] Using fallback orgId from ~/.codely-cli/org.json, orgId: {fallbackOrgId}");
+#endif
+                return fallbackOrgId;
             }
 
             return "";
@@ -158,6 +173,50 @@ namespace Unity.UniAsset.Manager.Editor.InternalBridge
                 JObject data = JObject.Parse(json);
                 string token = data["access_token"]?.ToString();
                 return string.IsNullOrEmpty(token) ? null : token;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 从 ~/.codely-cli/oauth_creds.json 读取 user_id，再用 user_id 查找同目录下 org.json
+        /// 中 accounts.{userId}.currentOrgId，返回 currentOrgId。
+        /// 兼容 Windows 与 macOS：优先 UserProfile，fallback 读 HOME 环境变量。
+        /// </summary>
+        internal static string ReadFallbackOrgId()
+        {
+            try
+            {
+                string homeDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+                if (string.IsNullOrEmpty(homeDir))
+                    homeDir = System.Environment.GetEnvironmentVariable("HOME");
+                if (string.IsNullOrEmpty(homeDir))
+                    return null;
+
+                string codelyDir = Path.Combine(homeDir, CodelyCliDir);
+
+                // Step 1: 从 oauth_creds.json 读取 user_id
+                string credsPath = Path.Combine(codelyDir, OAuthCredsFile);
+                if (!File.Exists(credsPath))
+                    return null;
+
+                string credsJson = File.ReadAllText(credsPath);
+                JObject credsData = JObject.Parse(credsJson);
+                string userId = credsData["user_id"]?.ToString();
+                if (string.IsNullOrEmpty(userId))
+                    return null;
+
+                // Step 2: 用 user_id 查找 org.json 中 accounts.{userId}.currentOrgId
+                string orgPath = Path.Combine(codelyDir, OrgFile);
+                if (!File.Exists(orgPath))
+                    return null;
+
+                string orgJson = File.ReadAllText(orgPath);
+                JObject orgData = JObject.Parse(orgJson);
+                string orgId = orgData["accounts"]?[userId]?["currentOrgId"]?.ToString();
+                return string.IsNullOrEmpty(orgId) ? null : orgId;
             }
             catch
             {

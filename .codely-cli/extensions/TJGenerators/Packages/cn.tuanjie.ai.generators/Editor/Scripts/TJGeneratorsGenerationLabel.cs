@@ -11,7 +11,7 @@ namespace TJGenerators
     public static class TJGeneratorsGenerationLabel
     {
         public const string Label = "TuanjieAI";
-        public const string FrontierLabel = "TuanjieAI_Frontier";
+        public const string SpriteSheetLabel = "TuanjieAI_Frontier";
         public const string SessionLabelPrefix = "Session_";
 
         private const string BootstrapAssetPath = "Packages/cn.tuanjie.ai.generators/package.json";
@@ -24,14 +24,6 @@ namespace TJGenerators
             EditorApplication.delayCall += BootstrapProjectLabelsOnce;
         }
 
-        /// <summary>
-        /// 确保项目已注册 TJGenerators 使用的资产 Label（预先写入 package.json）。
-        /// </summary>
-        public static void EnsureProjectLabelsRegistered()
-        {
-            BootstrapProjectLabelsOnce();
-        }
-
         private static void BootstrapProjectLabelsOnce()
         {
             if (s_labelsBootstrapped)
@@ -41,7 +33,7 @@ namespace TJGenerators
             if (bootstrapAsset == null)
                 return;
 
-            if (TryApplyLabels(bootstrapAsset, Label, FrontierLabel))
+            if (TryApplyLabels(bootstrapAsset, Label, SpriteSheetLabel))
                 s_labelsBootstrapped = true;
         }
 
@@ -160,19 +152,19 @@ namespace TJGenerators
         public static bool HasLabel(Object asset) => AssetHasLabel(asset, Label);
 
         /// <summary>
-        /// 为资产添加 Frontier 序列帧标签
+        /// 为资产添加精灵表序列帧标签
         /// </summary>
-        public static void EnableFrontierLabel(Object asset)
+        public static void EnableSpriteSheetLabel(Object asset)
         {
             if (asset == null)
                 return;
 
-            AddLabels(asset, FrontierLabel, Label);
+            AddLabels(asset, SpriteSheetLabel, Label);
         }
 
         /// <summary>
-        /// 检查资产是否有 Frontier 序列帧标签
+        /// 检查资产是否有精灵表序列帧标签
         /// </summary>
-        public static bool HasFrontierLabel(Object asset) => AssetHasLabel(asset, FrontierLabel);
+        public static bool HasSpriteSheetLabel(Object asset) => AssetHasLabel(asset, SpriteSheetLabel);
     }
 }

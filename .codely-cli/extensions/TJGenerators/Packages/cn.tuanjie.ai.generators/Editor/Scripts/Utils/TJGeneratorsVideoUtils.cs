@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
-using UnityEditor;
 
 namespace TJGenerators.Utils
 {
@@ -46,16 +45,18 @@ namespace TJGenerators.Utils
                 if (info.Length < 32)
                     return true;
 
-                using var stream = File.OpenRead(absolutePath);
-                var header = new byte[12];
-                if (stream.Read(header, 0, header.Length) < 8)
-                    return true;
+                using (var stream = File.OpenRead(absolutePath))
+                {
+                    var header = new byte[12];
+                    if (stream.Read(header, 0, header.Length) < 8)
+                        return true;
 
-                // MP4: size(4) + 'ftyp'(4)
-                return header[4] != (byte)'f'
-                    || header[5] != (byte)'t'
-                    || header[6] != (byte)'y'
-                    || header[7] != (byte)'p';
+                    // MP4: size(4) + 'ftyp'(4)
+                    return header[4] != (byte)'f'
+                        || header[5] != (byte)'t'
+                        || header[6] != (byte)'y'
+                        || header[7] != (byte)'p';
+                }
             }
             catch
             {
@@ -88,58 +89,29 @@ namespace TJGenerators.Utils
 
         private static byte[] GetTemplateBytes()
         {
-            string templatePath = ResolveTemplateAssetPath();
-            if (!string.IsNullOrEmpty(templatePath))
-            {
-                string absolute = PathUtils.ToAbsoluteAssetPath(templatePath);
-                if (File.Exists(absolute))
-                    return File.ReadAllBytes(absolute);
-            }
+            string absolute = ResolveTemplateAbsolutePath();
+            if (!string.IsNullOrEmpty(absolute))
+                return File.ReadAllBytes(absolute);
 
             return Convert.FromBase64String(ShortestBlackMp4Base64);
         }
 
-        private static string ResolveTemplateAssetPath()
+        /// <summary>
+        /// 模板放在 Editor/Resources~（Unity 不导入），避免包启动时 VideoClipImporter 报 Error while reading movie。
+        /// </summary>
+        private static string ResolveTemplateAbsolutePath()
         {
             string packageRoot = PathUtils.TryGetTjGeneratorsPackageRoot();
-            if (!string.IsNullOrEmpty(packageRoot))
-            {
-                string packageRelative = Path.Combine(
-                        packageRoot,
-                        "Editor",
-                        "Resources",
-                        TemplateFileName)
-                    .Replace('\\', '/');
-                if (File.Exists(packageRelative))
-                    return PathUtils.TryGetAssetsRelativePathFromAbsolute(packageRelative)
-                        ?? ToPackagesRelativePath(packageRoot, packageRelative);
-            }
-
-            string[] guids = AssetDatabase.FindAssets(Path.GetFileNameWithoutExtension(TemplateFileName));
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (path.EndsWith(TemplateFileName, StringComparison.OrdinalIgnoreCase))
-                    return path;
-            }
-
-            return null;
-        }
-
-        private static string ToPackagesRelativePath(string packageRoot, string absolutePath)
-        {
-            absolutePath = Path.GetFullPath(absolutePath).Replace('\\', '/');
-            packageRoot = Path.GetFullPath(packageRoot).Replace('\\', '/');
-            if (!absolutePath.StartsWith(packageRoot, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(packageRoot))
                 return null;
 
-            string tail = absolutePath.Substring(packageRoot.Length).TrimStart('/');
-            return "Packages/cn.tuanjie.ai.generators/" + tail;
+            string path = Path.Combine(packageRoot, "Editor", "Resources~", TemplateFileName);
+            return File.Exists(path) ? path : null;
         }
 
-        // 64x64 纯黑 H.264 单帧 MP4（约 1.5 KB），由 imageio 生成
+        // 64x64 纯黑 H.264 单帧 MP4（约 1.5 KB），BT.709 色彩空间，由 FFmpeg 生成
         private const string ShortestBlackMp4Base64 =
-            "AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAuxtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE2NCByMzE5MiBjMjRlMDZjIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAyNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTIgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTEwIHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAIGWIhAA7//73Tr8Cm1TCKgOSVwrqg7oK2KdPKm0Gjfu5AAAACkGaIWxDf/6nj4gAAAMgbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAAMgAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAkt0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAMgAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAEAAAABAAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAADIAAAAAAABAAAAAAHDbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAAAoAAAACABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABbm1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAS5zdGJsAAAArnN0c2QAAAAAAAAAAQAAAJ5hdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAEAAQABIAAAASAAAAAAAAAABFUxhdmM2MS4xOS4xMDAgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAANGF2Y0MBZAAK/+EAF2dkAAqs2UQmhAAAAwAEAAADAFA8SJZYAQAGaOvjyyLA/fj4AAAAABRidHJ0AAAAAAAAc6AAAHOgAAAAGHN0dHMAAAAAAAAAAQAAAAIAAAQAAAAAFHN0c3MAAAAAAAAAAQAAAAEAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAIAAAABAAAAHHN0c3oAAAAAAAAAAAAAAAIAAALWAAAADgAAABRzdGNvAAAAAAAAAAEAAAAwAAAAYXVkdGEAAABZbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAsaWxzdAAAACSpdG9vAAAAHGRhdGEAAAABAAAAAExhdmY2MS43LjEwMA==";
+            "AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMdbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAAMgAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAkh0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAAMgAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAEAAAABAAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAADIAAAAAAABAAAAAAHAbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAAAoAAAACABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABa21pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAStzdGJsAAAAq3N0c2QAAAAAAAAAAQAAAJthdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAEAAQABIAAAASAAAAAAAAAABFUxhdmM2MS4xOS4xMDAgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAAMWF2Y0MBQsAe/+EAGWdCwB7ZBCaagICAoAAAAwAgAAADAoHixckBAAVoy4PLIAAAABRidHJ0AAAAAAAAZ+gAAGfoAAAAGHN0dHMAAAAAAAAAAQAAAAIAAAQAAAAAFHN0c3MAAAAAAAAAAQAAAAEAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAIAAAABAAAAHHN0c3oAAAAAAAAAAAAAAAIAAAKPAAAACgAAABRzdGNvAAAAAAAAAAEAAANNAAAAYXVkdGEAAABZbWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAsaWxzdAAAACSpdG9vAAAAHGRhdGEAAAABAAAAAExhdmY2MS43LjEwMAAAAAhmcmVlAAACoW1kYXQAAAJxBgX//23cRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY0IHIzMTkyIGMyNGUwNmMgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDI0IC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MyBkZWJsb2NrPTE6MDowIGFuYWx5c2U9MHgxOjB4MTExIG1lPWhleCBzdWJtZT03IHBzeT0xIHBzeV9yZD0xLjAwOjAuMDAgbWl4ZWRfcmVmPTEgbWVfcmFuZ2U9MTYgY2hyb21hX21lPTEgdHJlbGxpcz0xIDh4OGRjdD0wIGNxbT0wIGRlYWR6b25lPTIxLDExIGZhc3RfcHNraXA9MSBjaHJvbWFfcXBfb2Zmc2V0PS0yIHRocmVhZHM9MiBsb29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTAgd2VpZ2h0cD0wIGtleWludD0yNTAga2V5aW50X21pbj0xMCBzY2VuZWN1dD00MCBpbnRyYV9yZWZyZXNoPTAgcmNfbG9va2FoZWFkPTQwIHJjPWNyZiBtYnRyZWU9MSBjcmY9MjMuMCBxY29tcD0wLjYwIHFwbWluPTAgcXBtYXg9NjkgcXBzdGVwPTQgaXBfcmF0aW89MS40MCBhcT0xOjEuMDAAgAAAABZliIQO8mKAAL78nJyddddddddddddeAAAABkGaOBvhGA==";
     }
 }
 #endif

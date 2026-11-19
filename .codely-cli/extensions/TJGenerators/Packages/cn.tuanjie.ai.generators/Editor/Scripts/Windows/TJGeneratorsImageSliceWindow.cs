@@ -9,6 +9,7 @@ using Codely.Newtonsoft.Json;
 using TJGenerators.AssetSearch;
 using TJGenerators.Config;
 using TJGenerators.Pipeline;
+using TJGenerators.PostProcessing;
 using TJGenerators.UI;
 using TJGenerators.Utils;
 using Unity.UniAsset.Manager.Editor.InternalBridge;
@@ -24,7 +25,7 @@ namespace TJGenerators
         private Texture2D _sourceTexture;
         private string _sourceAssetPath;
         private Texture2D _previewTexture;
-        private List<ImageSliceService.SliceRegion> _detectedRegions = new List<ImageSliceService.SliceRegion>();
+        private List<ImageSlicePostProcess.SliceRegion> _detectedRegions = new List<ImageSlicePostProcess.SliceRegion>();
         private Vector2 _scrollPosition;
         private bool _isProcessing;
 
@@ -46,11 +47,11 @@ namespace TJGenerators
             TJGeneratorsL10n.L("透明背景"),
             TJGeneratorsL10n.L("纯色背景")
         };
-        private static readonly ImageSliceService.BackgroundMode[] BgModeValues =
+        private static readonly ImageSlicePostProcess.BackgroundMode[] BgModeValues =
         {
-            ImageSliceService.BackgroundMode.Auto,
-            ImageSliceService.BackgroundMode.Transparent,
-            ImageSliceService.BackgroundMode.SolidColor
+            ImageSlicePostProcess.BackgroundMode.Auto,
+            ImageSlicePostProcess.BackgroundMode.Transparent,
+            ImageSlicePostProcess.BackgroundMode.SolidColor
         };
 
         private static GUIContent s_HelpButtonContent;
@@ -275,12 +276,10 @@ namespace TJGenerators
             UIComponents.DrawSectionTitle(TJGeneratorsL10n.L("预览"), uppercase: false);
             GUILayout.Space(CommonStyles.Space2);
 
-            if (UIComponents.DrawGenerateButtonWithCost(
+            if (UIComponents.DrawGenerateButton(
                     _isProcessing ? TJGeneratorsL10n.L("正在分析...") : TJGeneratorsL10n.L("检测区域"),
-                    0,
                     _sourceTexture != null && !_isProcessing,
                     _isProcessing,
-                    showCost: false,
                     GUILayout.ExpandWidth(true),
                     GUILayout.Height(LeftPanelBottomDock.ActionButtonHeight)))
             {
@@ -321,12 +320,10 @@ namespace TJGenerators
             string btnText = _detectedRegions.Count > 0
                 ? string.Format(TJGeneratorsL10n.L("切割并导出 ({0} 张)"), _detectedRegions.Count)
                 : TJGeneratorsL10n.L("切割并导出");
-            if (UIComponents.DrawGenerateButtonWithCost(
+            if (UIComponents.DrawGenerateButton(
                     _isProcessing ? TJGeneratorsL10n.L("正在导出...") : btnText,
-                    0,
                     _detectedRegions.Count > 0 && !_isProcessing,
                     _isProcessing,
-                    showCost: false,
                     GUILayout.ExpandWidth(true),
                     GUILayout.Height(LeftPanelBottomDock.ActionButtonHeight)))
             {
@@ -361,7 +358,7 @@ namespace TJGenerators
             {
                 _sourceAssetPath = Path.GetFullPath(path).Replace('\\', '/');
                 _sourceTexture = preloadedTexture
-                    ?? SpriteSequencePostProcessService.LoadReadableTextureFromAssetPath(_sourceAssetPath);
+                    ?? SpriteSequencePostProcess.LoadReadableTextureFromAssetPath(_sourceAssetPath);
             }
 
             Repaint();
@@ -403,7 +400,7 @@ namespace TJGenerators
 
             try
             {
-                var readableTex = SpriteSequencePostProcessService.LoadReadableTextureFromAssetPath(_sourceAssetPath);
+                var readableTex = SpriteSequencePostProcess.LoadReadableTextureFromAssetPath(_sourceAssetPath);
                 if (readableTex == null)
                 {
                     EditorUtility.DisplayDialog(TJGeneratorsL10n.L("图片切割"), TJGeneratorsL10n.L("无法读取图片像素，请确保图片不是压缩格式。"), TJGeneratorsL10n.L("确定"));
@@ -411,7 +408,7 @@ namespace TJGenerators
                     return;
                 }
 
-                var result = ImageSliceService.Analyze(
+                var result = ImageSlicePostProcess.Analyze(
                     readableTex,
                     BgModeValues[_bgModeIndex],
                     _alphaThreshold,
@@ -447,7 +444,7 @@ namespace TJGenerators
 
             try
             {
-                var readableTex = SpriteSequencePostProcessService.LoadReadableTextureFromAssetPath(_sourceAssetPath);
+                var readableTex = SpriteSequencePostProcess.LoadReadableTextureFromAssetPath(_sourceAssetPath);
                 if (readableTex == null)
                 {
                     EditorUtility.DisplayDialog(TJGeneratorsL10n.L("图片切割"), TJGeneratorsL10n.L("无法读取图片像素。"), TJGeneratorsL10n.L("确定"));
@@ -455,7 +452,7 @@ namespace TJGenerators
                     return;
                 }
 
-                var result = ImageSliceService.Export(
+                var result = ImageSlicePostProcess.Export(
                     readableTex,
                     _sourceAssetPath,
                     BgModeValues[_bgModeIndex],

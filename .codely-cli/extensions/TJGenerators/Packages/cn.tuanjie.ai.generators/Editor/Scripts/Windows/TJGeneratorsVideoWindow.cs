@@ -3,13 +3,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Codely.Newtonsoft.Json;
+using Codely.Newtonsoft.Json.Linq;
 using UnityEngine.Networking;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Video;
 using Unity.EditorCoroutines.Editor;
 using TJGenerators.Config;
 using TJGenerators.Generators;
 using TJGenerators.Pipeline;
+using TJGenerators.PostProcessing;
 using TJGenerators.UI;
 using TJGenerators.Utils;
 
@@ -18,7 +22,7 @@ namespace TJGenerators
     /// <summary>
     /// TJGenerators 视频生成窗口 - 文生视频 / 图生视频
     /// </summary>
-    public class TJGeneratorsVideoWindow : GenerationWindowBase, IGenerationPipelineHost
+    public class TJGeneratorsVideoWindow : GenerationWindowBase, IGenerationPipelineHost, IGenerationTriggerHost, IMediaAssetPipelineHost
     {
         // ========== 基类抽象属性实现 ==========
         protected override ConfigType WindowConfigType => ConfigType.Video;
@@ -33,6 +37,8 @@ namespace TJGenerators
 
         private readonly List<string> referenceImagePaths = new List<string>();
         private readonly List<Texture2D> referenceUploadedImages = new List<Texture2D>();
+
+        private string referenceVideoPath = "";
 
         private double _lastProgressRepaintTime;
 
@@ -51,6 +57,7 @@ namespace TJGenerators
                 focus: true
             );
             window.titleContent = new GUIContent(TJGeneratorsL10n.L("TJGenerators 视频生成"));
+            FinalizeMainWindowShow(window, rect);
         }
 
         /// <summary>
@@ -66,12 +73,25 @@ namespace TJGenerators
                 () =>
                 {
                     var window = CreateInstance<TJGeneratorsVideoWindow>();
-                    SetDefaultWindowSize(window);
                     return window;
                 },
                 (w, r) => w.targetVideoAsset = r,
-                ShowWindow
-            );
+                ShowWindow);
+        }
+
+        protected override void OnBootstrapWindowContent()
+        {
+            if (targetVideoAsset != null && !string.IsNullOrEmpty(targetVideoAsset.guid))
+                s_videoOpenWindows[targetVideoAsset.guid] = this;
+
+            InitializeGeneratorsFromConfig(ConfigType.Video);
+            OnRefreshWindowContent();
+        }
+
+        protected override void OnRefreshWindowContent()
+        {
+            RefreshHistory();
+            CheckAndRecoverInterruptedTasks();
         }
 
         // ========== 生命周期 ==========
@@ -80,18 +100,6 @@ namespace TJGenerators
         {
             base.OnEnable();
             wantsMouseMove = true;
-            InitializeGeneratorsFromConfig(ConfigType.Video);
-
-            EditorApplication.delayCall += () =>
-            {
-                if (this == null)
-                    return;
-                generationHistory = TJGeneratorsHistoryManager.LoadHistoryForAsset(
-                    GetCurrentVideoAssetGuid()
-                );
-                selectedHistoryIndex = generationHistory.Count > 0 ? 0 : -1;
-                Repaint();
-            };
 
             EditorCoroutineUtility.StartCoroutineOwnerless(
                 UserInfoHelper.GetUserInfoCoroutine(
@@ -99,8 +107,6 @@ namespace TJGenerators
                     OnUserInfoLoaded
                 )
             );
-
-            CheckAndRecoverInterruptedTasks();
         }
 
         protected override void OnDisable()
@@ -266,6 +272,37 @@ namespace TJGenerators
             var genConfig = GetCurrentGeneratorConfig();
             textPrompt = DrawConfiguredTextPromptInput(textPrompt, "video_prompt_input", genConfig);
 
+            // Read current mode parameter value
+            string currentMode = GetCurrentModeValue();
+
+            // Show video upload slot for multimodal mode
+            if (currentMode == "multimodal")
+            {
+                GUILayout.Space(CommonStyles.Space3);
+                GUILayout.Label(TJGeneratorsL10n.L("参考视频（运镜/动作）"), CommonStyles.HeaderStyle);
+                EditorGUI.BeginChangeCheck();
+                var newVideoPath = EditorGUILayout.TextField("", referenceVideoPath);
+                if (EditorGUI.EndChangeCheck())
+                    referenceVideoPath = newVideoPath;
+
+                Rect dropRect = GUILayoutUtility.GetLastRect();
+                HandleVideoDragAndDrop(dropRect);
+
+                if (GUILayout.Button(TJGeneratorsL10n.L("选择视频文件"), GUILayout.Height(22)))
+                {
+                    string selected = EditorUtility.OpenFilePanel(
+                        TJGeneratorsL10n.L("选择参考视频"),
+                        "Assets",
+                        "mp4");
+                    if (!string.IsNullOrEmpty(selected))
+                    {
+                        string relPath = PathUtils.TryGetAssetsRelativePathFromAbsolute(selected);
+                        referenceVideoPath = !string.IsNullOrEmpty(relPath) ? relPath : selected;
+                        Repaint();
+                    }
+                }
+            }
+
             if (ShouldShowImageUpload(genConfig))
             {
                 GUILayout.Space(CommonStyles.Space3);
@@ -273,6 +310,43 @@ namespace TJGenerators
                     referenceImagePaths,
                     referenceUploadedImages,
                     "video_reference_upload");
+            }
+        }
+
+        private string GetCurrentModeValue()
+        {
+            if (_currentGenerator is DynamicGenerator dynamicGen)
+            {
+                var modeParam = dynamicGen.GetParameter("mode");
+                if (modeParam != null) return modeParam.ToString();
+            }
+            return null;
+        }
+
+        private void HandleVideoDragAndDrop(Rect dropRect)
+        {
+            Event evt = Event.current;
+            if (evt == null) return;
+
+            if (evt.type == EventType.DragUpdated && dropRect.Contains(evt.mousePosition))
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+                evt.Use();
+            }
+            else if (evt.type == EventType.DragPerform && dropRect.Contains(evt.mousePosition))
+            {
+                DragAndDrop.AcceptDrag();
+                if (DragAndDrop.paths != null && DragAndDrop.paths.Length > 0)
+                {
+                    string path = DragAndDrop.paths[0];
+                    if (!string.IsNullOrEmpty(path) &&
+                        (path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        referenceVideoPath = path;
+                        Repaint();
+                    }
+                }
+                evt.Use();
             }
         }
 
@@ -287,12 +361,16 @@ namespace TJGenerators
                 provider,
                 allParams
             );
-            SyncGenerationCostWithCurrentGeneratorState();
         }
 
         private void DrawGenerationSection(LeftPanelBottomDock.Layout layout)
         {
-            bool canGenerate = !string.IsNullOrWhiteSpace(textPrompt);
+            string currentMode = GetCurrentModeValue();
+            bool canGenerate;
+            if (currentMode == "multimodal")
+                canGenerate = !string.IsNullOrWhiteSpace(textPrompt) || !string.IsNullOrEmpty(referenceVideoPath);
+            else
+                canGenerate = !string.IsNullOrWhiteSpace(textPrompt);
             UIComponents.DrawGenerationSectionAt(
                 layout,
                 isGenerating,
@@ -309,8 +387,7 @@ namespace TJGenerators
                         _lastProgressRepaintTime = t;
                         Repaint();
                     }
-                },
-                currentGenerationCost);
+                });
         }
 
         private void DrawHistoryPanel(float panelWidth)
@@ -516,7 +593,11 @@ namespace TJGenerators
                 return preview;
             }
 
+#if UNITY_6000_5_OR_NEWER
+            if (AssetPreview.IsLoadingAssetPreview(clip.GetEntityId()))
+#else
             if (AssetPreview.IsLoadingAssetPreview(clip.GetInstanceID()))
+#endif
                 EditorApplication.delayCall += Repaint;
 
             return null;
@@ -536,7 +617,7 @@ namespace TJGenerators
             using (var uwr = UnityWebRequestTexture.GetTexture(imageUrl))
             {
                 yield return uwr.SendWebRequest();
-                if (uwr.result == UnityWebRequest.Result.Success)
+                if (UnityWebRequestCompat.IsSuccess(uwr))
                 {
                     var tex = DownloadHandlerTexture.GetContent(uwr);
                     if (tex != null)
@@ -625,6 +706,15 @@ namespace TJGenerators
             GUI.enabled = hasSelection && !isGenerating;
             if (GUILayout.Button(TJGeneratorsL10n.L("在项目中显示"), GUILayout.Height(25)))
                 ShowHistoryInProject(selectedHistoryIndex);
+
+            // 特效视频：显示"创建特效播放器"按钮
+            if (hasSelection && !isGenerating
+                && generationHistory[selectedHistoryIndex].modelVersion == "effect_video_wf"
+                && !string.IsNullOrEmpty(generationHistory[selectedHistoryIndex].modelPath))
+            {
+                if (GUILayout.Button(TJGeneratorsL10n.L("创建特效播放器"), GUILayout.Height(25)))
+                    GreenScreenVideoPostProcess.SetupEffectVideoInScene(generationHistory[selectedHistoryIndex].modelPath);
+            }
 
             GUI.enabled = true;
 
@@ -744,13 +834,67 @@ namespace TJGenerators
             string promptToSend = textPrompt.Trim();
             if (_currentGenerator is DynamicGenerator dynamicGen)
             {
+                // Clear leftover multimodal fields (e.g. videos) from a previous run on the reused generator.
+                dynamicGen.ClearExtraRawJsonFields();
+
                 dynamicGen.SetTextPrompt(promptToSend);
                 dynamicGen.SetImagePaths(hasImage ? referenceImagePaths : null);
 
-                // Auto-set mode based on whether a reference image is provided:
-                // image present → reference_image, text-only → text_to_video
-                string mode = hasImage ? "reference_image" : "text_to_video";
-                dynamicGen.SetParameter("mode", mode);
+                // Determine mode based on inputs and dropdown (reference image is optional)
+                string selectedMode = GetCurrentModeValue();
+                bool hasReferenceVideo = !string.IsNullOrEmpty(referenceVideoPath);
+                string mode = VideoModeResolver.Resolve(selectedMode, hasImage, hasReferenceVideo);
+
+                // Validate image requirements for image-dependent modes (after soft fallbacks)
+                if (mode == "first_frame" && referenceImagePaths.Count < 1)
+                {
+                    ErrorDialogUtils.ShowErrorDialog(
+                        TJGeneratorsL10n.L("错误"),
+                        TJGeneratorsL10n.L("首帧生视频需要上传 1 张图片。"),
+                        LogTag);
+                    return;
+                }
+                if (mode == "first_last_frame" && referenceImagePaths.Count < 2)
+                {
+                    ErrorDialogUtils.ShowErrorDialog(
+                        TJGeneratorsL10n.L("错误"),
+                        TJGeneratorsL10n.L("首尾帧生视频需要上传 2 张图片（首帧 + 尾帧）。"),
+                        LogTag);
+                    return;
+                }
+
+                if (mode == "multimodal")
+                {
+                    // Upload video to TOS
+                    string absVideoPath = PathUtils.ToAbsoluteAssetPath(referenceVideoPath);
+                    if (!File.Exists(absVideoPath))
+                    {
+                        ErrorDialogUtils.ShowErrorDialog(
+                            TJGeneratorsL10n.L("错误"),
+                            TJGeneratorsL10n.L("参考视频文件不存在: ") + referenceVideoPath,
+                            LogTag);
+                        return;
+                    }
+
+                    string videoTosUrl = UploadVideoToTOS(absVideoPath);
+                    if (string.IsNullOrEmpty(videoTosUrl))
+                    {
+                        ErrorDialogUtils.ShowErrorDialog(
+                            TJGeneratorsL10n.L("错误"),
+                            TJGeneratorsL10n.L("参考视频上传失败"),
+                            LogTag);
+                        return;
+                    }
+
+                    dynamicGen.SetExtraRawJsonField("videos", "[" + JsonConvert.SerializeObject(videoTosUrl) + "]");
+                    dynamicGen.SetParameter("mode", "multimodal");
+                }
+                else
+                {
+                    // first_frame, first_last_frame, reference_image, text_to_video
+                    // Images are already set above via SetImagePaths
+                    dynamicGen.SetParameter("mode", mode);
+                }
             }
 
             isGenerating = true;
@@ -779,7 +923,7 @@ namespace TJGenerators
         }
 
 
-        public void ShowPreviewModel(string assetPath)
+        public void OnGenerationCompleted(string assetPath)
         {
             if (generationHistory != null && !string.IsNullOrEmpty(assetPath))
             {
@@ -791,16 +935,10 @@ namespace TJGenerators
             }
         }
 
-        public string GetTextureSavePath(ModelGeneratorBase generator) => null;
-
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator) { }
-
-        public string GetAudioSavePath(ModelGeneratorBase generator) => null;
-
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator) { }
-
-        public string GetVideoSavePath(ModelGeneratorBase generator)
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator)
         {
+            if (_type != PipelineMediaType.Video) return null;
+
             if (!AssetDatabase.IsValidFolder("Assets/TJGenerators"))
                 AssetDatabase.CreateFolder("Assets", "TJGenerators");
             if (!AssetDatabase.IsValidFolder("Assets/TJGenerators/History"))
@@ -812,9 +950,11 @@ namespace TJGenerators
             );
         }
 
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator)
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
         {
-            TJLog.Log($"[TJGeneratorsVideo] OnVideoSaved: {savePath}");
+            if (_type != PipelineMediaType.Video) return;
+
+            TJLog.Log($"[TJGeneratorsVideo] OnAssetSaved: {savePath}");
             TJGeneratorsGenerationLabel.EnableLabel(TJGeneratorsAssetReference.FromPath(savePath));
             InvalidateVideoPreviewCache(savePath);
 
@@ -865,6 +1005,9 @@ namespace TJGenerators
                 PingTargetVideoInProject(savePath);
             }
 
+            // 特效视频工作流：自动创建 ChromaKey 材质
+            TryCreateChromaKeyMaterial(savePath, generator);
+
             generationStatus = TJGeneratorsL10n.L("完成");
             generationProgress = 1f;
             isGenerating = false;
@@ -872,9 +1015,40 @@ namespace TJGenerators
             Repaint();
         }
 
-        void IGenerationPipelineHost.Repaint()
+        /// <summary>
+        /// 特效视频工作流（effect_video_wf）：视频下载后自动创建 ChromaKey 材质并搭建场景播放器。
+        /// 非 effect_video_wf 生成器不受影响。
+        /// </summary>
+        private void TryCreateChromaKeyMaterial(string videoPath, ModelGeneratorBase generator)
         {
-            Repaint();
+            if (string.IsNullOrEmpty(videoPath))
+                return;
+
+            var currentGen = generator ?? _currentGenerator;
+            if (currentGen == null || currentGen.GeneratorId != "effect_video_wf")
+                return;
+
+            try
+            {
+                var result = GreenScreenVideoPostProcess.EnsureChromaKeyMaterial(videoPath);
+                if (result.Success)
+                {
+                    TJLog.Log($"[TJGeneratorsVideo] ChromaKey material created: {result.MaterialPath}");
+                    var mat = AssetDatabase.LoadAssetAtPath<Material>(result.MaterialPath);
+                    if (mat != null)
+                        EditorGUIUtility.PingObject(mat);
+
+                    GreenScreenVideoPostProcess.SetupEffectVideoInScene(videoPath, result.MaterialPath);
+                }
+                else
+                {
+                    TJLog.LogWarning($"[TJGeneratorsVideo] ChromaKey material creation failed: {result.Error}");
+                }
+            }
+            catch (Exception e)
+            {
+                TJLog.LogWarning($"[TJGeneratorsVideo] ChromaKey post-process error: {e.Message}");
+            }
         }
 
         // ========== 辅助方法 ==========
@@ -885,8 +1059,7 @@ namespace TJGenerators
             targetVideoAsset != null && targetVideoAsset.IsValid();
 
         /// <summary>
-        /// 窗口内点击「生成」且尚未绑定目标时创建占位视频（与 3D 的 EnsureTargetAsset 一致）。
-        /// 菜单「AI/生成/生成视频」与 Inspector OpenForAsset 均不调用此方法。
+        /// 无绑定目标时创建占位视频（ShowWindow 回退或生成前兜底）。
         /// </summary>
         private void EnsureTargetVideo()
         {
@@ -917,6 +1090,34 @@ namespace TJGenerators
 
             TJGeneratorsGenerationLabel.EnableLabel(targetVideoAsset);
             Repaint();
+        }
+
+        private string UploadVideoToTOS(string absVideoPath)
+        {
+            string uploadUrl = ConfigManager.GetApiBaseUrl() + "upload/video";
+            var multipart = new MultipartRequestData
+            {
+                FilePath = absVideoPath,
+                FileName = Path.GetFileName(absVideoPath),
+                FileFieldName = "video"
+            };
+            var httpResult = GenerationBackendSyncSubmit.PostMultipart(
+                uploadUrl, multipart, GenerationRequestOrigin.Agent, "", 120f);
+            if (!httpResult.IsSuccess)
+            {
+                TJLog.LogError("[TJGeneratorsVideo] Video upload failed: " + httpResult.Error);
+                return null;
+            }
+            try
+            {
+                var resp = JObject.Parse(httpResult.Body);
+                return resp["url"]?.ToString();
+            }
+            catch (Exception e)
+            {
+                TJLog.LogError("[TJGeneratorsVideo] Parse upload response failed: " + e.Message);
+                return null;
+            }
         }
 
         private void PingTargetVideoInProject(string assetPath)

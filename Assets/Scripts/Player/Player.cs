@@ -8,13 +8,22 @@ public class Player : Entity<Player> {
 
     public PlayerHealth health;
 
-    public PlayerStateManagerEvents playerEvents;
+    public PlayerEvents playerEvents;
     public PlayerParticle particles { get; protected set; }
     
     public int jumpCounter { get; protected set; } // 记录跳跃次数
     public int comboCount{ get; set;} //记录连击次数，每攻击一次数值+1，三段后或超过响应窗口归零
     public bool roll { get; protected set; }
     public bool jab { get; protected set; }
+    
+    //Combo攻击相关变量
+    public float attackPassingTime; //上次攻击后流逝的时间，每个子攻击状态独立计算
+        
+    public float bufferDurationBefore = 0.5f; //前摇间隔
+    public float bufferDurationAfter = 1.0f; //后摇间隔
+
+    private bool hasHitted; //是否已进入过攻击状态
+    protected bool canNextCombo; //是否可进行下一次攻击
   
     
     protected override void Awake(){
@@ -180,10 +189,42 @@ public class Player : Entity<Player> {
     public virtual void Attack(){
         if (inputs.AttackOnPressed()) {
             states.Change<PlayerComboA>();
-            playerEvents.OnAttack?.Invoke();
+            playerEvents.OnComboA?.Invoke();//转到comboA，无论如何都是触发一段攻击
+        }
+    }
+    /// <summary>
+    /// 普攻一段
+    /// </summary>
+    public virtual void ComboA(){
+        attackPassingTime += Time.deltaTime;
+        canNextCombo =  attackPassingTime > bufferDurationBefore && attackPassingTime <= bufferDurationAfter ;
+        // 有了一次攻击以后，检查前后摇窗口，满足窗口范围就进行下一次攻击
+        if (inputs.AttackOnPressed() && canNextCombo) {
+            states.Change<PlayerComboB>();
+            playerEvents.OnComboB?.Invoke();
+        }
+        // 超过窗口时间没有攻击，就回到idle状态、清零攻击次数
+        else if(attackPassingTime > bufferDurationAfter){
+            states.Change<IdlePlayerState>();
+            comboCount = 0;
         }
     }
 
+    public virtual void ComboB(){
+        // 有了上一次攻击以后，检查后摇窗口，满足窗口范围就进行下一次攻击
+        attackPassingTime += Time.deltaTime;
+        canNextCombo =  attackPassingTime > bufferDurationBefore && attackPassingTime <= bufferDurationAfter ;
+        if (inputs.AttackOnPressed() && canNextCombo) {
+            states.Change<PlayerComboC>();
+            playerEvents.OnComboC?.Invoke();
+        }
+        // 超过窗口时间没有攻击，就回到idle状态、清零攻击次数
+        else if(attackPassingTime > bufferDurationAfter){
+            states.Change<IdlePlayerState>();
+            comboCount = 0;
+        }
+    }
+    
     /// <summary>
     /// 根据世界空间的输入方向获取翻滚方向
     /// </summary>
@@ -211,7 +252,8 @@ public class Player : Entity<Player> {
             verticalVelocity = Vector3.down * snapForce;
         }
     }
-    
+
+   
     /// <summary>
     /// roll结束检测
     /// </summary>

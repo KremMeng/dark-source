@@ -118,40 +118,57 @@
     <Compile Include="Assets\Scripts\Player\States\WalkPlayerState.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStatManager.cs" />
     <Compile Include="Assets\Scripts\npc_fsm\StateManager.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerStateManagerEvents.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerEvents.cs" />
     <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboB.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\TesterHit.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyHealth.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAnimator.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
+    <Compile Include="Assets\Hovl Studio\HSFiles\Scripts\For demo scenes\HS_CameraHolder.cs" />
+    <Compile Include="Assets\Scripts\Player\Skill\SwordSlashConfig.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
-    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\MeshyAnimationIds.json" />
     <None Include="Assets\opengameasset.net.txt" />
+    <None Include="Assets\Hovl Studio\Sword slash VFX\Demo scene\HDRP and URP.txt" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_akarami_blend.shader" />
     <None Include="Assets\Shaders\kazuku\SDFface.shader" />
     <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\package.json" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\CharaOutline.cginc" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_hair_ds.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_hada.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\DissolveNoise.shader" />
     <None Include="Assets\Shaders\kazuko\ToonShading.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Add_Fresnel.shader" />
     <None Include="Assets\Shaders\kazuko\HairHighlight.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Ice.shader" />
     <None Include="Assets\Shaders\kazuku\HairHighlight.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Distortion.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Blend_TwoSides.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku_ds.shader" />
+    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\extension\manifest.json" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_eyelash_blend.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Blend_CenterGlow.shader" />
     <None Include="Assets\Shaders\kazuku\SwordSlash.shader" />
+    <None Include="Assets\Hovl Studio\Sword slash VFX\Demo scene\Readme.txt" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Lightning.shader" />
     <None Include="Assets\Shaders\kazuku\ToonShading.shader" />
     <None Include="Assets\Suriyun\README.txt" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\CharaMain.cginc" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_hada_blend.shader" />
     <None Include="Assets\Shaders\kazuko\SDFface.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\readme.txt" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\BlendDistort.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Scroll.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\CharaSkin.cginc" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_eye.shader" />
     <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\GeneratorConfig.json" />
-    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\FrontierSequenceProfiles.json" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Add_CenterGlow.shader" />
+    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\Editor\Config\SpriteSheetSequenceProfiles.json" />
     <None Include="Assets\Shaders\kazuko\SwordSlash.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_hair.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\Explosion.shader" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_eye_blend.shader" />
+    <None Include="Assets\Hovl Studio\HSFiles\Shaders\SwordSlash.shader" />
+    <None Include=".codely-cli\extensions\TJGenerators\Packages\cn.tuanjie.ai.generators\extension\gemini-extension.json" />
     <Reference Include="UnityEngine">
       <HintPath>K:\unity\2021.3.45f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>
@@ -857,6 +874,9 @@
     <Reference Include="Unity.Addressables.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Addressables.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Animation.Rigging.Editor">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Animation.Rigging.Editor.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.VisualScripting.Flow.Editor">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Flow.Editor.dll</HintPath>
     </Reference>
@@ -895,6 +915,9 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.Core">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Animation.Rigging">
+      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Animation.Rigging.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
@@ -940,12 +963,6 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.State">
       <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.VisualScripting.State.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Animation.Rigging.Editor">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Animation.Rigging.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Animation.Rigging">
-      <HintPath>K:\0.GameDev\DarkSouls\Library\ScriptAssemblies\Unity.Animation.Rigging.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

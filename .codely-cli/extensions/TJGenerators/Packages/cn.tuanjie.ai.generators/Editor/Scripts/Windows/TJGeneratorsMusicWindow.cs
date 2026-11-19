@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,9 +18,9 @@ using Unity.EditorCoroutines.Editor;
 namespace TJGenerators
 {
     /// <summary>
-    /// TJGenerators 文生音频窗口 - 使用 huoshan_music 等生成器生成音频
+    /// TJGenerators 文生音频窗口 - 使用 sonilo-music 等生成器生成音频
     /// </summary>
-    public class TJGeneratorsMusicWindow : GenerationWindowBase, IGenerationPipelineHost
+    public class TJGeneratorsMusicWindow : GenerationWindowBase, IGenerationPipelineHost, IGenerationTriggerHost, IMediaAssetPipelineHost
     {
         // ========== 基类抽象属性实现 ==========
         protected override ConfigType WindowConfigType => ConfigType.Music;
@@ -28,8 +28,6 @@ namespace TJGenerators
 
         // ========== 窗口特定字段 ==========
         private string textPrompt = "";
-        private bool _voiceCustomMode;
-        private string _voiceCustomEdit;
         private int _previewPlayingHistoryIndex = -1;
         private double _lastProgressRepaintTime;
         private readonly Dictionary<string, UnityEngine.AudioClip> _clipCache = new Dictionary<string, UnityEngine.AudioClip>();
@@ -51,6 +49,7 @@ namespace TJGenerators
                 focus: true
             );
             window.titleContent = new GUIContent(TJGeneratorsL10n.L("TJGenerators 音频生成"));
+            FinalizeMainWindowShow(window, rect);
         }
 
         /// <summary>
@@ -67,11 +66,25 @@ namespace TJGenerators
                 () =>
                 {
                     var window = CreateInstance<TJGeneratorsMusicWindow>();
-                    SetDefaultWindowSize(window);
                     return window;
                 },
                 (w, r) => w.targetAudioAsset = r,
                 ShowWindow);
+        }
+
+        protected override void OnBootstrapWindowContent()
+        {
+            if (targetAudioAsset != null && !string.IsNullOrEmpty(targetAudioAsset.guid))
+                s_musicOpenWindows[targetAudioAsset.guid] = this;
+
+            InitializeGeneratorsFromConfig(ConfigType.Music);
+            OnRefreshWindowContent();
+        }
+
+        protected override void OnRefreshWindowContent()
+        {
+            RefreshHistory();
+            CheckAndRecoverInterruptedTasks();
         }
 
         protected override void OnDisable()
@@ -110,23 +123,8 @@ namespace TJGenerators
         {
             base.OnEnable();
             wantsMouseMove = true;
-            InitializeGeneratorsFromConfig(ConfigType.Music);
 
-            // 确保目标音频资产存在，保证历史记录使用一致的 assetGuid
-            EnsureTargetMusic();
-
-            EditorApplication.delayCall += () =>
-            {
-                if (this != null)
-                {
-                    generationHistory = TJGeneratorsHistoryManager.LoadHistoryForAsset(GetCurrentMusicAssetGuid());
-                    Repaint();
-                }
-            };
             EditorCoroutineUtility.StartCoroutineOwnerless(UserInfoHelper.GetUserInfoCoroutine(ConfigManager.GetUserInfoUrl(), OnUserInfoLoaded));
-
-            // 检查是否有可恢复的任务
-            CheckAndRecoverInterruptedTasks();
         }
 
         private string GetCurrentMusicAssetGuid() => targetAudioAsset?.guid ?? "";
@@ -187,8 +185,6 @@ namespace TJGenerators
                     );
                     GUILayout.Space(CommonStyles.Space3);
                     DrawInputSection();
-                    GUILayout.Space(CommonStyles.Space3);
-                    DrawVoiceSection();
                     GUILayout.Space(CommonStyles.Space3);
                     DrawConfigurationSection();
                     GUILayout.Space(CommonStyles.Space3);
@@ -255,88 +251,15 @@ namespace TJGenerators
             );
         }
 
-        /// <summary>
-        /// 当当前生成器包含 voiceId 参数时，在主面板显眼位置绘制语音角色选择（预设/自定义互斥）。
-        /// </summary>
-        private void DrawVoiceSection()
-        {
-            if (!(_currentGenerator is DynamicGenerator dg))
-                return;
-
-            var voiceParam = dg.Parameters?.Find(p => p.id == "voiceId");
-            if (voiceParam == null)
-                return;
-
-            UIComponents.DrawSectionTitle(TJGeneratorsL10n.L("语音角色"), uppercase: false);
-            GUILayout.Space(CommonStyles.Space2);
-
-            object currentVal = dg.GetParameter("voiceId");
-            string valStr = currentVal?.ToString() ?? "";
-
-            // 查找当前值是否匹配预设选项
-            int index = -1;
-            if (voiceParam.options != null)
-            {
-                for (int i = 0; i < voiceParam.options.Count; i++)
-                {
-                    if (voiceParam.options[i].value == valStr)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-            }
-
-            GUILayout.BeginHorizontal();
-
-            // 预设下拉
-            int curIdx = index >= 0 ? index : 0;
-            string[] labels = new string[voiceParam.options.Count];
-            for (int i = 0; i < voiceParam.options.Count; i++)
-                labels[i] = TJGeneratorsL10n.L(voiceParam.options[i].label);
-
-            int newIdx = EditorGUILayout.Popup(curIdx, labels, GUILayout.Width(180));
-            if (newIdx != curIdx)
-            {
-                dg.SetParameter("voiceId", voiceParam.options[newIdx].value);
-                _voiceCustomMode = false;
-            }
-
-            GUILayout.Space(6f);
-
-            // 「自定义」切换按钮
-            _voiceCustomMode = _voiceCustomMode || index < 0;
-            var toggleStyle = new GUIStyle(EditorStyles.miniButton);
-            toggleStyle.fontSize = 11;
-            toggleStyle.fixedWidth = 52f;
-            bool newCustom = GUILayout.Toggle(_voiceCustomMode, TJGeneratorsL10n.L("自定义"), toggleStyle, GUILayout.Height(22f));
-            if (newCustom != _voiceCustomMode)
-            {
-                _voiceCustomMode = newCustom;
-                if (_voiceCustomMode)
-                    _voiceCustomEdit = valStr;
-            }
-
-            GUILayout.EndHorizontal();
-
-            if (_voiceCustomMode)
-            {
-                GUILayout.Space(4f);
-                if (_voiceCustomEdit == null) _voiceCustomEdit = valStr;
-                _voiceCustomEdit = EditorGUILayout.TextField("Voice ID", _voiceCustomEdit);
-                if (_voiceCustomEdit != valStr)
-                    dg.SetParameter("voiceId", _voiceCustomEdit);
-            }
-        }
-
         private void DrawConfigurationSection()
         {
             var provider = _currentGenerator as IGeneratorParameterProvider;
+            List<ParameterConfig> parameters = GetCurrentGeneratorParameters();
+
             showAdvancedSettings = DrawConfiguredAdvancedSettingsFoldout(
                 showAdvancedSettings,
                 provider,
-                GetCurrentGeneratorParameters());
-            SyncGenerationCostWithCurrentGeneratorState();
+                parameters);
         }
 
         private void DrawGenerationSection(LeftPanelBottomDock.Layout layout)
@@ -357,8 +280,7 @@ namespace TJGenerators
                         _lastProgressRepaintTime = t;
                         Repaint();
                     }
-                },
-                currentGenerationCost);
+                });
         }
 
         private bool HasValidHistorySelection()
@@ -733,7 +655,7 @@ namespace TJGenerators
 
         /// <summary>
         /// 将工程内源音频复制到当前目标资产；若扩展名变化则删除旧文件并更新 GUID / 场景中 AudioSource 引用，
-        /// 与生成完成回调 <see cref="OnAudioSaved"/> 保持一致，避免同基名下残留 .wav 与 .mp3 两个文件。
+        /// 与生成完成回调 <see cref="OnAssetSaved"/> 保持一致，避免同基名下残留 .wav 与 .mp3 两个文件。
         /// </summary>
         private bool ReplaceTargetClipFromProjectSource(string sourceAssetPath, string okLogVerb, out string errorMessage)
         {
@@ -800,7 +722,7 @@ namespace TJGenerators
                     try
                     {
                         bool foundExistingSource = false;
-                        foreach (var source in UnityEngine.Object.FindObjectsOfType<AudioSource>())
+                        foreach (var source in UnityObjectCompat.FindObjectsOfType<AudioSource>())
                         {
                             if (source.clip == null) continue;
                             bool matchByRef =
@@ -925,7 +847,7 @@ namespace TJGenerators
             _waveformCache.Clear();
         }
 
-        public void ShowPreviewModel(string assetPath)
+        public void OnGenerationCompleted(string assetPath)
         {
             if (generationHistory != null && !string.IsNullOrEmpty(assetPath))
             {
@@ -937,11 +859,10 @@ namespace TJGenerators
             }
         }
 
-        public string GetTextureSavePath(ModelGeneratorBase generator) => null;
-        public void OnTextureSaved(string savePath, ModelGeneratorBase generator) { }
-
-        public string GetAudioSavePath(ModelGeneratorBase generator)
+        public string GetAssetSavePath(PipelineMediaType _type, ModelGeneratorBase generator)
         {
+            if (_type != PipelineMediaType.Audio) return null;
+
             // 始终保存到唯一 History 路径，使每条历史记录有独立 modelPath，避免所有波形显示同一文件
             if (!AssetDatabase.IsValidFolder("Assets/TJGenerators"))
                 AssetDatabase.CreateFolder("Assets", "TJGenerators");
@@ -956,9 +877,11 @@ namespace TJGenerators
                 "Assets/TJGenerators/History/" + uniqueName);
         }
 
-        public void OnAudioSaved(string savePath, ModelGeneratorBase generator)
+        public void OnAssetSaved(PipelineMediaType _type, string savePath, ModelGeneratorBase generator)
         {
-            TJLog.Log($"[TJGeneratorsMusic] OnAudioSaved: {savePath}");
+            if (_type != PipelineMediaType.Audio) return;
+
+            TJLog.Log($"[TJGeneratorsMusic] OnAssetSaved: {savePath}");
             TJGeneratorsGenerationLabel.EnableLabel(TJGeneratorsAssetReference.FromPath(savePath));
             if (HasValidTargetAudioAsset())
             {
@@ -972,10 +895,6 @@ namespace TJGenerators
             Repaint();
         }
 
-        public string GetVideoSavePath(ModelGeneratorBase generator) => null;
-        public void OnVideoSaved(string savePath, ModelGeneratorBase generator) { }
-
-        void IGenerationPipelineHost.Repaint() { Repaint(); }
     }
 }
 #endif

@@ -20,7 +20,7 @@ MonoBehaviour:
   fallGravity: 15
   gravityMaxSpeed: 8
   applySlopeFactor: 1
-  acceleration: 5
+  acceleration: 2
   airAcceleration: 5
   deceleration: 50
   groundFriction: 40

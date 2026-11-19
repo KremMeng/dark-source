@@ -24,11 +24,11 @@ namespace TJGenerators.Pipeline
 
         public string GetOutputType()
         {
-            return !string.IsNullOrEmpty(_config?.outputType) ? _config.outputType : "model";
+            return !string.IsNullOrEmpty(_config?.outputType) ? _config.outputType : GenerationOutputTypes.Model;
         }
 
         /// <summary>
-        /// 音频在 API/配置中的格式（如 "wav"、"mp3"、"mp4"）。仅 outputType == "audio" 时有意义。
+        /// 音频在 API/配置中的格式（如 "wav"、"mp3"、"mp4"）。仅 outputType == audio 时有意义。
         /// </summary>
         public string AudioFormat =>
             !string.IsNullOrEmpty(_config?.audioFormat) ? _config.audioFormat : "wav";
@@ -38,8 +38,8 @@ namespace TJGenerators.Pipeline
             string ot = _config?.outputType;
             if (string.IsNullOrEmpty(ot))
                 return true;
-            return string.Equals(ot, "model", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(ot, "rigged-model", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(ot, GenerationOutputTypes.Model, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ot, GenerationOutputTypes.RiggedModel, StringComparison.OrdinalIgnoreCase);
         }
 
         public bool ShouldShowEnableMotionUi() =>
@@ -56,11 +56,6 @@ namespace TJGenerators.Pipeline
             if (rotation != null)
                 return rotation.ToVector3();
             return new Vector3(0f, 0f, 0f);
-        }
-
-        public bool GetPostProcessingIsHumanoid()
-        {
-            return _config?.postProcessing?.isHumanoid == true;
         }
 
         public bool GetPostProcessingSingleClipLoopAnimatorController()
