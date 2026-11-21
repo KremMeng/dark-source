@@ -1,6 +1,8 @@
 using System;
 using UnityEngine.Events;
-
+/// <summary>
+/// 状态变化触发事件
+/// </summary>
 [Serializable]
 public class EntityStateManagerEvents {
     

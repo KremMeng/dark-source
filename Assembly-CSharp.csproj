@@ -125,7 +125,9 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyAnimator.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
     <Compile Include="Assets\Hovl Studio\HSFiles\Scripts\For demo scenes\HS_CameraHolder.cs" />
-    <Compile Include="Assets\Scripts\Player\Skill\SwordSlashConfig.cs" />
+    <Compile Include="Assets\Scripts\Player\Skill\ParticleStat.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerParticleManager.cs" />
+    <Compile Include="Assets\Scripts\Player\Skill\SkillConfig.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
     <None Include="Assets\opengameasset.net.txt" />
     <None Include="Assets\Hovl Studio\Sword slash VFX\Demo scene\HDRP and URP.txt" />

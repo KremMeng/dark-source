@@ -1565,11 +1565,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3971609240047691443, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
   m_PrefabInstance: {fileID: 8263985876186557304}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &834713627 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3969867755808416343, guid: 5fd7c5f8c79554f4cbe4b153aa4ed314, type: 3}
-  m_PrefabInstance: {fileID: 8263985876186557304}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &845881148
 GameObject:
   m_ObjectHideFlags: 0
@@ -10485,6 +10480,20 @@ MonoBehaviour:
   swordSlashA: {fileID: 995997976}
   swordSlashB: {fileID: 109521187}
   swordSlashC: {fileID: 1201588906}
+--- !u!114 &2118930853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2118930837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d48a5485ad7649a9984a708cc46d45b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stat:
+  - {fileID: 11400000, guid: 1741f816bbb07c441a2a1a329e871f70, type: 2}
 --- !u!1 &2132027698
 GameObject:
   m_ObjectHideFlags: 0
