@@ -5,6 +5,7 @@ public class Player : Entity<Player> {
     //玩家的inputmanager实例
     public PlayerInputManager inputs { get; protected set; }
     public PlayerStatManager stat { get; protected set; }
+    public PlayerParticleManager particleStat { get; protected set; }
 
     public PlayerHealth health;
 
@@ -38,6 +39,7 @@ public class Player : Entity<Player> {
 
     protected virtual void InitializeInputs() => inputs = GetComponent<PlayerInputManager>();
     protected virtual void InitializeStat() => stat = GetComponent<PlayerStatManager>();
+    protected virtual void InitializeParticleStat() => particleStat = GetComponent<PlayerParticleManager>();
     protected virtual void InitializeParticle() => particles = GetComponent<PlayerParticle>();
     
     /// <summary>

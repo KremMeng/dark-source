@@ -19,11 +19,6 @@ public class PlayerParticle : MonoBehaviour {
         HandleSwordSlash();
     }
     protected void InitializePlayer() => m_player = GetComponent<Player>();
-    //实例化特效
-    public GameObject InstantiateEffect(GameObject effectPrefab){
-        GameObject effectInstance = Instantiate(effectPrefab);
-        return effectInstance;
-    }
     
     //播放特效
     public virtual void Play(ParticleSystem particle,Vector3 position){
@@ -39,35 +34,36 @@ public class PlayerParticle : MonoBehaviour {
         }
     }
     /// <summary>
-    /// 生成刀光等技能相关特效
+    /// 生成刀光
     /// </summary>
-    protected virtual void SpawnSlashObject(SkillSpawnObj spawnObj){
+    protected virtual void SpawnSlashObject(SkillEffectObject effectObject){
         //如果有刀光go和prefab，就延迟生成
-        if (spawnObj != null && spawnObj.prefab != null) {
-            var routine = DoSpawnObject(spawnObj);
+        if (effectObject != null && effectObject.prefab != null) {
+            var routine = DoSpawnObject(effectObject);
             StartCoroutine(routine);
         }
     }
 
     /// <summary>
-    /// 协程:刀光实现并延迟
+    /// 实例化刀光、协程延迟
     /// </summary>
-    protected IEnumerator DoSpawnObject(SkillSpawnObj spawnObj){
+    protected IEnumerator DoSpawnObject(SkillEffectObject effectObject){
         //先延迟时间
-        yield return new WaitForSeconds(spawnObj.time);
+        yield return new WaitForSeconds(effectObject.delayedTime);
         //再实例化go
-        GameObject swordSlash = GameObject.Instantiate(spawnObj.prefab, null);//父物体直接为空
+        GameObject swordSlash = GameObject.Instantiate(effectObject.prefab, null);//父物体直接为空
         //给技能各项变量赋值，local rot/pos
-        swordSlash.transform.position = m_player.transform.position + spawnObj.position;
-        swordSlash.transform.eulerAngles = m_player.transform.eulerAngles + spawnObj.rotation;
-        swordSlash.transform.localScale = spawnObj.prefab.transform.localScale * spawnObj.scale;
+        swordSlash.transform.position = m_player.transform.position + effectObject.position;
+        swordSlash.transform.eulerAngles = m_player.transform.eulerAngles + effectObject.rotation;
+        swordSlash.transform.localScale = effectObject.prefab.transform.localScale * effectObject.scale;
+        //PlayAudio(spawnObj.audioClip);
     }
     protected virtual void HandleSwordSlash(){
         Vector3 position = Vector3.zero;
         Vector3 height = new Vector3(0, 0.5f, 0);
         //position = m_player.transform.position + 0.5f * m_player.transform.forward + height;
         if (m_player.comboCount == 1) {
-            Play(swordSlashA,swordSlashA.transform.position);
+            //Play();
             Debug.Log("播放攻击一段特效");
         }
 

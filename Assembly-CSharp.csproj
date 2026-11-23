@@ -41,9 +41,11 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Player\PlayerAudio.cs" />
     <Compile Include="Assets\Scripts\Timeline\TransformTrack.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\IButton.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerParticle.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerParticleManager.cs" />
     <Compile Include="Assets\Scripts\Player\States\IdlePlayerState.cs" />
     <Compile Include="Assets\Scripts\Entity\Entity.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
@@ -88,6 +90,7 @@
     <Compile Include="Assets\Scripts\Entity\EntityStatManager.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyWayPointManager.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\LeftButtonTest.cs" />
+    <Compile Include="Assets\Hovl Studio\HSFiles\Scripts\For demo scenes\HS_CameraHolder.cs" />
     <Compile Include="Assets\Scripts\Player\States\PlayerAttack\PlayerComboA.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\FSMOnEnter.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityEvents.cs" />
@@ -103,6 +106,7 @@
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\IUserInput.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\keyboardInput.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStat.cs" />
+    <Compile Include="Assets\Scripts\Player\Skill\PlayerSkillConfig.cs" />
     <Compile Include="Assets\Scripts\Player\States\RunPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCamera.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\DummyIUserInterface.cs" />
@@ -124,10 +128,6 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyHealth.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAnimator.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
-    <Compile Include="Assets\Hovl Studio\HSFiles\Scripts\For demo scenes\HS_CameraHolder.cs" />
-    <Compile Include="Assets\Scripts\Player\Skill\ParticleStat.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerParticleManager.cs" />
-    <Compile Include="Assets\Scripts\Player\Skill\SkillConfig.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
     <None Include="Assets\opengameasset.net.txt" />
     <None Include="Assets\Hovl Studio\Sword slash VFX\Demo scene\HDRP and URP.txt" />

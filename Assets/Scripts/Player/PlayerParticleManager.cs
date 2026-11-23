@@ -1,4 +1,4 @@
 using UnityEngine;
-public class PlayerParticleManager :EntityStatManager<SkillConfig> {
+public class PlayerParticleManager :EntityStatManager<PlayerSkillConfig> {
     
 }
