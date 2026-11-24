@@ -191,7 +191,7 @@ public class Player : Entity<Player> {
     public virtual void Attack(){
         if (inputs.AttackOnPressed()) {
             states.Change<PlayerComboA>();
-            playerEvents.OnComboA?.Invoke();//转到comboA，无论如何都是触发一段攻击
+            //playerEvents.OnComboA?.Invoke();//转到comboA，无论如何都是触发一段攻击
         }
     }
     /// <summary>
@@ -203,7 +203,7 @@ public class Player : Entity<Player> {
         // 有了一次攻击以后，检查前后摇窗口，满足窗口范围就进行下一次攻击
         if (inputs.AttackOnPressed() && canNextCombo) {
             states.Change<PlayerComboB>();
-            playerEvents.OnComboB?.Invoke();
+            //playerEvents.OnComboB?.Invoke();
         }
         // 超过窗口时间没有攻击，就回到idle状态、清零攻击次数
         else if(attackPassingTime > bufferDurationAfter){
@@ -218,7 +218,7 @@ public class Player : Entity<Player> {
         canNextCombo =  attackPassingTime > bufferDurationBefore && attackPassingTime <= bufferDurationAfter ;
         if (inputs.AttackOnPressed() && canNextCombo) {
             states.Change<PlayerComboC>();
-            playerEvents.OnComboC?.Invoke();
+            //playerEvents.OnComboC?.Invoke();
         }
         // 超过窗口时间没有攻击，就回到idle状态、清零攻击次数
         else if(attackPassingTime > bufferDurationAfter){

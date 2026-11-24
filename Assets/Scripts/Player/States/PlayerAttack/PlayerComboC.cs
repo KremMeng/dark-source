@@ -1,6 +1,7 @@
 using UnityEngine;
     public class PlayerComboC : AttackPlayerState {
         protected override void OnEnter(Player player){
+            player.playerEvents.OnComboC?.Invoke();
             player.IsFrozeVelocity(true);
             player.InputEnabled = false;
             // 进入攻击c段，连击次数+1

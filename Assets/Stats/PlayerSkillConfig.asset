@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: PlayerSkillConfig
   m_EditorClassIdentifier: 
   AnimationName: attack01
-  releaseData:
-    SpawnObj:
-      prefab: {fileID: 7900501643892759158, guid: 274fcbea9683d5a46bfecd676d8ff811, type: 3}
-      audioClip: {fileID: 8300000, guid: ce5001f33e82ed34e81befbd4badf51a, type: 3}
-      position: {x: 0, y: 0.94, z: 0.124}
-      rotation: {x: 43, y: -36, z: -139}
-      scale: 0.35
-      delayedTime: 0.1
-    audioClip: {fileID: 0}
+  effectObjectData:
+    prefab: {fileID: 7900501643892759158, guid: 274fcbea9683d5a46bfecd676d8ff811, type: 3}
+    audioClip: {fileID: 8300000, guid: ce5001f33e82ed34e81befbd4badf51a, type: 3}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: 1
+    delayedTime: 0
+  audioClip: {fileID: 0}
