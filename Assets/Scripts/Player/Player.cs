@@ -5,7 +5,7 @@ public class Player : Entity<Player> {
     //玩家的inputmanager实例
     public PlayerInputManager inputs { get; protected set; }
     public PlayerStatManager stat { get; protected set; }
-    public PlayerParticleManager particleStat { get; protected set; }
+    public PlayerParticleStatManager particleStat { get; protected set; }
 
     public PlayerHealth health;
 
@@ -32,6 +32,7 @@ public class Player : Entity<Player> {
         InitializeInputs();
         InitializeStat();
         InitializeParticle();
+        InitializeParticleStat();
         
         //运行的时候监听落地事件，重置跳跃/空中技能次数
         entityEvents.OnGroundEnter.AddListener(()=>ResetJump());
@@ -39,7 +40,7 @@ public class Player : Entity<Player> {
 
     protected virtual void InitializeInputs() => inputs = GetComponent<PlayerInputManager>();
     protected virtual void InitializeStat() => stat = GetComponent<PlayerStatManager>();
-    protected virtual void InitializeParticleStat() => particleStat = GetComponent<PlayerParticleManager>();
+    protected virtual void InitializeParticleStat() => particleStat = GetComponent<PlayerParticleStatManager>();
     protected virtual void InitializeParticle() => particles = GetComponent<PlayerParticle>();
     
     /// <summary>

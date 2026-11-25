@@ -10,7 +10,6 @@ public class PlayerAudio : MonoBehaviour {
     public AudioClip comboC;
     [Header("Delayed time")]
     [SerializeField] protected float time = 0.15f;
-    [SerializeField] protected float time1 = 2f;
 
     protected Player m_player;
     protected AudioSource m_audio;//Audio Data
@@ -25,7 +24,7 @@ public class PlayerAudio : MonoBehaviour {
     protected virtual void InitializePlayer() => m_player = GetComponent<Player>();
     
     protected virtual void InitializeAudioData(){
-        if (!TryGetComponent(out m_audio)) {//避免Component不存在时在Editor中额外分配内存的情况
+        if (!TryGetComponent<AudioSource>(out m_audio)) {//避免Component不存在时在Editor中额外分配内存的情况
             m_audio = gameObject.AddComponent<AudioSource>();
         }
     }
@@ -37,7 +36,7 @@ public class PlayerAudio : MonoBehaviour {
         //float time = m_player.particleStat.current.effectObjectData.delayedTime;
         m_player.playerEvents.OnComboA.AddListener(() =>Play(comboA,time) );
         m_player.playerEvents.OnComboB.AddListener(() =>Play(comboB,time) );
-        m_player.playerEvents.OnComboC.AddListener(() =>Play(comboC,time1) );
+        m_player.playerEvents.OnComboC.AddListener(() =>Play(comboC) );
     }
     /// <summary>
     /// 延迟音效播放

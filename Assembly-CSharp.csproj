@@ -44,7 +44,7 @@
     <Compile Include="Assets\Scripts\Timeline\TransformTrack.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\IButton.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerParticle.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerParticleManager.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerParticleStatManager.cs" />
     <Compile Include="Assets\Scripts\Player\States\IdlePlayerState.cs" />
     <Compile Include="Assets\Scripts\Entity\Entity.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
@@ -105,7 +105,7 @@
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\IUserInput.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\keyboardInput.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityStat.cs" />
-    <Compile Include="Assets\Scripts\Player\Skill\PlayerSkillConfig.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerSkillConfig.cs" />
     <Compile Include="Assets\Scripts\Player\States\RunPlayerState.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCamera.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\DummyIUserInterface.cs" />
@@ -114,7 +114,7 @@
     <Compile Include="Assets\HexTiles-Nature\Scripts\RotationSnapping.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\ActorController.cs" />
     <Compile Include="Assets\Scripts\Player\States\JabPlayerState.cs" />
-    <Compile Include="Assets\Scripts\Player\Skill\ISkillHandler.cs" />
+    <Compile Include="Assets\Scripts\Player\ISkillHandler.cs" />
     <Compile Include="Assets\Scripts\DIsGard_OldVersion\LeftArmAnimFix.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerHealth.cs" />
     <Compile Include="Assets\Scripts\Entity\EntityHealth.cs" />
