@@ -10,7 +10,7 @@ public class Player : Entity<Player> {
     public PlayerHealth health;
 
     public PlayerEvents playerEvents;
-    public PlayerParticle particles { get; protected set; }
+    public ParticleHandler particlesHandler { get; protected set; }
     
     public int jumpCounter { get; protected set; } // 记录跳跃次数
     public int comboCount{ get; set;} //记录连击次数，每攻击一次数值+1，三段后或超过响应窗口归零
@@ -41,7 +41,7 @@ public class Player : Entity<Player> {
     protected virtual void InitializeInputs() => inputs = GetComponent<PlayerInputManager>();
     protected virtual void InitializeStat() => stat = GetComponent<PlayerStatManager>();
     protected virtual void InitializeParticleStat() => particleStat = GetComponent<PlayerParticleStatManager>();
-    protected virtual void InitializeParticle() => particles = GetComponent<PlayerParticle>();
+    protected virtual void InitializeParticle() => particlesHandler = GetComponent<ParticleHandler>();
     
     /// <summary>
     /// 注册Roll动画完成回调

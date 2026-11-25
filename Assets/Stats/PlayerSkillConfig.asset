@@ -12,9 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fff714d6e9e34480bc891fd8aa79d6a8, type: 3}
   m_Name: PlayerSkillConfig
   m_EditorClassIdentifier: 
-  effectObjectData:
+  slashDatas:
+  - skillName: ComboA
     prefab: {fileID: 7900501643892759158, guid: 274fcbea9683d5a46bfecd676d8ff811, type: 3}
-    position: {x: 0, y: 0.5, z: 0.124}
-    rotation: {x: 43, y: -36, z: -139}
+    position: {x: 0, y: 0.4, z: 0}
+    rotation: {x: 43, y: -36, z: -140}
+    scale: 0.35
+    delayedTime: 0.6
+  - skillName: ComboB
+    prefab: {fileID: 7900501643892759158, guid: 4203c09dde264b74fa9c2d95f8128eb6, type: 3}
+    position: {x: 0, y: 0.45, z: 0.124}
+    rotation: {x: -0.08, y: -155, z: -0.74}
     scale: 0.4
     delayedTime: 0.65
+  - skillName: ComboC
+    prefab: {fileID: 7900501643892759158, guid: c0474ecf46ee61d44826da9c3771e4a7, type: 3}
+    position: {x: 0, y: 0.45, z: 0.124}
+    rotation: {x: 44, y: 167.1, z: 82}
+    scale: 0.4
+    delayedTime: 2

@@ -1,23 +1,22 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
-//另一套技能配置框架，草稿
+//专门的Skill数据配置类，
 [CreateAssetMenu(fileName = "PlayerSkillConfig",menuName = "ScriptableObject/玩家技能配置",order = 2)]
 public class PlayerSkillConfig : EntityStat<PlayerSkillConfig> {
-    //技能动画名称
-    //public string AnimationName;
-    //技能释放时播放的粒子
-    [Header("实例化特效GO配置")]public SkillEffectObject effectObjectData;
+
+    //技能释放时实例化的对象
+    [Header("实例化刀光配置")] 
+    public List<SkillEffectObject> slashDatas = new List<SkillEffectObject>();
+
     //以防万一技能释放时有音效
     //public AudioClip audioClip;
-    // [Header("刀光Prefab引用")]
-    // public ParticleSystem prefabSlashA;
-    // public ParticleSystem prefabSlashB;
-    // public ParticleSystem prefabSlashC;
 }
 //特效数据类
-[System.Serializable]
-public class SkillEffectObject{
+[Serializable]
+public class SkillEffectObject {
+    public String skillName;
     //生成的预制体
     public GameObject prefab;
     //生成时的音效
@@ -27,9 +26,9 @@ public class SkillEffectObject{
     //旋转
     public Vector3 rotation;
     //缩放
-    public float scale = 1.0f;
+    public float scale;
     //延迟时间
-    public float delayedTime = 0.1f;
+    public float delayedTime;
 }
 
 // public class Playerr {

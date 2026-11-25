@@ -2,13 +2,8 @@ using System.Collections;
 using UnityEngine;
 [RequireComponent(typeof(Player))]
 //封装粒子特效的播放暂停、各种被动特效播放时机等
-public class PlayerParticle : MonoBehaviour {
+public class ParticleHandler : MonoBehaviour {
     
-    // 技能Skill类特效go对象：内含位置、rot、scale、延迟时间等信息
-    protected SkillEffectObject swordSlashA;
-    protected SkillEffectObject swordSlashB;
-    protected SkillEffectObject swordSlashC;
-
     protected Player m_player;
     protected PlayerParticleStatManager stat;
 
@@ -17,7 +12,6 @@ public class PlayerParticle : MonoBehaviour {
         InitializeStat();
         InitializeCallbacks();
     }
-
     /// <summary>
     /// Update()里放Play相关的特效，如脚步尘土等持续播放的
     /// </summary>
@@ -29,9 +23,9 @@ public class PlayerParticle : MonoBehaviour {
 
     protected virtual void InitializeCallbacks(){
         //var effectObj = stat.current.effectObjectData;
-        m_player.playerEvents.OnComboA.AddListener(() =>CreateGO(stat.current.effectObjectData) );
-        m_player.playerEvents.OnComboB.AddListener(() =>CreateGO(swordSlashB) );
-        m_player.playerEvents.OnComboC.AddListener(() =>CreateGO(swordSlashC) );
+        m_player.playerEvents.OnComboA.AddListener(() =>CreateGO(stat.current.slashDatas[0]) );
+        m_player.playerEvents.OnComboB.AddListener(() =>CreateGO(stat.current.slashDatas[1]) );
+        m_player.playerEvents.OnComboC.AddListener(() =>CreateGO(stat.current.slashDatas[2]) );
     }
     
     //播放特效
