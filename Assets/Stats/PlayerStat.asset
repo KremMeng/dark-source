@@ -16,9 +16,9 @@ MonoBehaviour:
   snapForce: 0
   slideForce: 10
   rotationSpeed: 970
-  gravity: 10
-  fallGravity: 15
-  gravityMaxSpeed: 8
+  gravity: 32
+  fallGravity: 64
+  gravityMaxSpeed: 15
   applySlopeFactor: 1
   acceleration: 2
   airAcceleration: 5
@@ -36,6 +36,6 @@ MonoBehaviour:
   rollVelocity: 3.5
   multiJumps: 2
   coyotoJumpThreshold: 0.2
-  maxJumpHeight: 18
-  minJumpHeight: 12
-  jumpForce: 1.2
+  maxJumpHeight: 10
+  minJumpHeight: 7
+  jumpForce: 5

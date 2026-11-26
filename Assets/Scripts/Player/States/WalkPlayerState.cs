@@ -25,6 +25,7 @@ public class WalkPlayerState : PlayerState {
         player.Run();
         player.Roll();
         player.Attack();
+        player.JumpUp();
         //检测相机空间下的玩家输入
         var inputDirection = player.inputs.GetMovementCSDirction();
         player.Accelerate(inputDirection);

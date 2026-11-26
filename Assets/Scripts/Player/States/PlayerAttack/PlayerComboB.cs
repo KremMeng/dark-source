@@ -1,6 +1,7 @@
 using UnityEngine;
 public class PlayerComboB : AttackPlayerState {
     protected override void OnEnter(Player player){
+        player.InputEnabled = false;
         player.playerEvents.OnComboB?.Invoke();
         // 进入b段攻击，连击次数+1
         player.comboCount++;

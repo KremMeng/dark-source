@@ -2,6 +2,7 @@ using UnityEngine;
 //把具体攻击都抽到player里，方便事件发消息
 public  class PlayerComboA : AttackPlayerState {
         protected override void OnEnter(Player player){
+            player.InputEnabled = false;
             player.playerEvents.OnComboA?.Invoke();//转到comboA，无论如何都是触发一段攻击
             // 进入a段攻击，连击次数+1
             player.comboCount++;

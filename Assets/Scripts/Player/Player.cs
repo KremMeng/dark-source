@@ -12,10 +12,11 @@ public class Player : Entity<Player> {
     public PlayerEvents playerEvents;
     public ParticleHandler particlesHandler { get; protected set; }
     
-    public int jumpCounter { get; protected set; } // 记录跳跃次数
+    public int jumpCounter { get; set; } //记录跳跃次数
     public int comboCount{ get; set;} //记录连击次数，每攻击一次数值+1，三段后或超过响应窗口归零
     public bool roll { get; protected set; }
     public bool jab { get; protected set; }
+    public bool beInBattle { get; protected set; } = false;//是否处于战斗中
     
     //Combo攻击相关变量
     public float attackPassingTime; //上次攻击后流逝的时间，每个子攻击状态独立计算
@@ -54,6 +55,16 @@ public class Player : Entity<Player> {
     /// </summary>
     internal void OnJumpFinish(System.Action callback) =>
         GetComponent<PlayerAnimator>()._jumpFinishCallback = callback;
+    /// <summary>
+    /// 注册JumpUp动画完成回调
+    /// </summary>
+    internal void OnJumpUpFinish(System.Action callback) =>
+        GetComponent<PlayerAnimator>()._jumpUpFinishCallback = callback;
+    /// <summary>
+    /// 注册JumpLand动画完成回调
+    /// </summary>
+    internal void OnJumpLandFinish(System.Action callback) =>
+        GetComponent<PlayerAnimator>()._jumpLandFinishCallback = callback;
     
     /// <summary>
     /// 注册Jab动画完成回调
@@ -118,29 +129,17 @@ public class Player : Entity<Player> {
     /// <summary>
     /// 跳跃逻辑--主要进行跳跃条件判定
     /// </summary>
-    public virtual void Jump(){
+    public virtual void JumpUp(){
         //是否触发多段跳
         bool canMultiJump = (jumpCounter > 0) && (jumpCounter < stat.current.multiJumps);
         //是否符合土狼跳跃宽限
         bool canCoyotoJump = (jumpCounter == 0) && (Time.time < timeOfLastGrounded + stat.current.coyotoJumpThreshold);
-        //只要满足任意一个能跳的条件：地面起跳、二段跳、刚离开平台但还在土狼时间内也能起跳，那就给一个最小初速度
-        if ( isGrounded || canMultiJump || canCoyotoJump) {
-            if (inputs.JumpOnPressed()) {
-              Jump(stat.current.maxJumpHeight);
+        if (inputs.JumpOnPressed()) {
+            //只要满足任意一个能跳的条件：地面起跳、二段跳、刚离开平台但还在土狼时间内也能起跳，转到跳跃up状态
+            if (isGrounded || canMultiJump || canCoyotoJump) {
+                states.Change<JumpUpPlayerState>();
             }
         }
-        if (inputs.JumpOnReleased() && jumpCounter > 0 && verticalVelocity.y > stat.current.minJumpHeight) {
-            verticalVelocity = Vector3.up * stat.current.minJumpHeight;
-        }
-    }
-    //需要改成有水平位移的
-    public virtual void Jump(float height){
-        if (inputs.JumpOnPressed()) {
-            states.Change<JumpPlayerState>();
-            verticalVelocity = new Vector3(0, 1.0f, 0);
-            jumpCounter++;
-        }
-        playerEvents.OnJump?.Invoke();
     }
     /// <summary>
     /// 重置跳跃计数，避免累加
@@ -192,7 +191,6 @@ public class Player : Entity<Player> {
     public virtual void Attack(){
         if (inputs.AttackOnPressed()) {
             states.Change<PlayerComboA>();
-            //playerEvents.OnComboA?.Invoke();//转到comboA，无论如何都是触发一段攻击
         }
     }
     /// <summary>

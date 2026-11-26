@@ -1,6 +1,7 @@
 using UnityEngine;
     public class PlayerComboC : AttackPlayerState {
         protected override void OnEnter(Player player){
+            player.InputEnabled = false;
             player.playerEvents.OnComboC?.Invoke();
             player.IsFrozeVelocity(true);
             player.InputEnabled = false;

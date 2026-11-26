@@ -29,6 +29,7 @@ public class PlayerAnimator : MonoBehaviour {
     protected int m_horizonAnimSpeedHash;
     protected int m_healthHash;
     protected int m_jumpCounterHash;
+    protected int m_jumpUpHash;
     protected int m_jabHash;
     protected int m_rollHash;
     protected int m_isGroundedHash;
@@ -46,6 +47,7 @@ public class PlayerAnimator : MonoBehaviour {
     public string horizonAnimName = "Horizontal Animation Speed";   //水平的播放动画速度
     public string healthName = "Health";    //血量
     public string jumpCounterName = "Jump Counter";     //跳跃计数
+    public string jumpUpName = "Jump Up";
     public string isGroundedName = "Is Grounded";       //在地面状态
     public string onStateChangedName = "On State Changed";      //状态切换触发器
     public string jabName = "Jab";
@@ -61,10 +63,14 @@ public class PlayerAnimator : MonoBehaviour {
     // 各个状态的动画完成回调
     public Action _rollFinishCallback;
     public Action _jumpFinishCallback;
+    public Action _jumpUpFinishCallback;
+    public Action _jumpLandFinishCallback;
     public Action _jabFinishCallback;
     public Action _breakFinishCallback;
     public Action _attackCFinishCallback;
     
+
+
     protected void Start(){
         
         InitializePlayer();
@@ -80,6 +86,8 @@ public class PlayerAnimator : MonoBehaviour {
         UpdateAnimatorParams();
         RollAnimFinish();
         JumpAnimFinish();
+        JumpUpAnimFinish();
+        JumpLandAnimFinish();
         JabAnimFinish();
         BreakAnimFinish();
         AttackCAnimFinish();
@@ -139,6 +147,7 @@ public class PlayerAnimator : MonoBehaviour {
         m_horizonAnimSpeedHash = Animator.StringToHash(horizonSpeedName);
         m_healthHash = Animator.StringToHash(healthName);
         m_jumpCounterHash = Animator.StringToHash(jumpCounterName);
+        m_jumpUpHash = Animator.StringToHash(jumpUpName);
         m_jabHash = Animator.StringToHash(jabName);
         m_rollHash = Animator.StringToHash(rollName);
         m_isGroundedHash = Animator.StringToHash(isGroundedName);
@@ -171,7 +180,7 @@ public class PlayerAnimator : MonoBehaviour {
         anim.SetFloat(m_horizonAnimSpeedHash,horizonAnimSpeed,1.0f,Time.deltaTime);
         anim.SetBool(m_isGroundedHash,player.isGrounded);
         
-        anim.SetBool(m_attackHash,player.inputs.AttackOnPressed()); //是否攻击
+     
         anim.SetInteger(m_comboHash,player.comboCount); //记录当前是第几连击
     }
     /// <summary>
@@ -196,6 +205,30 @@ public class PlayerAnimator : MonoBehaviour {
         if (info.normalizedTime >= 1.0f && info.IsName("jump")) {
             _jumpFinishCallback?.Invoke();
             _jumpFinishCallback = null;
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// 当前jumpUp动画播放完毕,切换到目标状态
+    /// </summary>
+    public virtual bool JumpUpAnimFinish(){
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime >= 1.0f && info.IsName("Jump Up")) {
+            _jumpUpFinishCallback?.Invoke();
+            _jumpUpFinishCallback = null;
+            return true;
+        }
+        return false;
+    }
+    /// <summary>
+    /// 当前JumpLand动画播放完毕,切换到目标状态
+    /// </summary>
+    public virtual bool JumpLandAnimFinish(){
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.normalizedTime >= 1.0f && info.IsName("Jump Land")) {
+            _jumpLandFinishCallback?.Invoke();
+            _jumpLandFinishCallback = null;
             return true;
         }
         return false;

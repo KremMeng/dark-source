@@ -14,7 +14,7 @@ public class IdlePlayerState : PlayerState {
         player.SnapToGround();
         //player.Fall();
         player.Run();
-        player.Jump();
+        player.JumpUp();
         player.Roll();
         player.Friction();
         player.Attack();

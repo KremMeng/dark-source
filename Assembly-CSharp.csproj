@@ -128,6 +128,8 @@
     <Compile Include="Assets\Scripts\Enemy\EnemyHealth.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyAnimator.cs" />
     <Compile Include="Assets\Scripts\Enemy\EnemyStateManager.cs" />
+    <Compile Include="Assets\Scripts\Player\States\JumpUpPlayerState.cs" />
+    <Compile Include="Assets\Scripts\Player\States\JumpLandPlayerState.cs" />
     <None Include="Assets\Suriyun\UnityChanShader\Shader\Unitychan_chara_fuku.shader" />
     <None Include="Assets\opengameasset.net.txt" />
     <None Include="Assets\Hovl Studio\Sword slash VFX\Demo scene\HDRP and URP.txt" />

@@ -1,4 +1,7 @@
 using UnityEngine;
+/// <summary>
+/// 横向跳,目前只在roll之前跳
+/// </summary>
 public class JumpPlayerState : PlayerState {
     protected override void OnEnter(Player player){
        // player.verticalVelocity = new Vector3(0, 4.0f, 0);

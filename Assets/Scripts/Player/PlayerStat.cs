@@ -34,7 +34,7 @@ public class PlayerStat : EntityStat<PlayerStat> {
     //=========================跳跃属性=======================
     public float multiJumps = 1;    //可以额外进行多段跳的次数，设成1就是只能二段跳
     public float coyotoJumpThreshold = 0.15f;    //土狼宽限时长
-    public float maxJumpHeight = 3.5f;  //最大跳跃高度
-    public float minJumpHeight = 2.0f;    //最小跳跃高度
-    public float jumpForce = 3.0f; //roll向上的冲量
+    public float maxJumpHeight = 1.0f;  //最大跳跃高度
+    public float minJumpHeight = 0.4f;    //最小跳跃高度
+    public float jumpForce = 1.2f; //roll向上的冲量
 }
